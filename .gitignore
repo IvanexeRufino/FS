@@ -3,6 +3,8 @@
 *.ko
 *.obj
 *.elf
+*.cproject
+*.project
 
 # Precompiled Headers
 *.gch
@@ -31,3 +33,4 @@
 # Debug files
 *.dSYM/
 *.su
+/Debug/
