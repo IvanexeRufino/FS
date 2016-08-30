@@ -11,7 +11,7 @@
 #include <commons/string.h>
 #include <commons/config.h>
 #include <commons/log.h>
-//#define PATH_CONFIG "../Mapas/PuebloPaleta/metadata"
+#define PATH_CONFIG "../Mapas/Ciudad Paleta/metadata"
 #define PORT "10000"   // port we're listening on
 
 // get sockaddr, IPv4 or IPv6:
@@ -44,7 +44,7 @@ int leerConfiguracionCpu(mapa_datos *datos )
 		datos->algoritmo  = config_get_string_value(config, "algoritmo");
 		datos->quantum = config_get_int_value(config, "quantum");
 		datos->retardo = config_get_int_value(config, "retardo");
-		datos->batalla = config_get_int_value(config, "Batalla");
+		datos->batalla = config_get_int_value(config, "batalla");
 		datos->tiempoChequeoDeadlock = config_get_int_value(config, "TiempoChequeoDeadlock");
 		return 1;
 	}
