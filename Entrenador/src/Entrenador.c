@@ -13,6 +13,22 @@
 
 int main(){
 
+	/* Configuración de LOG */
+	#define LOG_FILE "proceso_Entrenador.log"
+
+
+	/* Configuración de LOG */
+	#define PROGRAM_NAME "ENTRENADOR"
+	#define PROGRAM_DESCRIPTION "Proceso ENTRENADOR"
+	#define IS_ACTIVE_CONSOLE true
+	#define T_LOG_LEVEL LOG_LEVEL_INFO
+
+	/* Inicializacion y registro inicial de ejecucion */
+		t_log* logger;
+		logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
+		log_info(logger, PROGRAM_DESCRIPTION);
+
+
 	/*
 	 *  ¿Quien soy? ¿Donde estoy? ¿Existo?
 	 *
@@ -68,16 +84,19 @@ int main(){
 	char message[PACKAGESIZE];
 
 	printf("Conectado al servidor. Bienvenido al sistema, ya puede enviar mensajes. Escriba 'exit' para salir\n");
+	log_info(logger, "Conectado al servidor");
 
 	while(enviar){
 		fgets(message, PACKAGESIZE, stdin);			// Lee una linea en el stdin (lo que escribimos en la consola) hasta encontrar un \n (y lo incluye) o llegar a PACKAGESIZE.
 		if (!strcmp(message,"exit\n"))
 			{
-			enviar = 0;			// Chequeo que el usuario no quiera salir
+			enviar = 0;
+			log_info(logger, "El usuario decidio salir");// Chequeo que el usuario no quiera salir
 			}
 		if (enviar)
 			{
-			send(serverSocket, message, strlen(message) + 1, 0); 	// Solo envio si el usuario no quiere salir.
+			send(serverSocket, message, strlen(message) + 1, 0);
+			log_info(logger, "Se envio el mensaje");  // Solo envio si el usuario no quiere salir.
 			}
 	}
 
