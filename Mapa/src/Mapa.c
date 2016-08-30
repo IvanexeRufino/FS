@@ -57,6 +57,21 @@ int leerConfiguracionCpu(mapa_datos *datos )
 int main(void)
 {
 
+	/* Configuración de LOG */
+	#define LOG_FILE "proceso_Mapa.log"
+
+
+	/* Configuración de LOG */
+	#define PROGRAM_NAME "MAPA"
+	#define PROGRAM_DESCRIPTION "Proceso MAPA"
+	#define IS_ACTIVE_CONSOLE true
+	#define T_LOG_LEVEL LOG_LEVEL_INFO
+
+	/* Inicializacion y registro inicial de ejecucion */
+		t_log* logger;
+		logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
+		log_info(logger, PROGRAM_DESCRIPTION);
+
     fd_set master;    // master file descriptor list
     fd_set read_fds;  // temp file descriptor list for select()
     int fdmax;        // maximum file descriptor number
@@ -86,6 +101,7 @@ int main(void)
     hints.ai_flags = AI_PASSIVE;
     if ((rv = getaddrinfo(NULL, PORT, &hints, &ai)) != 0) {
         fprintf(stderr, "selectserver: %s\n", gai_strerror(rv));
+        log_info(logger, "Fallo la lectura de datos locales para el socket");
         exit(1);
     }
 
@@ -109,6 +125,7 @@ int main(void)
     // if we got here, it means we didn't get bound
     if (p == NULL) {
         fprintf(stderr, "selectserver: failed to bind\n");
+        log_info(logger, "fallo el bind con el socket listener");
         exit(2);
     }
 
@@ -145,7 +162,8 @@ int main(void)
                         &addrlen);
 
                     if (newfd == -1) {
-                        perror("accept");
+                        //perror("accept");
+                        log_info(logger, "Error en el accept");
                     } else {
                         FD_SET(newfd, &master); // add to master set
                         if (newfd > fdmax) {    // keep track of the max
@@ -166,11 +184,12 @@ int main(void)
                             // connection closed
                             printf("selectserver: socket %d hung up\n", i);
                         } else {
-                            perror("recv");
+                            log_info(logger, "Error al recibir datos");
                         }
                         close(i); // bye!
                         FD_CLR(i, &master); // remove from master set
                     } else {
+                    	log_info(logger, "Recibiendo datos de un cliente");
                     	switch (buf[0]){
 
                     	case '1': printf("sos un entrenador");
