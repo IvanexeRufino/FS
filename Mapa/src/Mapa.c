@@ -1,9 +1,3 @@
-/*
- * chat.c
- *
- *  Created on: 19/8/2016
- *      Author: utnso
- */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -13,7 +7,11 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-
+#include <commons/collections/list.h>
+#include <commons/string.h>
+#include <commons/config.h>
+#include <commons/log.h>
+//#define PATH_CONFIG "../Mapas/PuebloPaleta/metadata"
 #define PORT "10000"   // port we're listening on
 
 // get sockaddr, IPv4 or IPv6:
@@ -25,9 +23,40 @@ void *get_in_addr(struct sockaddr *sa)
 
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
+typedef struct
+{
+	char  *ipEscucha;
+	int puertoEscucha;
+	int quantum;
+	int retardo;
+	char  *algoritmo;
+	int batalla;
+	int tiempoChequeoDeadlock;
+	} mapa_datos;
+int leerConfiguracionCpu(mapa_datos *datos )
+{
+	t_config* config = config_create(PATH_CONFIG);
 
+	if ( config_has_property(config, "IP") && config_has_property(config, "Puerto") && config_has_property(config, "algoritmo") && config_has_property(config, "quantum") && config_has_property(config, "retardo") && config_has_property(config, "Batalla") && config_has_property(config, "TiempoChequeoDeadlock"))
+	{
+		datos->ipEscucha = config_get_string_value(config, "IP");
+		datos->puertoEscucha  = config_get_int_value(config, "Puerto");
+		datos->algoritmo  = config_get_string_value(config, "algoritmo");
+		datos->quantum = config_get_int_value(config, "quantum");
+		datos->retardo = config_get_int_value(config, "retardo");
+		datos->batalla = config_get_int_value(config, "Batalla");
+		datos->tiempoChequeoDeadlock = config_get_int_value(config, "TiempoChequeoDeadlock");
+		return 1;
+	}
+	else
+    {
+		return -1;
+    }
+
+}
 int main(void)
 {
+
     fd_set master;    // master file descriptor list
     fd_set read_fds;  // temp file descriptor list for select()
     int fdmax;        // maximum file descriptor number
