@@ -57,9 +57,9 @@ int main(){
 	int serverSocket;
 	serverSocket = socket(serverInfo->ai_family, serverInfo->ai_socktype, serverInfo->ai_protocol);
 
-	int buf;
-	int i;
-	ssize_t nbytes;
+	//int buf;
+	//int i;
+	//ssize_t nbytes;
 
 	/*
 	 * 	Perfecto, ya tengo el medio para conectarme (el archivo), y ya se lo pedi al sistema.

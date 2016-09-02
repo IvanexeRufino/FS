@@ -1,0 +1,5 @@
+[INFO] 18:10:29:994 MAPA/(4686:4686): Proceso MAPA
+[INFO] 18:10:55:265 MAPA/(4686:4686): Recibiendo datos de un cliente
+[INFO] 23:31:19:408 MAPA/(4530:4530): Proceso MAPA
+[INFO] 23:31:38:739 MAPA/(4543:4543): Proceso MAPA
+[INFO] 23:31:38:761 MAPA/(4543:4543): fallo el bind con el socket listener
