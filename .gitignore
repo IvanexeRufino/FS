@@ -34,3 +34,5 @@
 *.dSYM/
 *.su
 /Debug/
+
+*.log
