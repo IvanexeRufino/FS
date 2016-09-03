@@ -33,7 +33,8 @@
 								<option id="gnu.c.link.option.libs.1613320096" name="Libraries (-l)" superClass="gnu.c.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="commons"/>
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="pkmn-battle"/>
-									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="-lnivel-gui"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="nivel-gui"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="curses"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.linker.input.465613264" superClass="cdt.managedbuild.tool.gnu.c.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>

@@ -11,8 +11,11 @@
 #include <commons/string.h>
 #include <commons/config.h>
 #include <commons/log.h>
+#include <tad_items.h>
+#include <nivel.h>
+#include <curses.h>
 #define PATH_CONFIG "../Mapas/Ciudad Paleta/metadata"
-#define PORT "10000"   // port we're listening on
+#define PORT "10000"  // port we're listening on
 
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
@@ -72,6 +75,17 @@ int main(void)
 		logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
 		log_info(logger, PROGRAM_DESCRIPTION);
 
+		//Inicializo la gui --------------------------------
+		 t_list* items = list_create();
+		int rows, cols;
+		int c,r;
+		nivel_gui_inicializar();
+		 nivel_gui_get_area_nivel(&rows, &cols);
+				c = 1;
+				r = 1;
+
+	// --------------------------------
+
     fd_set master;    // conjunto maestro de descriptores de fichero
     fd_set read_fds;  // conjunto temporal de descriptores de fichero para select()
     int fdmax;        // número máximo de descriptores de fichero
@@ -100,7 +114,7 @@ int main(void)
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
     if ((rv = getaddrinfo(NULL, PORT, &hints, &ai)) != 0) {
-        fprintf(stderr, "selectserver: %s\n", gai_strerror(rv));
+ //       fprintf(stderr, "selectserver: %s\n", gai_strerror(rv));
         log_info(logger, "Fallo la lectura de datos locales para el socket");
         exit(1);
     }
@@ -124,7 +138,7 @@ int main(void)
 
     // if we got here, it means we didn't get bound
     if (p == NULL) {
-        fprintf(stderr, "selectserver: failed to bind\n");
+//        fprintf(stderr, "selectserver: failed to bind\n");
         log_info(logger, "fallo el bind con el socket listener");
         exit(2);
     }
@@ -143,9 +157,13 @@ int main(void)
     // seguir la pista del descriptor de fichero mayor
     fdmax = listener; // por ahora es éste
 
+	nivel_gui_dibujar(items, "Prueba");
+
+
+
     // bucle principal
     for(;;) {
-        read_fds = master; // cópialo
+    	read_fds = master; // cópialo
         if (select(fdmax+1, &read_fds, NULL, NULL, NULL) == -1) {
             perror("select");
             exit(4);
@@ -168,9 +186,11 @@ int main(void)
                         FD_SET(newfd, &master); // añadir al conjunto maestro
                         if (newfd > fdmax) {    // actualizar el máximo
                             fdmax = newfd;
+                            //agrego un personaje nuevo
+                            CrearPersonaje(items, '@', r, c);
                         }
-                        printf("selectserver: new connection from %s on "
-                            "socket %d\n",
+                       printf("selectserver: new connection from %s on "
+                           "socket %d\n",
                             inet_ntop(remoteaddr.ss_family,
                                 get_in_addr((struct sockaddr*)&remoteaddr),
                                 remoteIP, INET6_ADDRSTRLEN),
@@ -182,7 +202,7 @@ int main(void)
                         // error o conexión cerrada por el cliente
                         if (nbytes == 0) {
                             // conexión cerrada
-                            printf("selectserver: socket %d hung up\n", i);
+//                           printf("selectserver: socket %d hung up\n", i);
                         } else {
                             log_info(logger, "Error al recibir datos");
                         }
@@ -191,15 +211,33 @@ int main(void)
                     } else {
                     	log_info(logger, "Recibiendo datos de un cliente");
                     	switch (buf[0]){
+                    				case 'J':
+                    				case 'j':
+                    					if (r > 1) {
+                    							r--;
+                    					}
+                    					break;
+                    				case'L':
+                    				case 'l':
+           								if (r < rows) {
+            									r++;
+              								}
+          							break;
+                    				case 'I':
+                    				case 'i':
+										if (c > 1) {
+												c--;
+											}
+           							break;
+                    				case 'K':
+          							case 'k':
+          								if (c < cols) {
+       									c++;
+      								}
+          								break;
+                    			}
 
-                    	case '1': printf("sos un entrenador");
-                    	break;
-                    	case '2': printf("sos otra cosa");
-                    	break;
-                    	default: printf ("no se que sos");
-                    	break;
-                    	}
-                    	printf("\n %s", buf);
+             //       	printf("\n %s", buf);
                     	/*char *message = "recibido\0";
                     	if ((send(i, message,sizeof(message)+1, 0))<=0)
 							{
@@ -236,7 +274,14 @@ int main(void)
                 } // END handle data from client
             } // END got new incoming connection
         } // END looping through file descriptors
+
+    	MoverPersonaje(items, '@', r, c);
+    	nivel_gui_dibujar(items, "Prueba");
+
     } // END for(;;)--and you thought it would never end!
 
     return 0;
-}
+
+
+    }
+
