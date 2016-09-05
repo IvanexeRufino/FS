@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,10 +28,8 @@
 	#define T_LOG_LEVEL LOG_LEVEL_INFO
 
 // get sockaddr, IPv4 or IPv6:
-=======
-#include "Mapa.h"
+//#include "Mapa.h"
 
->>>>>>> 1480d91e16cd430ca24d4ec99380db791097109d
 void *get_in_addr(struct sockaddr *sa)
 {
     if (sa->sa_family == AF_INET) {
@@ -42,7 +39,6 @@ void *get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-<<<<<<< HEAD
 typedef struct
 {
 	char identificador;
@@ -72,10 +68,8 @@ typedef struct
 	int batalla;
 	int tiempoChequeoDeadlock;
 	} mapa_datos;
-int leerConfiguracionMapa(mapa_datos *datos)
-=======
-int leerConfiguracionCpu(mapa_datos *datos )
->>>>>>> 1480d91e16cd430ca24d4ec99380db791097109d
+
+int leerConfiguracionMapa(mapa_datos *datos )
 {
 
 	char nombre[10];
@@ -106,7 +100,6 @@ int leerConfiguracionCpu(mapa_datos *datos )
     }
 
 }
-<<<<<<< HEAD
 
 t_list* listaPersonajes;
 t_list* listaPokenest;
@@ -117,11 +110,8 @@ int main(void)
 	listaPokenest = list_create();
 	listaPersonajes = list_create();
 	/* Inicializacion y registro inicial de ejecucion */
-=======
-int main(void)
-{
+
 		/* Inicializacion y registro inicial de ejecucion */
->>>>>>> 1480d91e16cd430ca24d4ec99380db791097109d
 		t_log* logger;
 		logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
 		log_info(logger, PROGRAM_DESCRIPTION);
@@ -349,4 +339,5 @@ int main(void)
 
 
     }
+
 
