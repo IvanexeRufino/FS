@@ -1,11 +1,41 @@
 #include "Entrenador.h"
 
-int main(){
+int leerConfiguracionMapa(entrenador_datos *datos )
+{
+	char nombre[10];
+	printf("%s", "Nombre del Entrenador?\n");
+	scanf("%s",nombre);
+	char pathconfigMetadata[40] = "Entrenadores/";
+	strcat(pathconfigMetadata, nombre);
+	strcat(pathconfigMetadata,  "/metadata");
+	t_config* config = config_create(pathconfigMetadata);
 
+		if ( config_has_property(config, "nombre") && config_has_property(config, "simbolo")
+		&& config_has_property(config, "hojaDeViaje") && config_has_property(config, "vidas"))
+		{
+			datos->nombre  = config_get_string_value(config, "nombre");
+			datos->simbolo  = config_get_string_value(config, "simbolo");
+			int list_add(t_list *hojaDeViaje, void *hojaDeViaje);
+			datos->vidas = config_get_int_value(config, "vidas");
+			return 1;
+			}
+			else
+		    {
+			return -1;
+		 }
+	}
+
+int main(){
+	entrenador_datos infoEntrenador;
 	/* Inicializacion y registro inicial de ejecucion */
 		t_log* logger;
 		logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
 		log_info(logger, PROGRAM_DESCRIPTION);
+
+		if ( leerConfiguracionMapa ( &infoEntrenador ) == 1 )
+			log_info(logger, "Archivo de configuracion leido correctamente");
+		else
+			log_error(logger,"Error la leer archivo de configuracion");
 
 	/*
 	 *  ¿Quien soy? ¿Donde estoy? ¿Existo?

@@ -19,7 +19,18 @@
 #include <unistd.h>
 #include <commons/log.h>
 #include <commons/config.h>
+#include <commons/collections/list.h>
 #include <stdbool.h>
+
+/*----------------------- Declaraciones de Estructuras ---------------------------------*/
+
+typedef struct
+{
+	char *nombre;
+	char simbolo;
+	t_list* hojaDeViaje;
+	int vidas;
+	} entrenador_datos;
 
 /*----------------------- Declaraciones de Constantes ----------------------------------*/
 	/* Configuración de SOCKETS */

@@ -20,7 +20,11 @@ int leerConfiguracionMapa(mapa_datos *datos )
 	strcat(pathconfigMetadata, nombre);
 	strcat(pathconfigMetadata,  "/metadata");
 	t_config* config = config_create(pathconfigMetadata);
-	if ( config_has_property(config, "IP") && config_has_property(config, "Puerto") && config_has_property(config, "algoritmo") && config_has_property(config, "quantum") && config_has_property(config, "retardo") && config_has_property(config, "Batalla") && config_has_property(config, "TiempoChequeoDeadlock"))
+
+	if ( config_has_property(config, "IP") && config_has_property(config, "Puerto")
+	&& config_has_property(config, "algoritmo") && config_has_property(config, "quantum")
+	&& config_has_property(config, "retardo") && config_has_property(config, "Batalla")
+	&& config_has_property(config, "TiempoChequeoDeadlock"))
 	{
 	/*	int a = config_get_int_value(config,"TiempoChequeoDeadlock");
 		printf("%i", a);			// Esto es para probar si lee el archivo metadata
