@@ -8,7 +8,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "bitarray.h"
+//#include "bitarray.h"
+#include <commons/bitarray.h>
 
 typedef struct {
 	int identificador[7];

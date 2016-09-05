@@ -1,23 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <commons/collections/list.h>
-#include <commons/string.h>
-#include <commons/config.h>
-#include <commons/log.h>
-#include <tad_items.h>
-#include <nivel.h>
-#include <curses.h>
-#define PATH_CONFIG "../Mapas/Ciudad Paleta/metadata"
-#define PORT "10000"  // port we're listening on
+#include "Mapa.h"
 
-// get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
 {
     if (sa->sa_family == AF_INET) {
@@ -26,16 +8,7 @@ void *get_in_addr(struct sockaddr *sa)
 
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
-typedef struct
-{
-	char  *ipEscucha;
-	int puertoEscucha;
-	int quantum;
-	int retardo;
-	char  *algoritmo;
-	int batalla;
-	int tiempoChequeoDeadlock;
-	} mapa_datos;
+
 int leerConfiguracionCpu(mapa_datos *datos )
 {
 	t_config* config = config_create(PATH_CONFIG);
@@ -59,18 +32,7 @@ int leerConfiguracionCpu(mapa_datos *datos )
 }
 int main(void)
 {
-
-	/* Configuración de LOG */
-	#define LOG_FILE "proceso_Mapa.log"
-
-
-	/* Configuración de LOG */
-	#define PROGRAM_NAME "MAPA"
-	#define PROGRAM_DESCRIPTION "Proceso MAPA"
-	#define IS_ACTIVE_CONSOLE true
-	#define T_LOG_LEVEL LOG_LEVEL_INFO
-
-	/* Inicializacion y registro inicial de ejecucion */
+		/* Inicializacion y registro inicial de ejecucion */
 		t_log* logger;
 		logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
 		log_info(logger, PROGRAM_DESCRIPTION);
