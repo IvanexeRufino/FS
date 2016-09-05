@@ -1,33 +1,11 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <unistd.h>
-#include <commons/log.h>
-#include <commons/config.h>
-#define IP "127.0.0.1"
-#define PUERTO "10000"
-#define PACKAGESIZE 1024	// Define cual va a ser el size maximo del paquete a enviar
+#include "Entrenador.h"
 
 int main(){
-
-	/* Configuración de LOG */
-	#define LOG_FILE "proceso_Entrenador.log"
-
-
-	/* Configuración de LOG */
-	#define PROGRAM_NAME "ENTRENADOR"
-	#define PROGRAM_DESCRIPTION "Proceso ENTRENADOR"
-	#define IS_ACTIVE_CONSOLE true
-	#define T_LOG_LEVEL LOG_LEVEL_INFO
 
 	/* Inicializacion y registro inicial de ejecucion */
 		t_log* logger;
 		logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
 		log_info(logger, PROGRAM_DESCRIPTION);
-
 
 	/*
 	 *  ¿Quien soy? ¿Donde estoy? ¿Existo?
@@ -45,7 +23,6 @@ int main(){
 	hints.ai_socktype = SOCK_STREAM;	// Indica que usaremos el protocolo TCP
 
 	getaddrinfo(IP, PUERTO, &hints, &serverInfo);	// Carga en serverInfo los datos de la conexion
-
 
 	/*
 	 * 	Ya se quien y a donde me tengo que conectar... ¿Y ahora?
@@ -99,9 +76,6 @@ int main(){
 			log_info(logger, "Se envio el mensaje");  // Solo envio si el usuario no quiere salir.
 			}
 	}
-
-
-
 
 	/*
 	 *	Listo! Cree un medio de comunicacion con el servidor, me conecte con y le envie cosas...
