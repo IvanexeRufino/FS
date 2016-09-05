@@ -27,7 +27,7 @@
 typedef struct
 {
 	char *nombre;
-	char simbolo;
+	char *simbolo;
 	t_list* hojaDeViaje;
 	int vidas;
 	} entrenador_datos;

@@ -15,7 +15,7 @@ int leerConfiguracionMapa(entrenador_datos *datos )
 		{
 			datos->nombre  = config_get_string_value(config, "nombre");
 			datos->simbolo  = config_get_string_value(config, "simbolo");
-			int list_add(t_list *hojaDeViaje, void *hojaDeViaje);
+			//int list_add(t_list *hojaDeViaje, void *hojaDeViaje);
 			datos->vidas = config_get_int_value(config, "vidas");
 			return 1;
 			}
