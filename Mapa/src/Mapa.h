@@ -23,6 +23,7 @@
 #include <commons/string.h>
 #include <commons/config.h>
 #include <commons/log.h>
+#include <commons/string.h>
 #include <tad_items.h>
 #include <nivel.h>
 #include <curses.h>
@@ -31,11 +32,30 @@
 
 typedef struct
 {
-	char  *ipEscucha;
+	char identificador;
+	char ultimoRecurso;
+	int socket;
+	int distanciaARecurso;
+	bool posicionPedida;
+}t_registroPersonaje;
+
+typedef struct
+{
+	char identificador;
+	char tipo;
+	int x;
+	int y;
+	int cantidadDisp;
+}t_registroPokenest;
+
+typedef struct
+{
+	char *nombre;
+	char *ipEscucha;
 	int puertoEscucha;
 	int quantum;
 	int retardo;
-	char  *algoritmo;
+	char *algoritmo;
 	int batalla;
 	int tiempoChequeoDeadlock;
 	} mapa_datos;
