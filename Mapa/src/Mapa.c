@@ -11,54 +11,11 @@
 #include <commons/string.h>
 #include <commons/config.h>
 #include <commons/log.h>
+#include <commons/string.h>
 #include <tad_items.h>
 #include <nivel.h>
 #include <curses.h>
-#define PATH_CONFIG "../Mapas/Ciudad Paleta/metadata"
 #define PORT "10000"  // port we're listening on
-
-// get sockaddr, IPv4 or IPv6:
-void *get_in_addr(struct sockaddr *sa)
-{
-    if (sa->sa_family == AF_INET) {
-        return &(((struct sockaddr_in*)sa)->sin_addr);
-    }
-
-    return &(((struct sockaddr_in6*)sa)->sin6_addr);
-}
-typedef struct
-{
-	char  *ipEscucha;
-	int puertoEscucha;
-	int quantum;
-	int retardo;
-	char  *algoritmo;
-	int batalla;
-	int tiempoChequeoDeadlock;
-	} mapa_datos;
-int leerConfiguracionCpu(mapa_datos *datos )
-{
-	t_config* config = config_create(PATH_CONFIG);
-
-	if ( config_has_property(config, "IP") && config_has_property(config, "Puerto") && config_has_property(config, "algoritmo") && config_has_property(config, "quantum") && config_has_property(config, "retardo") && config_has_property(config, "Batalla") && config_has_property(config, "TiempoChequeoDeadlock"))
-	{
-		datos->ipEscucha = config_get_string_value(config, "IP");
-		datos->puertoEscucha  = config_get_int_value(config, "Puerto");
-		datos->algoritmo  = config_get_string_value(config, "algoritmo");
-		datos->quantum = config_get_int_value(config, "quantum");
-		datos->retardo = config_get_int_value(config, "retardo");
-		datos->batalla = config_get_int_value(config, "batalla");
-		datos->tiempoChequeoDeadlock = config_get_int_value(config, "TiempoChequeoDeadlock");
-		return 1;
-	}
-	else
-    {
-		return -1;
-    }
-
-}
-int main(void)
-{
 
 	/* Configuración de LOG */
 	#define LOG_FILE "proceso_Mapa.log"
@@ -70,21 +27,109 @@ int main(void)
 	#define IS_ACTIVE_CONSOLE true
 	#define T_LOG_LEVEL LOG_LEVEL_INFO
 
+// get sockaddr, IPv4 or IPv6:
+void *get_in_addr(struct sockaddr *sa)
+{
+    if (sa->sa_family == AF_INET) {
+        return &(((struct sockaddr_in*)sa)->sin_addr);
+    }
+
+    return &(((struct sockaddr_in6*)sa)->sin6_addr);
+}
+
+typedef struct
+{
+	char identificador;
+	char ultimoRecurso;
+	int socket;
+	int distanciaARecurso;
+	bool posicionPedida;
+}t_registroPersonaje;
+
+typedef struct
+{
+	char identificador;
+	char tipo;
+	int x;
+	int y;
+	int cantidadDisp;
+}t_registroPokenest;
+
+typedef struct
+{
+	char *nombre;
+	char *ipEscucha;
+	int puertoEscucha;
+	int quantum;
+	int retardo;
+	char *algoritmo;
+	int batalla;
+	int tiempoChequeoDeadlock;
+	} mapa_datos;
+int leerConfiguracionMapa(mapa_datos *datos)
+{
+
+	char nombre[10];
+	//printf("%s", "Nombre del Mapa?\n");
+	scanf("%s",nombre);
+	char pathconfigMetadata[40] = "Mapas/Ciudad ";
+	strcat(pathconfigMetadata, nombre);
+	strcat(pathconfigMetadata,  "/metadata");
+	t_config* config = config_create(pathconfigMetadata);
+	if ( config_has_property(config, "IP") && config_has_property(config, "Puerto") && config_has_property(config, "algoritmo") && config_has_property(config, "quantum") && config_has_property(config, "retardo") && config_has_property(config, "Batalla") && config_has_property(config, "TiempoChequeoDeadlock"))
+	{
+	/*	int a = config_get_int_value(config,"TiempoChequeoDeadlock");
+		printf("%i", a);			// Esto es para probar si lee el archivo metadata
+		puts(pathconfigMetadata);   */
+		datos->nombre = nombre;
+		datos->tiempoChequeoDeadlock = config_get_int_value(config, "TiempoChequeoDeadlock");
+		datos->batalla = config_get_int_value(config, "batalla");
+		datos->algoritmo  = config_get_string_value(config, "algoritmo");
+		datos->quantum = config_get_int_value(config, "quantum");
+		datos->retardo = config_get_int_value(config, "retardo");
+		datos->ipEscucha = config_get_string_value(config, "IP");
+		datos->puertoEscucha  = config_get_int_value(config, "Puerto");
+		return 1;
+	}
+	else
+    {
+		return -1;
+    }
+
+}
+
+t_list* listaPersonajes;
+t_list* listaPokenest;
+
+int main(void)
+{
+	mapa_datos infoMapa;
+	listaPokenest = list_create();
+	listaPersonajes = list_create();
 	/* Inicializacion y registro inicial de ejecucion */
 		t_log* logger;
 		logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
 		log_info(logger, PROGRAM_DESCRIPTION);
 
+	//--------
+
+		  if ( leerConfiguracionMapa ( &infoMapa ) == 1 )
+		  		  log_info(logger, "Archivo de configuracion leido correctamente");
+			  else
+				  log_error(logger,"Error la leer archivo de configuracion");
+
+
 		//Inicializo la gui --------------------------------
-		 t_list* items = list_create();
-		int rows, cols;
-		int c,r;
-		nivel_gui_inicializar();
-		 nivel_gui_get_area_nivel(&rows, &cols);
-				c = 1;
-				r = 1;
+	t_list* items = list_create();
+	int rows, cols;
+	int c,r;
+	nivel_gui_inicializar();
+	nivel_gui_get_area_nivel(&rows, &cols);
+	c = 1;
+	r = 1;
 
 	// --------------------------------
+	//Inicializo la config del mapa
 
     fd_set master;    // conjunto maestro de descriptores de fichero
     fd_set read_fds;  // conjunto temporal de descriptores de fichero para select()
@@ -157,7 +202,7 @@ int main(void)
     // seguir la pista del descriptor de fichero mayor
     fdmax = listener; // por ahora es éste
 
-	nivel_gui_dibujar(items, "Prueba");
+	nivel_gui_dibujar(items,  infoMapa.nombre );
 
 
 
@@ -187,7 +232,12 @@ int main(void)
                         if (newfd > fdmax) {    // actualizar el máximo
                             fdmax = newfd;
                             //agrego un personaje nuevo
-                            CrearPersonaje(items, '@', r, c);
+  /*                          t_registroPersonaje* nuevoPersonaje = malloc(sizeof(t_registroPersonaje));
+                            list_add(listaPersonajes,nuevoPersonaje);
+                            nuevoPersonaje->identificador = '@';// *(unPaquete->datos);
+                            nuevoPersonaje->socket= socket;
+                            nuevoPersonaje->ultimoRecurso= '\n';*/
+               //             CrearPersonaje(items, nuevoPersonaje->identificador, 0, 0);
                         }
                        printf("selectserver: new connection from %s on "
                            "socket %d\n",
