@@ -1,0 +1,8 @@
+nombre=Bruck
+simbolo=/
+hojaDeViaje=[PuebloPaleta,CiudadVerde,CiudadPlateada]
+obj[PuebloPaleta]=[G,P,B,G]
+obj[CiudadVerde]=[C,Z,C,Z]
+obj[CiudadPlateada]=[P,M,P,M,S,P]
+vidas=3
+reintentos=0
