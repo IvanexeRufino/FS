@@ -28,7 +28,8 @@ typedef struct
 {
 	char *nombre;
 	char *simbolo;
-	t_list* hojaDeViaje;
+	char** hojaDeViaje;
+	t_list ObjMapa;
 	int vidas;
 	} entrenador_datos;
 

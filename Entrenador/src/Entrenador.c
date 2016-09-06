@@ -1,4 +1,6 @@
 #include "Entrenador.h"
+char *Objetivo;
+int totalMapas=0;
 
 int leerConfiguracionMapa(entrenador_datos *datos )
 {
@@ -13,10 +15,35 @@ int leerConfiguracionMapa(entrenador_datos *datos )
 		if ( config_has_property(config, "nombre") && config_has_property(config, "simbolo")
 		&& config_has_property(config, "hojaDeViaje") && config_has_property(config, "vidas"))
 		{
+			/*char *configuracion;
+			configuracion = string_duplicate("\nConfiguración:");
+			string_append(&configuracion, config_get_string_value(config, "nombre"));
 			datos->nombre  = config_get_string_value(config, "nombre");
+
+			string_append(&configuracion, "\nsimbolo: ");
 			datos->simbolo  = config_get_string_value(config, "simbolo");
-			//int list_add(t_list *hojaDeViaje, void *hojaDeViaje);
+			string_append(&configuracion,config_get_string_value(config, "simbolo"));
+
+			string_append(&configuracion, "\nvidas: ");
 			datos->vidas = config_get_int_value(config, "vidas");
+			string_append(&configuracion,config_get_int_value(config, "vidas"));
+
+			string_append(&configuracion,"\nhojaDeViaje");
+			string_append(&configuracion,(char*)config_get_string_value(config,"\nhojaDeViaje"));
+			datos->hojaDeViaje = string_get_string_as_array(config_get_string_value(config, "hojaDeViaje"));
+			char* palabra = string_new();
+			int k=0;
+			while(datos->hojaDeViaje[totalMapas] != NULL)
+				{
+				string_append_with_format(&palabra,"obj[%s]",datos->hojaDeViaje[totalMapas]);
+				string_append_with_format(&config,"\nobj[%s]",datos->hojaDeViaje[totalMapas]);
+				Objetivo = (char*)config_get_string_value(config,palabra);
+				list_add(datos->ObjMapa, Objetivo);
+				string_append(&config,(char*)list_get(datos->ObjMapa,k));
+				totalMapas++;
+				k++;
+				palabra = string_new();
+				}*/
 			return 1;
 			}
 			else
@@ -24,6 +51,7 @@ int leerConfiguracionMapa(entrenador_datos *datos )
 			return -1;
 		 }
 	}
+
 
 int main(){
 	entrenador_datos infoEntrenador;

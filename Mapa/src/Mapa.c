@@ -31,7 +31,7 @@ int leerConfiguracionMapa(mapa_datos *datos )
 		puts(pathconfigMetadata);   */
 		datos->nombre = nombre;
 		datos->tiempoChequeoDeadlock = config_get_int_value(config, "TiempoChequeoDeadlock");
-		datos->batalla = config_get_int_value(config, "batalla");
+		datos->batalla = config_get_int_value(config, "Batalla");
 		datos->algoritmo  = config_get_string_value(config, "algoritmo");
 		datos->quantum = config_get_int_value(config, "quantum");
 		datos->retardo = config_get_int_value(config, "retardo");
