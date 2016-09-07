@@ -12,15 +12,15 @@ void *get_in_addr(struct sockaddr *sa)
 
 int leerConfiguracionMapa(mapa_datos *datos )
 {
-
 	char nombre[10];
-	//printf("%s", "Nombre del Mapa?\n");
+	printf("%s", "Nombre del Mapa?\n");
 	scanf("%s",nombre);
 	char pathconfigMetadata[40] = "Mapas/Ciudad ";
 	strcat(pathconfigMetadata, nombre);
 	strcat(pathconfigMetadata,  "/metadata");
 	t_config* config = config_create(pathconfigMetadata);
 
+	// Verifico que los parametros tengan sus valores OK
 	if ( config_has_property(config, "IP") && config_has_property(config, "Puerto")
 	&& config_has_property(config, "algoritmo") && config_has_property(config, "quantum")
 	&& config_has_property(config, "retardo") && config_has_property(config, "Batalla")
@@ -37,6 +37,18 @@ int leerConfiguracionMapa(mapa_datos *datos )
 		datos->retardo = config_get_int_value(config, "retardo");
 		datos->ipEscucha = config_get_string_value(config, "IP");
 		datos->puertoEscucha  = config_get_int_value(config, "Puerto");
+
+		printf(" El nombre del mapa es: %s\n su tiempoChequeoDeadlock es: %d\n su batalla es: %d\n "
+				"su algoritmo es: %s\n su quantum es de: %d\n su retardo es: %d\n su ipEscucha es: %s\n "
+				"su puertoEscucha es: %d\n"
+								,datos->nombre,
+								datos->tiempoChequeoDeadlock,
+								datos->batalla,
+								datos->algoritmo,
+								datos->quantum,
+								datos->retardo,
+								datos->ipEscucha,
+								datos->puertoEscucha);
 		return 1;
 	}
 	else
@@ -46,15 +58,12 @@ int leerConfiguracionMapa(mapa_datos *datos )
 
 }
 
-t_list* listaPersonajes;
 t_list* listaPokenest;
+mapa_datos* infoMapa;
 
 int main(void)
 {
-	mapa_datos infoMapa;
 	listaPokenest = list_create();
-	listaPersonajes = list_create();
-	/* Inicializacion y registro inicial de ejecucion */
 
 		/* Inicializacion y registro inicial de ejecucion */
 		t_log* logger;
@@ -62,21 +71,11 @@ int main(void)
 		log_info(logger, PROGRAM_DESCRIPTION);
 
 	//--------
-
-		  if ( leerConfiguracionMapa ( &infoMapa ) == 1 )
+		infoMapa = malloc(sizeof(mapa_datos));
+	  if ( leerConfiguracionMapa (infoMapa) == 1 )
 		  		  log_info(logger, "Archivo de configuracion leido correctamente");
 			  else
 				  log_error(logger,"Error la leer archivo de configuracion");
-
-
-		//Inicializo la gui --------------------------------
-	t_list* items = list_create();
-	int rows, cols;
-	int c,r;
-	nivel_gui_inicializar();
-	nivel_gui_get_area_nivel(&rows, &cols);
-	c = 1;
-	r = 1;
 
 	// --------------------------------
 	//Inicializo la config del mapa
@@ -152,7 +151,17 @@ int main(void)
     // seguir la pista del descriptor de fichero mayor
     fdmax = listener; // por ahora es éste
 
-	nivel_gui_dibujar(items,  infoMapa.nombre );
+	//Inicializo la gui --------------------------------
+
+    t_list* items = list_create();
+	int rows, cols;
+	int c,r;
+	nivel_gui_inicializar();
+	nivel_gui_get_area_nivel(&rows, &cols);
+	c = 1;
+	r = 1;
+
+	nivel_gui_dibujar(items,  infoMapa->nombre );
 
 
 
