@@ -1,66 +1,79 @@
 #include "Entrenador.h"
-char *Objetivo;
-int totalMapas=0;
 
-int leerConfiguracionMapa(entrenador_datos *datos )
+char* objetivosDelMapa(char* mapaParaAgregar) {
+
+	char* objetoYparentesisIzquierdo= "obj[";
+	char*parentesisDerecho="]";
+	char * new= malloc(strlen(mapaParaAgregar)+strlen(objetoYparentesisIzquierdo)+strlen(parentesisDerecho)+1);
+	new[0]='\0';
+	strcat(new,objetoYparentesisIzquierdo);
+	strcat(new,mapaParaAgregar);
+	strcat(new,parentesisDerecho);
+	return new;
+}
+
+int leerConfiguracionEntrenador(entrenador_datos *datos)
 {
 	char nombre[10];
 	printf("%s", "Nombre del Entrenador?\n");
 	scanf("%s",nombre);
-	char pathconfigMetadata[40] = "Entrenadores/";
-	strcat(pathconfigMetadata, nombre);
-	strcat(pathconfigMetadata,  "/metadata");
+	char pathconfigMetadata[40] ="Entrenadores/";
+	strcat(pathconfigMetadata,nombre);
+	strcat(pathconfigMetadata,"/metadata");
 	t_config* config = config_create(pathconfigMetadata);
-
-		if ( config_has_property(config, "nombre") && config_has_property(config, "simbolo")
-		&& config_has_property(config, "hojaDeViaje") && config_has_property(config, "vidas"))
+		// Verifico que los parametros tengan sus valores OK
+		if ( config_has_property(config, "nombre") && config_has_property(config, "simbolo")&& config_has_property(config, "vidas"))
 		{
-			/*char *configuracion;
-			configuracion = string_duplicate("\nConfiguración:");
-			string_append(&configuracion, config_get_string_value(config, "nombre"));
-			datos->nombre  = config_get_string_value(config, "nombre");
-
-			string_append(&configuracion, "\nsimbolo: ");
-			datos->simbolo  = config_get_string_value(config, "simbolo");
-			string_append(&configuracion,config_get_string_value(config, "simbolo"));
-
-			string_append(&configuracion, "\nvidas: ");
+			datos->nombre= config_get_string_value(config,"nombre");
+			datos->simbolo = config_get_string_value(config,"simbolo");
 			datos->vidas = config_get_int_value(config, "vidas");
-			string_append(&configuracion,config_get_int_value(config, "vidas"));
 
-			string_append(&configuracion,"\nhojaDeViaje");
-			string_append(&configuracion,(char*)config_get_string_value(config,"\nhojaDeViaje"));
-			datos->hojaDeViaje = string_get_string_as_array(config_get_string_value(config, "hojaDeViaje"));
-			char* palabra = string_new();
-			int k=0;
-			while(datos->hojaDeViaje[totalMapas] != NULL)
-				{
-				string_append_with_format(&palabra,"obj[%s]",datos->hojaDeViaje[totalMapas]);
-				string_append_with_format(&config,"\nobj[%s]",datos->hojaDeViaje[totalMapas]);
-				Objetivo = (char*)config_get_string_value(config,palabra);
-				list_add(datos->ObjMapa, Objetivo);
-				string_append(&config,(char*)list_get(datos->ObjMapa,k));
-				totalMapas++;
+			datos->hojaDeViaje=dictionary_create();
+			int k = 0;
+			//Recorre la hoja de viaje, ciudad por ciudad
+				while (&(*config_get_array_value(config, "hojaDeViaje")[k])!= NULL) {
+					char *palabraAAgregar =config_get_array_value(config, "hojaDeViaje")[k];
+					if(config_has_property(config,objetivosDelMapa(palabraAAgregar))){
+						int i=0;
+						//Recorre cada objetivo del mapa, pokemon a pokemon
+						while(&(*config_get_array_value(config, objetivosDelMapa(palabraAAgregar))[i])!= NULL){
+							char* valor = malloc(sizeof(char));
+							valor = config_get_array_value(config, objetivosDelMapa(palabraAAgregar))[i];
+							dictionary_put(datos->hojaDeViaje,
+							&(*config_get_array_value(config, "hojaDeViaje")[k]),(void*) valor);
+						i++;
+						}
+					}
 				k++;
-				palabra = string_new();
-				}*/
+				}
+			void imprimirClaveYValor(char* key, void* data) {
+			char* pokemon = (char *) data;
+			printf("Variable: %s  Valor: %s \n", key, pokemon);
+			}
+
+			printf("el nombre del entrenador es: %s\n su simbolo es: %s\n sus vidas son:%d\n"
+						,datos->nombre,
+						datos->simbolo,
+						datos->vidas);
+			dictionary_iterator(datos->hojaDeViaje, imprimirClaveYValor);
 			return 1;
 			}
 			else
 		    {
 			return -1;
-		 }
+		    }
 	}
 
-
+	entrenador_datos* infoEntrenador;
 int main(){
-	entrenador_datos infoEntrenador;
+
 	/* Inicializacion y registro inicial de ejecucion */
 		t_log* logger;
 		logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
 		log_info(logger, PROGRAM_DESCRIPTION);
 
-		if ( leerConfiguracionMapa ( &infoEntrenador ) == 1 )
+		infoEntrenador = malloc(sizeof(entrenador_datos));
+		if ( leerConfiguracionEntrenador(infoEntrenador) == 1 )
 			log_info(logger, "Archivo de configuracion leido correctamente");
 		else
 			log_error(logger,"Error la leer archivo de configuracion");

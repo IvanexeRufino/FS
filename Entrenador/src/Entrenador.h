@@ -28,8 +28,7 @@ typedef struct
 {
 	char *nombre;
 	char *simbolo;
-	char** hojaDeViaje;
-	t_list ObjMapa;
+	t_dictionary* hojaDeViaje;
 	int vidas;
 	} entrenador_datos;
 
@@ -47,5 +46,9 @@ typedef struct
 	#define PROGRAM_DESCRIPTION "Proceso ENTRENADOR"
 	#define IS_ACTIVE_CONSOLE true
 	#define T_LOG_LEVEL LOG_LEVEL_INFO
+
+/*----------------------- Declaraciones de Prototipos ---------------------------------*/
+char* objetivosDelMapa(char* mapaParaAgregar);
+int leerConfiguracionEntrenador(entrenador_datos *datos);
 
 #endif /* ENTRENADOR_H_ */
