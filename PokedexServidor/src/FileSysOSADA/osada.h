@@ -1,3 +1,4 @@
+#include <stdint.h>
 #define OSADA_BLOCK_SIZE 64
 #define OSADA_FILENAME_LENGTH 17
 
