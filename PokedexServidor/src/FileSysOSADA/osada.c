@@ -15,7 +15,7 @@ int main (void) {
 	FILE *archivo;
 	osada_header *header;
 
-	archivo = fopen("/home/utnso/Escritorio/disco.bin","r");
+	archivo = fopen("disco.bin","r");
 	fread(header,sizeof(osada_header),1,archivo);
 	printf("El identificador ocupa (bytes): %d\n",sizeof(header->magic_number));
 	printf("La version ocupa (bytes): %d\n",sizeof(header->version));
