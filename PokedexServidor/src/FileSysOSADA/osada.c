@@ -1,0 +1,2 @@
+#include "osada.h"
+
