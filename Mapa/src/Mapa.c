@@ -214,11 +214,16 @@ int main(void)
                         FD_SET(newfd, &master); // añadir al conjunto maestro
                         if (newfd > fdmax) {    // actualizar el máximo
                             fdmax = newfd;
-                            //agrego un personaje nuevo
-                       //     t_registroPersonaje* nuevoPersonaje = malloc(sizeof(t_registroPersonaje));
-                       //   recv(i, nuevoPersonaje, sizeof nuevoPersonaje, 0);
-                       //     list_add(items, nuevoPersonaje);
-                            CrearPersonaje(items, '@', 0, 0);
+                            //agrego un entrenador nuevo
+
+                            //void *buffer = malloc(1);
+                       //     recv(i, buffer, 1, 0);
+                         /*   t_registroPersonaje* nuevoPersonaje = malloc(sizeof(t_registroPersonaje));
+                            memcpy(&(nuevoPersonaje->identificador), buffer, 1);
+                            nuevoPersonaje->identificador = buf;
+                            nuevoPersonaje->socket=newfd;*/
+                            //puts(buf);
+                           CrearPersonaje(items, '@', 0, 0);
                         }
                        printf("selectserver: new connection from %s on "
                            "socket %d\n",
