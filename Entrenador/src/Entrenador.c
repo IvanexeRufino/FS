@@ -73,10 +73,10 @@ int main(){
 		log_info(logger, PROGRAM_DESCRIPTION);
 
 		infoEntrenador = malloc(sizeof(entrenador_datos));
-		if ( leerConfiguracionEntrenador(infoEntrenador) == 1 )
-			log_info(logger, "Archivo de configuracion leido correctamente");
-		else
-			log_error(logger,"Error la leer archivo de configuracion");
+//		if ( leerConfiguracionEntrenador(infoEntrenador) == 1 )
+//			log_info(logger, "Archivo de configuracion leido correctamente");
+//		else
+//			log_error(logger,"Error la leer archivo de configuracion");
 
 	/*
 	 *  Obtiene los datos de la direccion de red y lo guarda en serverInfo.
@@ -110,10 +110,14 @@ int main(){
 	 */
 	int enviar = 1;
 	char message[PACKAGESIZE];
-/*	void *buffer = malloc(1);
-	memcpy(buffer, &(infoEntrenador->simbolo), 1);
+	char buf = 't';
+	char* buffer = malloc(1);
+	memcpy(buffer, &buf, 1);
+	//memcpy(buffer, &(infoEntrenador->simbolo), 1);
+	//buffer[1] = '\0';
+	printf("sending char: %c\n", buffer);
 	send(serverSocket, buffer, 1,0);
-*/
+
 
 	puts(infoEntrenador->simbolo);
 	//send(serverSocket, infoEntrenador->simbolo , infoEntrenador->simbolo +1 , 0);
