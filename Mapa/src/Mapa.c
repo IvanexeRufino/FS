@@ -1,5 +1,8 @@
 #include "Mapa.h"
 
+t_list* listaPokenest;
+mapa_datos* infoMapa;
+
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
 {
@@ -10,12 +13,12 @@ void *get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-int leerConfiguracionMapa(mapa_datos *datos )
+int leerConfiguracionMapa(mapa_datos *datos, t_list* listaPokenest)
 {
 	char nombre[10];
 	printf("%s", "Nombre del Mapa?\n");
 	scanf("%s",nombre);
-	char pathconfigMetadata[40] = "Mapas/Ciudad ";
+	char pathconfigMetadata[40] = "../Mapas/Ciudad ";
 	strcat(pathconfigMetadata, nombre);
 	strcat(pathconfigMetadata,  "/metadata");
 	t_config* config = config_create(pathconfigMetadata);
@@ -26,9 +29,6 @@ int leerConfiguracionMapa(mapa_datos *datos )
 	&& config_has_property(config, "retardo") && config_has_property(config, "Batalla")
 	&& config_has_property(config, "TiempoChequeoDeadlock"))
 	{
-	/*	int a = config_get_int_value(config,"TiempoChequeoDeadlock");
-		printf("%i", a);			// Esto es para probar si lee el archivo metadata
-		puts(pathconfigMetadata);   */
 		datos->nombre = nombre;
 		datos->tiempoChequeoDeadlock = config_get_int_value(config, "TiempoChequeoDeadlock");
 		datos->batalla = config_get_int_value(config, "Batalla");
@@ -49,7 +49,9 @@ int leerConfiguracionMapa(mapa_datos *datos )
 								datos->retardo,
 								datos->ipEscucha,
 								datos->puertoEscucha);
-		return 1;
+		//Leo todas la pokenest ******************************************************* POR AHORA UNA
+	//	if(leerConfiguracionPokenest (listaPokenest, nombre)== 1)
+			return 1;
 	}
 	else
     {
@@ -58,11 +60,33 @@ int leerConfiguracionMapa(mapa_datos *datos )
 
 }
 
-t_list* listaPokenest;
-mapa_datos* infoMapa;
+int leerConfiguracionPokenest(t_list* pokeNests, char* mapa){
+	char pathpokenestMetadata[40] = "Mapas/Ciudad ";
+	strcat(pathpokenestMetadata, mapa);
+	strcat(pathpokenestMetadata,"/PokeNests/Pikachu/metadata");
+	t_config* configNest = config_create(pathpokenestMetadata);
+	if (config_has_property(configNest, "Tipo") /*&& config_has_property(configNest, "Posicion")*/ && config_has_property(configNest, "Identificador")){
+		t_registroPokenest* pokenest = malloc(sizeof(t_registroPokenest));
+		pokenest->tipo = config_get_string_value(configNest, "Tipo");
+		pokenest->identificador= config_get_string_value(configNest, "Identificador");
+		pokenest->x =config_get_int_value(configNest,"X");
+		pokenest->y = config_get_int_value(configNest,"Y");
+
+		printf("\n El nombre del Nest es: Pikachu\n su posicion es X: %d\n Y es: %d\n "
+						"su identificador: %s\n"
+										,pokenest->x, pokenest->y, pokenest->identificador);
+
+		pokeNests = malloc(sizeof(t_list));
+		list_add(pokeNests,(void*) pokenest);
+		return 1;
+	}
+
+	return -1;
+}
 
 int main(void)
 {
+	listaPokenest = malloc(sizeof(t_list));
 	listaPokenest = list_create();
 
 		/* Inicializacion y registro inicial de ejecucion */
@@ -71,11 +95,12 @@ int main(void)
 		log_info(logger, PROGRAM_DESCRIPTION);
 
 	//--------
-		infoMapa = malloc(sizeof(mapa_datos));
-	  if ( leerConfiguracionMapa (infoMapa) == 1 )
+	  infoMapa = malloc(sizeof(mapa_datos));
+	  if (leerConfiguracionMapa (infoMapa, listaPokenest) == 1)
 		  		  log_info(logger, "Archivo de configuracion leido correctamente");
 			  else
 				  log_error(logger,"Error la leer archivo de configuracion");
+
 
 	// --------------------------------
 	//Inicializo la config del mapa
@@ -107,8 +132,7 @@ int main(void)
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
-    if ((rv = getaddrinfo(NULL, PORT, &hints, &ai)) != 0) {
- //       fprintf(stderr, "selectserver: %s\n", gai_strerror(rv));
+    if ((rv = getaddrinfo(NULL, PORT , &hints, &ai)) != 0) {
         log_info(logger, "Fallo la lectura de datos locales para el socket");
         exit(1);
     }
@@ -132,7 +156,6 @@ int main(void)
 
     // if we got here, it means we didn't get bound
     if (p == NULL) {
-//        fprintf(stderr, "selectserver: failed to bind\n");
         log_info(logger, "fallo el bind con el socket listener");
         exit(2);
     }
@@ -154,7 +177,8 @@ int main(void)
 	//Inicializo la gui --------------------------------
 
     t_list* items = list_create();
-	int rows, cols;
+    list_add_all(items,listaPokenest);
+    int rows, cols;
 	int c,r;
 	nivel_gui_inicializar();
 	nivel_gui_get_area_nivel(&rows, &cols);
@@ -191,12 +215,10 @@ int main(void)
                         if (newfd > fdmax) {    // actualizar el máximo
                             fdmax = newfd;
                             //agrego un personaje nuevo
-  /*                          t_registroPersonaje* nuevoPersonaje = malloc(sizeof(t_registroPersonaje));
-                            list_add(listaPersonajes,nuevoPersonaje);
-                            nuevoPersonaje->identificador = '@';// *(unPaquete->datos);
-                            nuevoPersonaje->socket= socket;
-                            nuevoPersonaje->ultimoRecurso= '\n';*/
-               //             CrearPersonaje(items, nuevoPersonaje->identificador, 0, 0);
+                       //     t_registroPersonaje* nuevoPersonaje = malloc(sizeof(t_registroPersonaje));
+                       //   recv(i, nuevoPersonaje, sizeof nuevoPersonaje, 0);
+                       //     list_add(items, nuevoPersonaje);
+                            CrearPersonaje(items, '@', 0, 0);
                         }
                        printf("selectserver: new connection from %s on "
                            "socket %d\n",
@@ -218,7 +240,7 @@ int main(void)
                         close(i); // bye!
                         FD_CLR(i, &master); // eliminar del conjunto maestro
                     } else {
-                    	log_info(logger, "Recibiendo datos de un cliente");
+                    //	log_info(logger, "Recibiendo datos de un cliente");
                     	switch (buf[0]){
                     				case 'J':
                     				case 'j':
@@ -246,46 +268,13 @@ int main(void)
           								break;
                     			}
 
-             //       	printf("\n %s", buf);
-                    	/*char *message = "recibido\0";
-                    	if ((send(i, message,sizeof(message)+1, 0))<=0)
-							{
-								printf("error mandando");
-							}
-                    	else{
-                    		printf("ok mandado");
-                    	}
-
-
-
-
-                        // we got some data from a client
-                        for(j = 0; j <= fdmax; j++) {
-                            // send to everyone!
-                            if (FD_ISSET(j, &master)) {
-
-
-                               // except the listener and ourselves
-                                if (j != listener (&& j != i)) {
-                                    if (send(j, buf, nbytes, 0) == -1) {
-                                        perror("send");
-                                        printf(buf);
-                                    }
-                                        else
-                                        {
-                                        	printf(buf);
-                                        }
-
-                                }
-                            }
-                        }*/
                     }
                 } // END handle data from client
             } // END got new incoming connection
         } // END looping through file descriptors
 
     	MoverPersonaje(items, '@', r, c);
-    	nivel_gui_dibujar(items, "Prueba");
+    	nivel_gui_dibujar(items, "Mapa");
 
     } // END for(;;)--and you thought it would never end!
 
@@ -293,5 +282,4 @@ int main(void)
 
 
     }
-
 

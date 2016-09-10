@@ -32,8 +32,8 @@
 
 typedef struct
 {
-	char identificador;
-	char ultimoRecurso;
+	char *identificador;
+	char *ultimoRecurso;
 	int socket;
 	int distanciaARecurso;
 	bool posicionPedida;
@@ -41,8 +41,8 @@ typedef struct
 
 typedef struct
 {
-	char identificador;
-	char tipo;
+	char *identificador;
+	char *tipo;
 	int x;
 	int y;
 	int cantidadDisp;
