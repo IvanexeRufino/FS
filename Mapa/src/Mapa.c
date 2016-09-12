@@ -18,7 +18,7 @@ int leerConfiguracionMapa(mapa_datos *datos, t_list* listaPokenest)
 	char nombre[10];
 	printf("%s", "Nombre del Mapa?\n");
 	scanf("%s",nombre);
-	char pathconfigMetadata[40] = "../Mapas/Ciudad ";
+	char pathconfigMetadata[90] = "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Mapa/Mapas/Ciudad ";
 	strcat(pathconfigMetadata, nombre);
 	strcat(pathconfigMetadata,  "/metadata");
 	t_config* config = config_create(pathconfigMetadata);
@@ -95,11 +95,11 @@ int main(void)
 		log_info(logger, PROGRAM_DESCRIPTION);
 
 	//--------
-//	  infoMapa = malloc(sizeof(mapa_datos));
-//	  if (leerConfiguracionMapa (infoMapa, listaPokenest) == 1)
-//		  		  log_info(logger, "Archivo de configuracion leido correctamente");
-//			  else
-//				  log_error(logger,"Error la leer archivo de configuracion");
+	  infoMapa = malloc(sizeof(mapa_datos));
+	  if (leerConfiguracionMapa (infoMapa, listaPokenest) == 1)
+		  		  log_info(logger, "Archivo de configuracion leido correctamente");
+			  else
+				  log_error(logger,"Error la leer archivo de configuracion");
 
 
 	// --------------------------------
@@ -176,16 +176,15 @@ int main(void)
 
 	//Inicializo la gui --------------------------------
 
-//    t_list* items = list_create();
-//    list_add_all(items,listaPokenest);
+    t_list* items = list_create();
+    list_add_all(items,listaPokenest);
     int rows, cols;
 	int c,r;
-//	nivel_gui_inicializar();
-//	nivel_gui_get_area_nivel(&rows, &cols);
+	nivel_gui_inicializar();
+	nivel_gui_get_area_nivel(&rows, &cols);
 	c = 1;
 	r = 1;
-//
-//	nivel_gui_dibujar(items,  infoMapa->nombre );
+	nivel_gui_dibujar(items,  infoMapa->nombre );
 
 
 
@@ -218,29 +217,26 @@ int main(void)
 
                             char* buffer = malloc(1);
                             recv(newfd, buffer, 1, 0);
-                            //buffer[1] = '\0';
-                            //t_registroPersonaje* nuevoPersonaje = malloc(sizeof(t_registroPersonaje));
-                            //memcpy(&(nuevoPersonaje->identificador), buffer, 1);
-                            //nuevoPersonaje->identificador = buffer;
-                            //nuevoPersonaje->socket=newfd;
-                            printf("sending char: %c\n", buffer);
-                            //printf(nuevoPersonaje->identificador);
-//                           CrearPersonaje(items, '@', 0, 0);
+                            t_registroPersonaje* nuevoPersonaje = malloc(sizeof(t_registroPersonaje));
+                            memcpy(&(nuevoPersonaje->identificador), buffer, 1);
+                            nuevoPersonaje->socket=newfd;
+                          //  printf("reciving char: %c\n", nuevoPersonaje->identificador);
+                            CrearPersonaje(items, nuevoPersonaje-> identificador, 0, 0);
                         }
-                       printf("selectserver: new connection from %s on "
+               /*        printf("selectserver: new connection from %s on "
                            "socket %d\n",
                             inet_ntop(remoteaddr.ss_family,
                                 get_in_addr((struct sockaddr*)&remoteaddr),
                                 remoteIP, INET6_ADDRSTRLEN),
                             newfd);
-                    }
+                  */  }
                 } else {
                     // gestionar datos de un cliente
                     if ((nbytes = recv(i, buf, sizeof buf, 0)) <= 0) {
                         // error o conexión cerrada por el cliente
                         if (nbytes == 0) {
                             // conexión cerrada
-//                           printf("selectserver: socket %d hung up\n", i);
+                           printf("selectserver: socket %d hung up\n", i);
                         } else {
                             log_info(logger, "Error al recibir datos");
                         }
@@ -280,8 +276,8 @@ int main(void)
             } // END got new incoming connection
         } // END looping through file descriptors
 
-//    	MoverPersonaje(items, '@', r, c);
-//    	nivel_gui_dibujar(items, "Mapa");
+    	MoverPersonaje(items, '@', r, c);
+    	nivel_gui_dibujar(items, "Mapa");
 
     } // END for(;;)--and you thought it would never end!
 
