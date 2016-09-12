@@ -1,0 +1,40 @@
+[INFO] 23:07:19:6 Pokedex Servidor/(3276:3276): Proceso File System
+[INFO] 23:11:15:149 Pokedex Servidor/(3355:3355): Proceso File System
+[INFO] 23:12:01:532 Pokedex Servidor/(3386:3386): Proceso File System
+[INFO] 23:12:07:584 Pokedex Servidor/(3417:3417): Proceso File System
+[INFO] 23:15:14:462 Pokedex Servidor/(3550:3550): Proceso File System
+[INFO] 23:15:33:590 Pokedex Servidor/(3565:3565): Proceso File System
+[INFO] 23:17:02:841 Pokedex Servidor/(3703:3703): Proceso File System
+[INFO] 23:18:32:922 Pokedex Servidor/(3765:3765): Proceso File System
+[INFO] 23:18:32:923 Pokedex Servidor/(3765:3765): Identificador (bytes): OsadaFS��
+
+[INFO] 23:18:32:923 Pokedex Servidor/(3765:3765): Version: 1
+
+[INFO] 23:18:32:923 Pokedex Servidor/(3765:3765): Tamaño FS: 1562500
+
+[INFO] 23:18:32:923 Pokedex Servidor/(3765:3765): Tamaño Bitmap: 3052
+
+[INFO] 23:18:32:923 Pokedex Servidor/(3765:3765): Inicio tabla asignaciones: 4077
+
+[INFO] 23:18:32:923 Pokedex Servidor/(3765:3765): Tamaño datos: 1461021
+
+[INFO] 23:18:32:923 Pokedex Servidor/(3765:3765): Relleno: 141640264
+
+
+[INFO] 00:24:48:987 Pokedex Servidor/(4499:4499): Proceso File System
+[INFO] 00:35:34:690 Pokedex Servidor/(4996:4996): Proceso File System
+[INFO] 00:35:34:695 Pokedex Servidor/(4996:4996): Identificador (bytes): OsadaFS��
+
+[INFO] 00:35:34:695 Pokedex Servidor/(4996:4996): Version: 1
+
+[INFO] 00:35:34:695 Pokedex Servidor/(4996:4996): Tamaño FS: 1562500
+
+[INFO] 00:35:34:695 Pokedex Servidor/(4996:4996): Tamaño Bitmap: 3052
+
+[INFO] 00:35:34:695 Pokedex Servidor/(4996:4996): Inicio tabla asignaciones: 4077
+
+[INFO] 00:35:34:695 Pokedex Servidor/(4996:4996): Tamaño datos: 1461021
+
+[INFO] 00:35:34:697 Pokedex Servidor/(4996:4996): Relleno: 143270472
+
+
