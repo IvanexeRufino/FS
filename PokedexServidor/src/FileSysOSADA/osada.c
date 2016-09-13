@@ -19,6 +19,7 @@ int main (void) {
 	 log_info(logger, PROGRAM_DESCRIPTION);
 
 	archivo = fopen("/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/PokedexServidor/src/FileSysOSADA/disco.bin","r");
+	header = malloc(sizeof(osada_header));
 	fread(header,sizeof(osada_header),1,archivo);
 
 
@@ -29,7 +30,7 @@ int main (void) {
 	 log_info(logger, "Inicio tabla asignaciones: %d\n",header->allocations_table_offset);
 	 log_info(logger, "Tamaño datos: %d\n",header->data_blocks);
 	 log_info(logger, "Relleno: %d\n\n",header->padding);
-//
+
 //	 printf("Identificador (bytes): %s\n",header->magic_number);
 //		 printf("Version: %d\n",header->version);
 //		 printf("Tamaño FS: %d\n",header->fs_blocks);
