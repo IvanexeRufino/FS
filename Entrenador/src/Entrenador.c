@@ -17,7 +17,7 @@ int leerConfiguracionEntrenador(entrenador_datos *datos)
 	char nombre[10];
 	printf("%s", "Nombre del Entrenador?\n");
 	scanf("%s",nombre);
-	char pathconfigMetadata[100] ="/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Entrenador/Entrenadores/";
+	char pathconfigMetadata[100] ="/home/utnso/git/tp-2016-2c-SO-II-The-Payback/Entrenador/Entrenadores/";
 	strcat(pathconfigMetadata,nombre);
 	strcat(pathconfigMetadata,"/metadata");
 	t_config* config = config_create(pathconfigMetadata);
@@ -111,13 +111,10 @@ int main(){
 	int enviar = 1;
 	char message[PACKAGESIZE];
 	char* buffer = malloc(1);
-	memcpy(buffer, &(infoEntrenador->simbolo), 1);
-	printf("sending char: %S\n", buffer);
-	send(serverSocket, buffer, 1,0);
+	memcpy(buffer,infoEntrenador->simbolo, 1);
+	printf("sending char: %c\n",buffer[0]);
+	send(serverSocket, buffer[0], 1,0);
 
-
-	puts(infoEntrenador->simbolo);
-	//send(serverSocket, infoEntrenador->simbolo , infoEntrenador->simbolo +1 , 0);
 	printf("Conectado al servidor. Bienvenido al sistema, ya puede enviar mensajes. Escriba 'exit' para salir\n");
 	log_info(logger, "Conectado al servidor");
 	while(enviar){

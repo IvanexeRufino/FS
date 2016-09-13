@@ -54,3 +54,71 @@
 [INFO] 00:32:55:954 ENTRENADOR/(4861:4861): Se envio el mensaje
 [INFO] 00:32:59:947 ENTRENADOR/(4910:4910): Se envio el mensaje
 [INFO] 00:33:03:198 ENTRENADOR/(4816:4816): Se envio el mensaje
+[INFO] 00:44:49:33 ENTRENADOR/(5735:5735): Proceso ENTRENADOR
+[INFO] 00:44:53:377 ENTRENADOR/(5737:5737): Proceso ENTRENADOR
+[INFO] 00:46:01:918 ENTRENADOR/(5812:5812): Proceso ENTRENADOR
+[INFO] 00:46:03:836 ENTRENADOR/(5812:5812): Archivo de configuracion leido correctamente
+[INFO] 00:46:03:844 ENTRENADOR/(5812:5812): Conectado al servidor
+[INFO] 00:46:03:846 ENTRENADOR/(5812:5812): Se envio el mensaje
+[INFO] 00:46:56:170 ENTRENADOR/(5813:5813): Proceso ENTRENADOR
+[INFO] 00:46:59:270 ENTRENADOR/(5813:5813): Archivo de configuracion leido correctamente
+[INFO] 00:46:59:276 ENTRENADOR/(5813:5813): Conectado al servidor
+[INFO] 00:46:59:278 ENTRENADOR/(5813:5813): Se envio el mensaje
+[INFO] 00:47:02:964 ENTRENADOR/(5813:5813): Se envio el mensaje
+[INFO] 00:47:22:284 ENTRENADOR/(5816:5816): Proceso ENTRENADOR
+[INFO] 00:47:24:683 ENTRENADOR/(5816:5816): Archivo de configuracion leido correctamente
+[INFO] 00:47:24:689 ENTRENADOR/(5816:5816): Conectado al servidor
+[INFO] 00:47:24:691 ENTRENADOR/(5816:5816): Se envio el mensaje
+[INFO] 00:47:51:811 ENTRENADOR/(5818:5818): Proceso ENTRENADOR
+[INFO] 00:47:53:345 ENTRENADOR/(5818:5818): Archivo de configuracion leido correctamente
+[INFO] 00:47:53:351 ENTRENADOR/(5818:5818): Conectado al servidor
+[INFO] 00:47:53:352 ENTRENADOR/(5818:5818): Se envio el mensaje
+[INFO] 00:48:12:499 ENTRENADOR/(5820:5820): Proceso ENTRENADOR
+[INFO] 00:48:14:971 ENTRENADOR/(5820:5820): Archivo de configuracion leido correctamente
+[INFO] 00:48:14:979 ENTRENADOR/(5820:5820): Conectado al servidor
+[INFO] 00:48:14:981 ENTRENADOR/(5820:5820): Se envio el mensaje
+[INFO] 00:48:31:554 ENTRENADOR/(5822:5822): Proceso ENTRENADOR
+[INFO] 00:48:35:322 ENTRENADOR/(5822:5822): Archivo de configuracion leido correctamente
+[INFO] 00:48:35:326 ENTRENADOR/(5822:5822): Conectado al servidor
+[INFO] 00:48:35:330 ENTRENADOR/(5822:5822): Se envio el mensaje
+[INFO] 00:50:04:534 ENTRENADOR/(5919:5919): Proceso ENTRENADOR
+[INFO] 00:50:06:634 ENTRENADOR/(5919:5919): Archivo de configuracion leido correctamente
+[INFO] 00:50:06:637 ENTRENADOR/(5919:5919): Conectado al servidor
+[INFO] 00:50:06:638 ENTRENADOR/(5919:5919): Se envio el mensaje
+[INFO] 00:51:29:138 ENTRENADOR/(5948:5948): Proceso ENTRENADOR
+[INFO] 00:51:29:936 ENTRENADOR/(5948:5948): Archivo de configuracion leido correctamente
+[INFO] 00:51:29:943 ENTRENADOR/(5948:5948): Conectado al servidor
+[INFO] 00:51:29:954 ENTRENADOR/(5948:5948): Se envio el mensaje
+[INFO] 00:52:29:337 ENTRENADOR/(5995:5995): Proceso ENTRENADOR
+[INFO] 00:52:30:484 ENTRENADOR/(5995:5995): Archivo de configuracion leido correctamente
+[INFO] 00:52:30:490 ENTRENADOR/(5995:5995): Conectado al servidor
+[INFO] 00:52:30:492 ENTRENADOR/(5995:5995): Se envio el mensaje
+[INFO] 01:11:15:748 ENTRENADOR/(6489:6489): Proceso ENTRENADOR
+[INFO] 01:11:20:576 ENTRENADOR/(6489:6489): Archivo de configuracion leido correctamente
+[INFO] 01:11:37:141 ENTRENADOR/(6491:6491): Proceso ENTRENADOR
+[INFO] 01:11:39:6 ENTRENADOR/(6491:6491): Archivo de configuracion leido correctamente
+[INFO] 01:11:39:8 ENTRENADOR/(6491:6491): Conectado al servidor
+[INFO] 01:11:39:9 ENTRENADOR/(6491:6491): Se envio el mensaje
+[INFO] 01:13:17:191 ENTRENADOR/(6576:6576): Proceso ENTRENADOR
+[INFO] 01:13:18:539 ENTRENADOR/(6576:6576): Archivo de configuracion leido correctamente
+[INFO] 01:13:18:546 ENTRENADOR/(6576:6576): Conectado al servidor
+[INFO] 01:13:18:547 ENTRENADOR/(6576:6576): Se envio el mensaje
+[INFO] 01:13:59:673 ENTRENADOR/(6622:6622): Proceso ENTRENADOR
+[INFO] 01:14:01:393 ENTRENADOR/(6622:6622): Archivo de configuracion leido correctamente
+[INFO] 01:14:01:395 ENTRENADOR/(6622:6622): Conectado al servidor
+[INFO] 01:14:01:399 ENTRENADOR/(6622:6622): Se envio el mensaje
+[INFO] 01:14:08:84 ENTRENADOR/(6622:6622): Se envio el mensaje
+[INFO] 01:14:08:499 ENTRENADOR/(6622:6622): Se envio el mensaje
+[INFO] 01:14:08:916 ENTRENADOR/(6622:6622): Se envio el mensaje
+[INFO] 01:16:21:268 ENTRENADOR/(6706:6706): Proceso ENTRENADOR
+[INFO] 01:16:22:517 ENTRENADOR/(6706:6706): Archivo de configuracion leido correctamente
+[INFO] 01:16:22:521 ENTRENADOR/(6706:6706): Conectado al servidor
+[INFO] 01:16:22:529 ENTRENADOR/(6706:6706): Se envio el mensaje
+[INFO] 01:16:59:181 ENTRENADOR/(6737:6737): Proceso ENTRENADOR
+[INFO] 01:17:00:478 ENTRENADOR/(6737:6737): Archivo de configuracion leido correctamente
+[INFO] 01:17:00:482 ENTRENADOR/(6737:6737): Conectado al servidor
+[INFO] 01:17:00:483 ENTRENADOR/(6737:6737): Se envio el mensaje
+[INFO] 01:17:49:488 ENTRENADOR/(6781:6781): Proceso ENTRENADOR
+[INFO] 01:17:50:497 ENTRENADOR/(6781:6781): Archivo de configuracion leido correctamente
+[INFO] 01:17:50:504 ENTRENADOR/(6781:6781): Conectado al servidor
+[INFO] 01:17:50:507 ENTRENADOR/(6781:6781): Se envio el mensaje
