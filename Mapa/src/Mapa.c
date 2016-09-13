@@ -176,15 +176,15 @@ int main(void)
 
 	//Inicializo la gui --------------------------------
 
-    t_list* items = list_create();
-    list_add_all(items,listaPokenest);
-    int rows, cols;
-	int c,r;
-	nivel_gui_inicializar();
-	nivel_gui_get_area_nivel(&rows, &cols);
-	c = 1;
-	r = 1;
-	nivel_gui_dibujar(items,  infoMapa->nombre );
+//    t_list* items = list_create();
+//    list_add_all(items,listaPokenest);
+//    int rows, cols;
+//	int c,r;
+//	nivel_gui_inicializar();
+//	nivel_gui_get_area_nivel(&rows, &cols);
+//	c = 1;
+//	r = 1;
+//	nivel_gui_dibujar(items,  infoMapa->nombre );
 
 
 
@@ -207,29 +207,30 @@ int main(void)
                         &addrlen);
 
                     if (newfd == -1) {
-                        //perror("accept");
                         log_info(logger, "Error en el accept");
                     } else {
                         FD_SET(newfd, &master); // añadir al conjunto maestro
                         if (newfd > fdmax) {    // actualizar el máximo
                             fdmax = newfd;
-                            //agrego un entrenador nuevo
 
-                            char* buffer = malloc(1);
-                            recv(newfd, buffer, 1, 0);
-                            t_registroPersonaje* nuevoPersonaje = malloc(sizeof(t_registroPersonaje));
-                            memcpy(&(nuevoPersonaje->identificador), buffer, 1);
-                            nuevoPersonaje->socket=newfd;
-                          //  printf("reciving char: %c\n", nuevoPersonaje->identificador);
-                            CrearPersonaje(items, nuevoPersonaje-> identificador, 0, 0);
+                    char* buffer = malloc(2);
+                    recv(newfd, buffer, sizeof(char) * 2, 0);
+                    int a;
+                    puts(buffer);
+                    t_registroPersonaje* nuevoPersonaje = malloc(sizeof(t_registroPersonaje));
+                    memcpy(&(a), buffer, sizeof(char));
+                    memcpy(&(nuevoPersonaje->identificador), buffer + sizeof(char)  ,  sizeof(char));
+                    nuevoPersonaje->socket=newfd;
+                    printf("reciving char: %c\n", a);
+                    printf("reciving char: %c\n", nuevoPersonaje->identificador);
+ //                 CrearPersonaje(items, nuevoPersonaje-> identificador, 0, 0);
+
                         }
-               /*        printf("selectserver: new connection from %s on "
-                           "socket %d\n",
-                            inet_ntop(remoteaddr.ss_family,
-                                get_in_addr((struct sockaddr*)&remoteaddr),
-                                remoteIP, INET6_ADDRSTRLEN),
-                            newfd);
-                  */  }
+               //      printf("selectserver: new connection from %s on " "socket %d\n", inet_ntop(remoteaddr.ss_family, get_in_addr((struct sockaddr*)&remoteaddr),remoteIP, INET6_ADDRSTRLEN),newfd);
+                        //agrego un entrenador nuevo
+
+
+                    }
                 } else {
                     // gestionar datos de un cliente
                     if ((nbytes = recv(i, buf, sizeof buf, 0)) <= 0) {
@@ -243,41 +244,43 @@ int main(void)
                         close(i); // bye!
                         FD_CLR(i, &master); // eliminar del conjunto maestro
                     } else {
+//                    	printf(buf[0]);
+//                    	printf(buf[1]);
                     //	log_info(logger, "Recibiendo datos de un cliente");
-                    	switch (buf[0]){
-                    				case 'J':
-                    				case 'j':
-                    					if (r > 1) {
-                    							r--;
-                    					}
-                    					break;
-                    				case'L':
-                    				case 'l':
-           								if (r < rows) {
-            									r++;
-              								}
-          							break;
-                    				case 'I':
-                    				case 'i':
-										if (c > 1) {
-												c--;
-											}
-           							break;
-                    				case 'K':
-          							case 'k':
-          								if (c < cols) {
-       									c++;
-      								}
-          								break;
-                    			}
+//                    	switch (buf[0]){
+//                    				case 'J':
+//                    				case 'j':
+//                    					if (r > 1) {
+//                    							r--;
+//                    					}
+//                    					break;
+//                    				case'L':
+//                    				case 'l':
+//           								if (r < rows) {
+//            									r++;
+//              								}
+//          							break;
+//                    				case 'I':
+//                    				case 'i':
+//										if (c > 1) {
+//												c--;
+//											}
+//           							break;
+//                    				case 'K':
+//          							case 'k':
+//          								if (c < cols) {
+//       									c++;
+//      								}
+//          								break;
+//                   			}
 
                     }
                 } // END handle data from client
             } // END got new incoming connection
         } // END looping through file descriptors
-
-    	MoverPersonaje(items, '@', r, c);
-    	nivel_gui_dibujar(items, "Mapa");
+//
+//    	MoverPersonaje(items, '@', r, c);
+//    	nivel_gui_dibujar(items, "Mapa");
 
     } // END for(;;)--and you thought it would never end!
 
