@@ -122,3 +122,9 @@
 [INFO] 01:17:50:497 ENTRENADOR/(6781:6781): Archivo de configuracion leido correctamente
 [INFO] 01:17:50:504 ENTRENADOR/(6781:6781): Conectado al servidor
 [INFO] 01:17:50:507 ENTRENADOR/(6781:6781): Se envio el mensaje
+[INFO] 22:40:39:815 ENTRENADOR/(5666:5666): Proceso ENTRENADOR
+[INFO] 22:40:42:199 ENTRENADOR/(5666:5666): Archivo de configuracion leido correctamente
+[INFO] 22:42:00:578 ENTRENADOR/(5721:5721): Proceso ENTRENADOR
+[INFO] 22:42:03:562 ENTRENADOR/(5721:5721): Archivo de configuracion leido correctamente
+[INFO] 22:42:03:565 ENTRENADOR/(5721:5721): Conectado al servidor
+[INFO] 22:42:03:567 ENTRENADOR/(5721:5721): Se envio el mensaje

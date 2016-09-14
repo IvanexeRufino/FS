@@ -18,7 +18,7 @@ int leerConfiguracionMapa(mapa_datos *datos, t_list* listaPokenest)
 	char nombre[10];
 	printf("%s", "Nombre del Mapa?\n");
 	scanf("%s",nombre);
-	char pathconfigMetadata[90] = "/home/utnso/git/tp-2016-2c-SO-II-The-Payback/Mapa/Mapas/Ciudad ";
+	char pathconfigMetadata[90] = "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Mapa/Mapas/Ciudad ";
 	strcat(pathconfigMetadata, nombre);
 	strcat(pathconfigMetadata,  "/metadata");
 	t_config* config = config_create(pathconfigMetadata);
