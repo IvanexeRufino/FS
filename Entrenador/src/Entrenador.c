@@ -1,31 +1,4 @@
-
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <unistd.h>
-#include <commons/log.h>
-#include <commons/config.h>
-#include <commons/collections/list.h>
-#include <stdbool.h>
-#define LOG_FILE "proceso_Entrenador.log"
-#define PROGRAM_NAME "ENTRENADOR"
-#define PROGRAM_DESCRIPTION "Proceso ENTRENADOR"
-#define IS_ACTIVE_CONSOLE true
-#define T_LOG_LEVEL LOG_LEVEL_INFO
-#define IP "127.0.0.1"
-#define PUERTO "10000"
-#define PACKAGESIZE 1024
-
-typedef struct
-{
-	char *nombre;
-	char *simbolo;
-	t_dictionary* hojaDeViaje;
-	int vidas;
-	} entrenador_datos;
+#include "Entrenador.h"
 
 char* objetivosDelMapa(char* mapaParaAgregar) {
 	char* objetoYparentesisIzquierdo= "obj[";
