@@ -8,7 +8,6 @@ RM := rm -rf
 
 # All of the sources participating in the build are defined here
 -include sources.mk
--include src/subdir.mk
 -include subdir.mk
 -include objects.mk
 
@@ -23,26 +22,22 @@ endif
 # Add inputs and outputs from these tool invocations to the build variables 
 
 # All Target
-all: Entrenador
-
-dependents:
-	-cd /home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaPayback/Debug && $(MAKE) all
+all: libBibliotecaPayback.so
 
 # Tool invocations
-Entrenador: $(OBJS) $(USER_OBJS) /home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaPayback/Debug/libBibliotecaPayback.so
+libBibliotecaPayback.so: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C Linker'
-	gcc -L"/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaPayback" -o "Entrenador" $(OBJS) $(USER_OBJS) $(LIBS)
+	gcc -shared -o "libBibliotecaPayback.so" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) $(OBJS)$(C_DEPS)$(EXECUTABLES) Entrenador
+	-$(RM) $(OBJS)$(C_DEPS)$(LIBRARIES) libBibliotecaPayback.so
 	-@echo ' '
 
 .PHONY: all clean dependents
 .SECONDARY:
-/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaPayback/Debug/libBibliotecaPayback.so:
 
 -include ../makefile.targets

@@ -1,0 +1,1 @@
+Configuracion.d: ../Configuracion.c

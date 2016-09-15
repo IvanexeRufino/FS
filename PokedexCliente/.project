@@ -3,6 +3,7 @@
 	<name>PokedexCliente</name>
 	<comment></comment>
 	<projects>
+		<project>BibliotecaPayback</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

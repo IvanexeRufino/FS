@@ -92,4 +92,25 @@ typedef struct
 		Devuelve : la estructura completa con el archivo de configuracion, si se validan todos los campos
 		*/
 
+
+	void enviarMensajePaquetizado(char *mensaje)
+		{
+/*
+			switch (mensaje)
+			{
+				//ResponderUbicacionPokenest
+				case mensaje[0]==0:
+
+					break;
+				//ResponderUbicacionActualEntrenador
+				case mensaje[0]==1:
+
+					break;
+				//ResponderCapturaExitosaPokemon
+				case mensaje[0]==2:
+
+					break;
+			}*/
+	}
+
 #endif /* MAPA_H_ */
