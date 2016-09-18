@@ -4,5 +4,5 @@
 
 USER_OBJS :=
 
-LIBS := -lcommons -lpkmn-battle -lnivel-gui -lcurses
+LIBS := -lcommons -lpkmn-battle -lnivel-gui -lpthread -lcurses
 

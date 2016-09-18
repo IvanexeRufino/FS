@@ -1,7 +1,11 @@
 #include "Mapa.h"
 
+
 t_list* listaPokenest;
+t_list* items;
 mapa_datos* infoMapa;
+t_list* entrenadoresActivos;
+t_list* entrenadoresBloqueados;
 
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
@@ -84,10 +88,20 @@ int leerConfiguracionPokenest(t_list* pokeNests, char* mapa){
 	return -1;
 }
 
+void funcionDelThread (t_list* entrenadoresActivos){
+
+	puts("hola");
+}
+
+
 int main(void)
 {
 	listaPokenest = malloc(sizeof(t_list));
 	listaPokenest = list_create();
+	items = malloc(sizeof(t_list));
+	items = list_create();
+	entrenadoresActivos = malloc(sizeof(t_list));
+	entrenadoresBloqueados = malloc (sizeof(t_list));
 
 		/* Inicializacion y registro inicial de ejecucion */
 		t_log* logger;
@@ -102,6 +116,15 @@ int main(void)
 				  log_error(logger,"Error la leer archivo de configuracion");
 
 
+
+
+
+
+ pthread_t idHiloPlanificador;
+
+ pthread_create (&idHiloPlanificador, NULL, (void*) funcionDelThread, NULL);
+
+ pthread_join(idHiloPlanificador,0);
 	// --------------------------------
 	//Inicializo la config del mapa
 
@@ -222,7 +245,8 @@ int main(void)
                     nuevoPersonaje->socket=newfd;
                     printf("reciving char: %c\n", a);
                     printf("reciving char: %c\n", nuevoPersonaje->identificador);
- //                 CrearPersonaje(items, nuevoPersonaje-> identificador, 0, 0);
+                    list_add(entrenadoresActivos, nuevoPersonaje);
+                    //CrearPersonaje(items, nuevoPersonaje->identificador, 0, 0);
 
                         }
                //      printf("selectserver: new connection from %s on " "socket %d\n", inet_ntop(remoteaddr.ss_family, get_in_addr((struct sockaddr*)&remoteaddr),remoteIP, INET6_ADDRSTRLEN),newfd);

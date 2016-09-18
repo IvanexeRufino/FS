@@ -25,14 +25,11 @@ endif
 # All Target
 all: Mapa
 
-dependents:
-	-cd /home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaPayback/Debug && $(MAKE) all
-
 # Tool invocations
-Mapa: $(OBJS) $(USER_OBJS) /home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaPayback/Debug/libBibliotecaPayback.so
+Mapa: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C Linker'
-	gcc -L"/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaPayback" -o "Mapa" $(OBJS) $(USER_OBJS) $(LIBS)
+	gcc  -o "Mapa" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -43,6 +40,5 @@ clean:
 
 .PHONY: all clean dependents
 .SECONDARY:
-/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaPayback/Debug/libBibliotecaPayback.so:
 
 -include ../makefile.targets
