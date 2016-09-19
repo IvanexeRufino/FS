@@ -137,3 +137,65 @@
 [INFO] 15:48:35:283 ENTRENADOR/(2574:2574): Se envio el mensaje
 [INFO] 15:48:36:630 ENTRENADOR/(2574:2574): Se envio el mensaje
 [INFO] 15:48:36:932 ENTRENADOR/(2574:2574): Se envio el mensaje
+[INFO] 15:59:54:160 ENTRENADOR/(12104:12104): Proceso ENTRENADOR
+[INFO] 15:59:55:974 ENTRENADOR/(12104:12104): El personaje se desconecto
+[INFO] 16:00:00:164 ENTRENADOR/(12105:12105): Proceso ENTRENADOR
+[INFO] 16:01:54:238 ENTRENADOR/(12105:12105): El personaje se desconecto
+[INFO] 16:01:56:57 ENTRENADOR/(12228:12228): Proceso ENTRENADOR
+[INFO] 16:02:06:439 ENTRENADOR/(12230:12230): Proceso ENTRENADOR
+[INFO] 16:02:07:756 ENTRENADOR/(12230:12230): Archivo de configuracion leido correctamente
+[INFO] 16:02:45:576 ENTRENADOR/(12272:12272): Proceso ENTRENADOR
+[INFO] 16:02:46:465 ENTRENADOR/(12272:12272): Archivo de configuracion leido correctamente
+[INFO] 16:02:46:466 ENTRENADOR/(12272:12272): Conectado al servidor
+[INFO] 16:02:46:466 ENTRENADOR/(12272:12272): Se envio el mensaje
+[INFO] 16:02:53:73 ENTRENADOR/(12272:12272): Se envio el mensaje
+[INFO] 16:02:57:332 ENTRENADOR/(12272:12272): Se envio el mensaje
+[INFO] 16:03:53:892 ENTRENADOR/(12272:12272): El personaje se desconecto
+[INFO] 16:03:55:777 ENTRENADOR/(12314:12314): Proceso ENTRENADOR
+[INFO] 16:03:57:629 ENTRENADOR/(12314:12314): Archivo de configuracion leido correctamente
+[INFO] 16:03:57:630 ENTRENADOR/(12314:12314): Conectado al servidor
+[INFO] 16:03:57:630 ENTRENADOR/(12314:12314): Se envio el mensaje
+[INFO] 16:04:25:930 ENTRENADOR/(12314:12314): Se envio el mensaje
+[INFO] 16:04:41:388 ENTRENADOR/(12314:12314): Se envio el mensaje
+[INFO] 16:04:53:580 ENTRENADOR/(12314:12314): Se envio el mensaje
+[INFO] 16:05:08:125 ENTRENADOR/(12314:12314): Se envio el mensaje
+[INFO] 16:05:12:829 ENTRENADOR/(12314:12314): El personaje se desconecto
+[INFO] 16:05:37:734 ENTRENADOR/(12369:12369): Proceso ENTRENADOR
+[INFO] 16:05:38:541 ENTRENADOR/(12369:12369): Archivo de configuracion leido correctamente
+[INFO] 16:05:38:541 ENTRENADOR/(12369:12369): Conectado al servidor
+[INFO] 16:05:38:541 ENTRENADOR/(12369:12369): Se envio el mensaje
+[INFO] 16:05:50:902 ENTRENADOR/(12369:12369): El personaje Red recibio una vida por señal y actualmente tiene 6 vidas.
+
+[INFO] 16:05:55:311 ENTRENADOR/(12369:12369): El personaje Red recibio una vida por señal y actualmente tiene 7 vidas.
+
+[INFO] 16:05:55:930 ENTRENADOR/(12369:12369): El personaje Red recibio una vida por señal y actualmente tiene 8 vidas.
+
+[INFO] 16:05:56:222 ENTRENADOR/(12369:12369): El personaje Red recibio una vida por señal y actualmente tiene 9 vidas.
+
+[INFO] 16:05:56:483 ENTRENADOR/(12369:12369): El personaje Red recibio una vida por señal y actualmente tiene 10 vidas.
+
+[INFO] 16:05:56:828 ENTRENADOR/(12369:12369): El personaje Red recibio una vida por señal y actualmente tiene 11 vidas.
+
+[INFO] 16:06:01:224 ENTRENADOR/(12369:12369): El personaje Red perdio una vida por señal y actualmente tiene 10 vidas. Lleva 0 reintentos
+
+[INFO] 16:06:02:568 ENTRENADOR/(12369:12369): El personaje Red perdio una vida por señal y actualmente tiene 9 vidas. Lleva 0 reintentos
+
+[INFO] 16:06:02:828 ENTRENADOR/(12369:12369): El personaje Red perdio una vida por señal y actualmente tiene 8 vidas. Lleva 0 reintentos
+
+[INFO] 16:06:03:50 ENTRENADOR/(12369:12369): El personaje Red perdio una vida por señal y actualmente tiene 7 vidas. Lleva 0 reintentos
+
+[INFO] 16:06:03:270 ENTRENADOR/(12369:12369): El personaje Red perdio una vida por señal y actualmente tiene 6 vidas. Lleva 0 reintentos
+
+[INFO] 16:06:03:565 ENTRENADOR/(12369:12369): El personaje Red perdio una vida por señal y actualmente tiene 5 vidas. Lleva 0 reintentos
+
+[INFO] 16:06:03:826 ENTRENADOR/(12369:12369): El personaje Red perdio una vida por señal y actualmente tiene 4 vidas. Lleva 0 reintentos
+
+[INFO] 16:06:04:67 ENTRENADOR/(12369:12369): El personaje Red perdio una vida por señal y actualmente tiene 3 vidas. Lleva 0 reintentos
+
+[INFO] 16:06:04:338 ENTRENADOR/(12369:12369): El personaje Red perdio una vida por señal y actualmente tiene 2 vidas. Lleva 0 reintentos
+
+[INFO] 16:06:04:682 ENTRENADOR/(12369:12369): El personaje Red perdio una vida por señal y actualmente tiene 1 vidas. Lleva 0 reintentos
+
+[INFO] 16:06:04:912 ENTRENADOR/(12369:12369): El personaje Red perdio una vida por señal y actualmente tiene 0 vidas. Lleva 0 reintentos
+
+[INFO] 16:08:23:533 ENTRENADOR/(12369:12369): El personaje se desconecto

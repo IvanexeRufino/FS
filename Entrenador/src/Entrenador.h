@@ -21,6 +21,7 @@
 #include <commons/config.h>
 #include <commons/collections/list.h>
 #include <stdbool.h>
+#include <signal.h>
 
 /*----------------------- Declaraciones de Estructuras ---------------------------------*/
 
