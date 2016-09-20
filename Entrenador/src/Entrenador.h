@@ -29,9 +29,18 @@ typedef struct
 {
 	char *nombre;
 	char *simbolo;
-	t_dictionary* hojaDeViaje;
+	//t_list* hojaDeViaje;
 	int vidas;
-	} entrenador_datos;
+} entrenador_datos;
+
+typedef struct {
+	int socketPlataforma;
+	char* nivel;
+	bool estaTerminado;
+	t_list* objetivos;
+	pthread_t threadIdNivel;
+} t_nivel;
+
 
 /*----------------------- Declaraciones de Constantes ----------------------------------*/
 	/* Configuración de SOCKETS */
