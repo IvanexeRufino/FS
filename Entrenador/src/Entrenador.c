@@ -111,6 +111,28 @@ int leerConfiguracionEntrenador(entrenador_datos *datos)
 	    }
 }
 
+int leerConfiguracionMapa(t_nivel *datos)
+{
+	char nombre[10];
+	char pathconfigMetadata[90] = "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Mapa/Mapas/";
+	strcat(pathconfigMetadata, datos->nivel);
+	strcat(pathconfigMetadata,  "/metadata");
+	puts(pathconfigMetadata);
+	t_config* config = config_create(pathconfigMetadata);
+
+	// Verifico que los parametros tengan sus valores OK
+	if ( config_has_property(config, "Puerto"))
+	{
+
+		datos->socketPlataforma  = config_get_int_value(config, "Puerto");
+			return 1;
+	}
+	else
+    {
+		return -1;
+    }
+
+}
 
 int main(void) {
 	pid = getpid();
@@ -140,10 +162,10 @@ int main(void) {
 	for(j = 0 ; j< list_size(listaDeNiveles); j++){
 
 		t_nivel* mapa = list_get(listaDeNiveles,j);
-		puts(mapa->nivel);
+		leerConfiguracionMapa(mapa);
 
 
-		connect(serverSocket, serverInfo->ai_addr, serverInfo->ai_addrlen); // Me conecto
+		connect(mapa->socketPlataforma, serverInfo->ai_addr, serverInfo->ai_addrlen); // Me conecto
 		freeaddrinfo(serverInfo);	// No lo necesitamos mas
 
 		puts (infoEntrenador->simbolo);

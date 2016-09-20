@@ -25,6 +25,7 @@
 
 /*----------------------- Declaraciones de Estructuras ---------------------------------*/
 
+
 typedef struct
 {
 	char *nombre;
