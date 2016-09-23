@@ -90,7 +90,6 @@ int leerConfiguracionEntrenador(entrenador_datos *datos)
 					while(&(*config_get_array_value(config, objetivosDelMapa(palabraAAgregar))[i])!= NULL){
 						void *valor = malloc(sizeof(char));
 						valor = config_get_array_value(config, objetivosDelMapa(palabraAAgregar))[i];
-					//	puts(valor);
 						list_add(mapa->objetivos, valor);
 						i++;
 					}
@@ -111,27 +110,76 @@ int leerConfiguracionEntrenador(entrenador_datos *datos)
 	    }
 }
 
-int leerConfiguracionMapa(t_nivel *datos)
+int leerConfiguracionMapa(t_nivel* datos)
 {
-	char nombre[10];
 	char pathconfigMetadata[90] = "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Mapa/Mapas/";
 	strcat(pathconfigMetadata, datos->nivel);
 	strcat(pathconfigMetadata,  "/metadata");
 	puts(pathconfigMetadata);
 	t_config* config = config_create(pathconfigMetadata);
-
-	// Verifico que los parametros tengan sus valores OK
 	if ( config_has_property(config, "Puerto"))
 	{
-
-		datos->socketPlataforma  = config_get_int_value(config, "Puerto");
+		datos->socketMapa = config_get_string_value(config, "Puerto");
+		datos->ipMapa = config_get_string_value(config, "IP");
 			return 1;
 	}
-	else
-    {
-		return -1;
-    }
+	else		return -1;
+}
 
+
+void enviarMensajeInicial(int serverSocket){
+	void* buffer = malloc(sizeof(int) + sizeof(char) );
+	int identificador = '0';
+	memcpy(buffer, &identificador , sizeof(char));
+	memcpy(buffer + sizeof(char), (infoEntrenador->simbolo), sizeof(char));
+	send(serverSocket, buffer, (2 * sizeof(char)), 0);
+	puts(buffer);
+	free(buffer);
+	puts("conectado");
+}
+
+void jugarTurno(int socket){
+	int i;
+		i=0;
+	void* buffer = malloc(sizeof(int) + sizeof(char));
+	send(socket, buffer, (2 * sizeof(char)), 0);
+	char message[10];
+		while(i == 0){
+		puts("empezo tu turno, Que vas a hacer?\n");
+		puts("1-Solicitar posicion Pokenest\n");
+		puts("2-Mover\n");
+		puts("3-Atrapar Pokemon\n");
+		fgets(message,1,0);
+		memcpy(buffer ,message, sizeof(char));
+		if(message[0] == '1' || message[0] == '2' || message[0] == '3' ){
+			i++;
+			printf("%d",i);
+			send(socket,buffer,2,0);
+		}
+	}
+		if(message[0] == '1' ) puts ("elegiste pedir posicion");
+		if(message[0] == '2' ) puts ("elegiste moverte");
+		if(message[0] == '3' ) puts ("elegiste atrapar Pokemon");
+}
+
+void sendObjetivosMapa(int serverSocket)
+{
+	char *vector;
+	int l= 0;
+	t_nivel* mapa = malloc(sizeof(200));
+	mapa = list_get(listaDeNiveles, 0);
+	int i = list_size(mapa->objetivos);
+	char objetivos[i];
+	objetivos[i]='\0';
+			while(l!=list_size(mapa->objetivos)){
+				vector = list_get(mapa->objetivos,l);
+				objetivos[l] = *vector;
+				l++;
+			}
+			// ------------ Envio Objetivos
+	send(serverSocket,&objetivos,6,0);
+	free(mapa);
+	puts("conectado");
 }
 
 int main(void) {
@@ -154,9 +202,7 @@ int main(void) {
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_UNSPEC;		// Permite que la maquina se encargue de verificar si usamos IPv4 o IPv6
 	hints.ai_socktype = SOCK_STREAM;	// Indica que usaremos el protocolo TCP
-	getaddrinfo(IP, PUERTO, &hints, &serverInfo);	// Carga en serverInfo los datos de la conexion
-	int serverSocket;		//	Obtiene un socket
-	serverSocket = socket(serverInfo->ai_family, serverInfo->ai_socktype, serverInfo->ai_protocol);
+
 
 	int j;
 	for(j = 0 ; j< list_size(listaDeNiveles); j++){
@@ -164,19 +210,18 @@ int main(void) {
 		t_nivel* mapa = list_get(listaDeNiveles,j);
 		leerConfiguracionMapa(mapa);
 
-
-		connect(mapa->socketPlataforma, serverInfo->ai_addr, serverInfo->ai_addrlen); // Me conecto
+		getaddrinfo(mapa->ipMapa, mapa->socketMapa , &hints, &serverInfo);	// Carga en serverInfo los datos de la conexion
+		int serverSocket;		//	Obtiene un socket
+		serverSocket = socket(serverInfo->ai_family, serverInfo->ai_socktype, serverInfo->ai_protocol);
+	    connect(serverSocket, serverInfo->ai_addr, serverInfo->ai_addrlen); // Me conecto
 		freeaddrinfo(serverInfo);	// No lo necesitamos mas
 
-		puts (infoEntrenador->simbolo);
-		void* buffer = malloc(sizeof(int) + sizeof(char));
-		int identificador = '0';
-		memcpy(buffer, &identificador , sizeof(char));
-		memcpy(buffer + sizeof(char), (infoEntrenador->simbolo), sizeof(char));
-		send(serverSocket, buffer, (2 * sizeof(char)), 0);
-		puts(buffer);
+		enviarMensajeInicial(serverSocket);
+		sendObjetivosMapa(serverSocket);
 
 		log_info(logger, "Conectado al servidor");
+		puts("conectado");
+
 		int enviar = 1;
 		char message[PACKAGESIZE];
 		while(enviar){
@@ -192,7 +237,7 @@ int main(void) {
 					log_info(logger, "Se envio el mensaje");  // Solo envio si el usuario no quiere salir.
 				}
 			}
-		return EXIT_SUCCESS;
-	}
-}
 
+	}
+	return EXIT_SUCCESS;
+}

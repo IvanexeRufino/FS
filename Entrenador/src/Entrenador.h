@@ -35,7 +35,8 @@ typedef struct
 } entrenador_datos;
 
 typedef struct {
-	int socketPlataforma;
+	char* socketMapa;
+	char* ipMapa;
 	char* nivel;
 	bool estaTerminado;
 	t_list* objetivos;

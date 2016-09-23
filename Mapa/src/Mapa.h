@@ -36,6 +36,9 @@ typedef struct
 	char *identificador;
 	char *ultimoRecurso;
 	int socket;
+	int x;
+	int y;
+	char objetivos[5];
 	int distanciaARecurso;
 	bool posicionPedida;
 }t_registroPersonaje;

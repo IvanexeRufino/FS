@@ -7,6 +7,8 @@ mapa_datos* infoMapa;
 t_list* entrenadoresActivos;
 t_list* entrenadoresBloqueados;
 
+int leerConfiguracionPokenest(char* mapa);
+
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
 {
@@ -17,12 +19,13 @@ void *get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-int leerConfiguracionMapa(mapa_datos *datos, t_list* listaPokenest)
+int leerConfiguracionMapa( t_list* listaPokenest)
 {
+
 	char nombre[10];
 	printf("%s", "Nombre del Mapa?\n");
 	scanf("%s",nombre);
-	char pathconfigMetadata[90] = "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Mapa/Mapas/Ciudad ";
+	char pathconfigMetadata[90] = "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Mapa/Mapas/Pueblo";
 	strcat(pathconfigMetadata, nombre);
 	strcat(pathconfigMetadata,  "/metadata");
 	t_config* config = config_create(pathconfigMetadata);
@@ -33,44 +36,49 @@ int leerConfiguracionMapa(mapa_datos *datos, t_list* listaPokenest)
 	&& config_has_property(config, "retardo") && config_has_property(config, "Batalla")
 	&& config_has_property(config, "TiempoChequeoDeadlock"))
 	{
-		datos->nombre = nombre;
-		datos->tiempoChequeoDeadlock = config_get_int_value(config, "TiempoChequeoDeadlock");
-		datos->batalla = config_get_int_value(config, "Batalla");
-		datos->algoritmo  = config_get_string_value(config, "algoritmo");
-		datos->quantum = config_get_int_value(config, "quantum");
-		datos->retardo = config_get_int_value(config, "retardo");
-		datos->ipEscucha = config_get_string_value(config, "IP");
-		datos->puertoEscucha  = config_get_int_value(config, "Puerto");
+		infoMapa->nombre = nombre;
+		infoMapa->tiempoChequeoDeadlock = config_get_int_value(config, "TiempoChequeoDeadlock");
+		infoMapa->batalla = config_get_int_value(config, "Batalla");
+		infoMapa->algoritmo  = config_get_string_value(config, "algoritmo");
+		infoMapa->quantum = config_get_int_value(config, "quantum");
+		infoMapa->retardo = config_get_int_value(config, "retardo");
+		infoMapa->ipEscucha = config_get_string_value(config, "IP");
+		infoMapa->puertoEscucha  = config_get_string_value(config, "Puerto");
 
 		printf(" El nombre del mapa es: %s\n su tiempoChequeoDeadlock es: %d\n su batalla es: %d\n "
 				"su algoritmo es: %s\n su quantum es de: %d\n su retardo es: %d\n su ipEscucha es: %s\n "
-				"su puertoEscucha es: %d\n"
-								,datos->nombre,
-								datos->tiempoChequeoDeadlock,
-								datos->batalla,
-								datos->algoritmo,
-								datos->quantum,
-								datos->retardo,
-								datos->ipEscucha,
-								datos->puertoEscucha);
+				"su puertoEscucha es: %s\n"
+								,infoMapa->nombre,
+								infoMapa->tiempoChequeoDeadlock,
+								infoMapa->batalla,
+								infoMapa->algoritmo,
+								infoMapa->quantum,
+								infoMapa->retardo,
+								infoMapa->ipEscucha,
+								infoMapa->puertoEscucha);
 		//Leo todas la pokenest ******************************************************* POR AHORA UNA
-	//	if(leerConfiguracionPokenest (listaPokenest, nombre)== 1)
+/*		if(leerConfiguracionPokenest(nombre) == 1){
+			puts("asd");
 			return 1;
+
+		}
+*/
 	}
 	else
     {
 		return -1;
     }
-
+	return 1 ;
 }
 
-int leerConfiguracionPokenest(t_list* pokeNests, char* mapa){
-	char pathpokenestMetadata[40] = "Mapas/Ciudad ";
+int leerConfiguracionPokenest(char* mapa){
+
+	char pathpokenestMetadata[100] = "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Mapa/Mapas/Pueblo";
 	strcat(pathpokenestMetadata, mapa);
 	strcat(pathpokenestMetadata,"/PokeNests/Pikachu/metadata");
 	t_config* configNest = config_create(pathpokenestMetadata);
 	if (config_has_property(configNest, "Tipo") /*&& config_has_property(configNest, "Posicion")*/ && config_has_property(configNest, "Identificador")){
-		t_registroPokenest* pokenest = malloc(sizeof(t_registroPokenest));
+		t_registroPokenest* pokenest = malloc(sizeof(sizeof(int)*3 + sizeof(char*)*2));
 		pokenest->tipo = config_get_string_value(configNest, "Tipo");
 		pokenest->identificador= config_get_string_value(configNest, "Identificador");
 		pokenest->x =config_get_int_value(configNest,"X");
@@ -80,17 +88,43 @@ int leerConfiguracionPokenest(t_list* pokeNests, char* mapa){
 						"su identificador: %s\n"
 										,pokenest->x, pokenest->y, pokenest->identificador);
 
-		pokeNests = malloc(sizeof(t_list));
-		list_add(pokeNests,(void*) pokenest);
-		return 1;
-	}
 
-	return -1;
+	list_add(listaPokenest,pokenest);
+	free(configNest);
+	free(pokenest);
+	}
+	else{
+		return -1;
+	}
+	return 1;
+
 }
 
 void funcionDelThread (t_list* entrenadoresActivos){
 
 	puts("hola");
+}
+
+void recibirEntrenador(int newfd){
+	char* buffer = malloc(2);
+	recv(newfd, buffer, sizeof(char) * 2, 0);
+	int a;
+	t_registroPersonaje* nuevoPersonaje = malloc(sizeof(t_registroPersonaje));
+	memcpy(&(a), buffer, sizeof(char));
+	memcpy(&(nuevoPersonaje->identificador), buffer + sizeof(char)  ,  sizeof(char));
+
+	                    //----RECIBO OBJETIVOS
+	recv(newfd, nuevoPersonaje->objetivos,sizeof(char)*7,0);
+	//puts(nuevoPersonaje->objetivos);
+	nuevoPersonaje->socket=newfd;
+	//printf("reciving char: %c\n", a);
+	//printf("reciving char: %c\n", nuevoPersonaje->identificador);
+	nuevoPersonaje->x = 0;
+	nuevoPersonaje->y = 0;
+	list_add(entrenadoresActivos, nuevoPersonaje);
+    CrearPersonaje(items, nuevoPersonaje->identificador, 0, 0);
+    free(buffer);
+    free(nuevoPersonaje);
 }
 
 
@@ -110,14 +144,10 @@ int main(void)
 
 	//--------
 	  infoMapa = malloc(sizeof(mapa_datos));
-	  if (leerConfiguracionMapa (infoMapa, listaPokenest) == 1)
+	  if (leerConfiguracionMapa (listaPokenest) == 1)
 		  		  log_info(logger, "Archivo de configuracion leido correctamente");
 			  else
 				  log_error(logger,"Error la leer archivo de configuracion");
-
-
-
-
 
 
  pthread_t idHiloPlanificador;
@@ -142,7 +172,7 @@ int main(void)
 
     int yes=1;        // para setsockopt() SO_REUSEADDR, más abajo
     int i, rv;
-    //int j;
+
     struct addrinfo hints, *ai, *p;
 
     FD_ZERO(&master);    // borra los conjuntos maestro
@@ -153,7 +183,9 @@ int main(void)
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
-    if ((rv = getaddrinfo(NULL, PORT , &hints, &ai)) != 0) {
+    if ((rv = getaddrinfo(NULL,infoMapa->puertoEscucha , &hints, &ai)) != 0) {
+    //							infoMapa->puertoEscucha
+
         log_info(logger, "Fallo la lectura de datos locales para el socket");
         exit(1);
     }
@@ -197,15 +229,15 @@ int main(void)
 
 	//Inicializo la gui --------------------------------
 
-//    t_list* items = list_create();
-//    list_add_all(items,listaPokenest);
-//    int rows, cols;
-//	int c,r;
-//	nivel_gui_inicializar();
-//	nivel_gui_get_area_nivel(&rows, &cols);
-//	c = 1;
-//	r = 1;
-//	nivel_gui_dibujar(items,  infoMapa->nombre );
+    items = list_create();
+    list_add_all(items,listaPokenest);
+    int rows, cols;
+	int c,r;
+	nivel_gui_inicializar();
+	nivel_gui_get_area_nivel(&rows, &cols);
+	c = 1;
+	r = 1;
+	nivel_gui_dibujar(items,  infoMapa->nombre );
 
 
 
@@ -221,7 +253,7 @@ int main(void)
         for(i = 0; i <= fdmax; i++) {
             if (FD_ISSET(i, &read_fds)) { // ¡tenemos datos!
                 if (i == listener) {
-                    // gestionar nuevas conexiones
+                    //gestionar nuevas conexiones
                     addrlen = sizeof remoteaddr;
                     newfd = accept(listener,
                         (struct sockaddr *)&remoteaddr,
@@ -233,20 +265,8 @@ int main(void)
                         FD_SET(newfd, &master); // añadir al conjunto maestro
                         if (newfd > fdmax) {    // actualizar el máximo
                             fdmax = newfd;
-
-
-                    char* buffer = malloc(2);
-                    recv(newfd, buffer, sizeof(char) * 2, 0);
-                    int a;
-                    puts(buffer);
-                    t_registroPersonaje* nuevoPersonaje = malloc(sizeof(t_registroPersonaje));
-                    memcpy(&(a), buffer, sizeof(char));
-                    memcpy(&(nuevoPersonaje->identificador), buffer + sizeof(char)  ,  sizeof(char));
-                    nuevoPersonaje->socket=newfd;
-                    printf("reciving char: %c\n", a);
-                    printf("reciving char: %c\n", nuevoPersonaje->identificador);
-                    list_add(entrenadoresActivos, nuevoPersonaje);
-                    //CrearPersonaje(items, nuevoPersonaje->identificador, 0, 0);
+                            	///----------------------------------RECIBO ENTRENADOR
+                            recibirEntrenador(newfd);
 
                         }
                //      printf("selectserver: new connection from %s on " "socket %d\n", inet_ntop(remoteaddr.ss_family, get_in_addr((struct sockaddr*)&remoteaddr),remoteIP, INET6_ADDRSTRLEN),newfd);
@@ -267,43 +287,43 @@ int main(void)
                         close(i); // bye!
                         FD_CLR(i, &master); // eliminar del conjunto maestro
                     } else {
-//                    	printf(buf[0]);
-//                    	printf(buf[1]);
-                    //	log_info(logger, "Recibiendo datos de un cliente");
-//                    	switch (buf[0]){
-//                    				case 'J':
-//                    				case 'j':
-//                    					if (r > 1) {
-//                    							r--;
-//                    					}
-//                    					break;
-//                    				case'L':
-//                    				case 'l':
-//           								if (r < rows) {
-//            									r++;
-//              								}
-//          							break;
-//                    				case 'I':
-//                    				case 'i':
-//										if (c > 1) {
-//												c--;
-//											}
-//           							break;
-//                    				case 'K':
-//          							case 'k':
-//          								if (c < cols) {
-//       									c++;
-//      								}
-//          								break;
-//                   			}
+                    	//log_info(logger, "Recibiendo datos de un cliente");
+                    	switch (buf[0]){
+
+                    				case 'J':
+                    				case 'j':
+                    					if (r > 1) {
+
+                    							r--;
+                    					}
+                    					break;
+                    				case'L':
+                    				case 'l':
+           								if (r < rows) {
+            									r++;
+              								}
+          							break;
+                    				case 'I':
+                    				case 'i':
+										if (c > 1) {
+												c--;
+											}
+           							break;
+                    				case 'K':
+          							case 'k':
+          								if (c < cols) {
+       									c++;
+      								}
+          								break;
+                   			}
 
                     }
                 } // END handle data from client
             } // END got new incoming connection
         } // END looping through file descriptors
-//
-//    	MoverPersonaje(items, '@', r, c);
-//    	nivel_gui_dibujar(items, "Mapa");
+
+    	MoverPersonaje(items, '@', r, c);
+    	nivel_gui_dibujar(items, "infoMapa->nombre");
 
     } // END for(;;)--and you thought it would never end!
 
