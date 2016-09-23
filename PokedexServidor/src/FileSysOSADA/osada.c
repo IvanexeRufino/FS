@@ -125,6 +125,7 @@ osada_file*  obtenerArchivo(char* path) {
 
 }
 
+//leer archivo
 int leer_archivo(char* path) {
 	osada_file* archivo = obtenerArchivo(path);
 
@@ -133,6 +134,22 @@ int leer_archivo(char* path) {
 	}
 
 	return 0;
+}
+
+//ls
+t_list* listaDeHijosDelArchivo(int indiceDelPadre)
+{
+	t_list* listaDeHijos = list_create();
+
+	for(int i=0; i < 2048; i++)
+	{
+		osada_file* archivoHijo = &tablaDeArchivos[i];
+		if(archivoHijo->parent_directory== indiceDelPadre && posibleHijo->state != 0)
+		{
+			list_add(listaDeHijos, archivoHijo);
+		}
+	}
+	return listaDeHijos;
 }
 
 int main () {
