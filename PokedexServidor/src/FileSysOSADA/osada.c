@@ -10,6 +10,7 @@
 #include <commons/log.h>
 #include <sys/mman.h>
 #include <string.h>
+#include <commons/collections/list.h>
 
 
 #define LOG_FILE "osada.log"
@@ -140,11 +141,11 @@ int leer_archivo(char* path) {
 t_list* listaDeHijosDelArchivo(int indiceDelPadre)
 {
 	t_list* listaDeHijos = list_create();
-
-	for(int i=0; i < 2048; i++)
+	int i;
+	for(i=0; i < 2048; i++)
 	{
 		osada_file* archivoHijo = &tablaDeArchivos[i];
-		if(archivoHijo->parent_directory== indiceDelPadre && posibleHijo->state != 0)
+		if(archivoHijo->parent_directory== indiceDelPadre && archivoHijo->state != 0)
 		{
 			list_add(listaDeHijos, archivoHijo);
 		}
