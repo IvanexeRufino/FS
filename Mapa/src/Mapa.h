@@ -56,13 +56,13 @@ typedef struct
 {
 	char *nombre;
 	char *ipEscucha;
-	int puertoEscucha;
+	char *puertoEscucha;
 	int quantum;
 	int retardo;
 	char *algoritmo;
 	int batalla;
 	int tiempoChequeoDeadlock;
-	} mapa_datos;
+} mapa_datos;
 
 /*----------------------- Declaraciones de Constantes ----------------------------------*/
 

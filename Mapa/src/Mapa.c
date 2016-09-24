@@ -7,7 +7,7 @@ mapa_datos* infoMapa;
 t_list* entrenadoresActivos;
 t_list* entrenadoresBloqueados;
 
-int leerConfiguracionPokenest(char* mapa);
+void leerConfiguracionPokenest(char* mapa);
 
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
@@ -57,12 +57,9 @@ int leerConfiguracionMapa( t_list* listaPokenest)
 								infoMapa->ipEscucha,
 								infoMapa->puertoEscucha);
 		//Leo todas la pokenest ******************************************************* POR AHORA UNA
-/*		if(leerConfiguracionPokenest(nombre) == 1){
-			puts("asd");
-			return 1;
 
-		}
-*/
+//	leerConfiguracionPokenest(nombre);
+
 	}
 	else
     {
@@ -71,38 +68,37 @@ int leerConfiguracionMapa( t_list* listaPokenest)
 	return 1 ;
 }
 
-int leerConfiguracionPokenest(char* mapa){
-
+void leerConfiguracionPokenest(char mapa[10]){
 	char pathpokenestMetadata[100] = "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Mapa/Mapas/Pueblo";
 	strcat(pathpokenestMetadata, mapa);
 	strcat(pathpokenestMetadata,"/PokeNests/Pikachu/metadata");
 	t_config* configNest = config_create(pathpokenestMetadata);
-	if (config_has_property(configNest, "Tipo") /*&& config_has_property(configNest, "Posicion")*/ && config_has_property(configNest, "Identificador")){
-		t_registroPokenest* pokenest = malloc(sizeof(sizeof(int)*3 + sizeof(char*)*2));
+	if (config_has_property(configNest, "Tipo") && config_has_property(configNest, "Identificador")){
+		t_registroPokenest* pokenest = malloc(sizeof(t_registroPokenest));
 		pokenest->tipo = config_get_string_value(configNest, "Tipo");
 		pokenest->identificador= config_get_string_value(configNest, "Identificador");
 		pokenest->x =config_get_int_value(configNest,"X");
 		pokenest->y = config_get_int_value(configNest,"Y");
 
 		printf("\n El nombre del Nest es: Pikachu\n su posicion es X: %d\n Y es: %d\n "
-						"su identificador: %s\n"
-										,pokenest->x, pokenest->y, pokenest->identificador);
-
+							"su identificador: %s\n"
+											,pokenest->x, pokenest->y, pokenest->identificador);
 
 	list_add(listaPokenest,pokenest);
-	free(configNest);
-	free(pokenest);
 	}
-	else{
-		return -1;
-	}
-	return 1;
-
 }
 
 void funcionDelThread (t_list* entrenadoresActivos){
 
 	puts("hola");
+}
+
+t_registroPersonaje *get_personaje_en_socket(int socket) {
+	int _with_socket(t_registroPersonaje *p) {
+		return (p->socket == socket);
+	}
+
+	return list_find(entrenadoresActivos, (void*)_with_socket);
 }
 
 void recibirEntrenador(int newfd){
@@ -119,18 +115,18 @@ void recibirEntrenador(int newfd){
 	nuevoPersonaje->socket=newfd;
 	//printf("reciving char: %c\n", a);
 	//printf("reciving char: %c\n", nuevoPersonaje->identificador);
-	nuevoPersonaje->x = 0;
-	nuevoPersonaje->y = 0;
+	nuevoPersonaje->x = 1;
+	nuevoPersonaje->y = 1;
 	list_add(entrenadoresActivos, nuevoPersonaje);
-    CrearPersonaje(items, nuevoPersonaje->identificador, 0, 0);
+    CrearPersonaje(items, nuevoPersonaje->identificador[0], 0, 0);
     free(buffer);
     free(nuevoPersonaje);
 }
 
 
-int main(void)
+int main(int argc, char **argv)
 {
-	listaPokenest = malloc(sizeof(t_list));
+	listaPokenest = malloc(sizeof(t_registroPokenest));
 	listaPokenest = list_create();
 	items = malloc(sizeof(t_list));
 	items = list_create();
@@ -143,12 +139,11 @@ int main(void)
 		log_info(logger, PROGRAM_DESCRIPTION);
 
 	//--------
-	  infoMapa = malloc(sizeof(mapa_datos));
+	  infoMapa = malloc((sizeof(char*)*4 + sizeof(int)*4));
 	  if (leerConfiguracionMapa (listaPokenest) == 1)
 		  		  log_info(logger, "Archivo de configuracion leido correctamente");
 			  else
 				  log_error(logger,"Error la leer archivo de configuracion");
-
 
  pthread_t idHiloPlanificador;
 
@@ -184,8 +179,6 @@ int main(void)
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
     if ((rv = getaddrinfo(NULL,infoMapa->puertoEscucha , &hints, &ai)) != 0) {
-    //							infoMapa->puertoEscucha
-
         log_info(logger, "Fallo la lectura de datos locales para el socket");
         exit(1);
     }
@@ -231,7 +224,7 @@ int main(void)
 
     items = list_create();
     list_add_all(items,listaPokenest);
-    int rows, cols;
+   int rows, cols;
 	int c,r;
 	nivel_gui_inicializar();
 	nivel_gui_get_area_nivel(&rows, &cols);
@@ -270,9 +263,6 @@ int main(void)
 
                         }
                //      printf("selectserver: new connection from %s on " "socket %d\n", inet_ntop(remoteaddr.ss_family, get_in_addr((struct sockaddr*)&remoteaddr),remoteIP, INET6_ADDRSTRLEN),newfd);
-                        //agrego un entrenador nuevo
-
-
                     }
                 } else {
                     // gestionar datos de un cliente
@@ -287,47 +277,47 @@ int main(void)
                         close(i); // bye!
                         FD_CLR(i, &master); // eliminar del conjunto maestro
                     } else {
+
                     	//log_info(logger, "Recibiendo datos de un cliente");
-                    	switch (buf[0]){
+                    	t_registroPersonaje *personaje = get_personaje_en_socket(i);
 
-                    				case 'J':
-                    				case 'j':
-                    					if (r > 1) {
-
-                    							r--;
-                    					}
-                    					break;
-                    				case'L':
-                    				case 'l':
-           								if (r < rows) {
-            									r++;
-              								}
-          							break;
-                    				case 'I':
-                    				case 'i':
-										if (c > 1) {
-												c--;
-											}
-           							break;
-                    				case 'K':
-          							case 'k':
-          								if (c < cols) {
-       									c++;
-      								}
-          								break;
-                   			}
-
+//                    	switch(buf[0]){
+//                    				case 'J':
+//                    				case 'j':
+//                    					if (personaje->y > 1) {
+//                    						personaje->y -- ;
+//                         					}
+//                    					break;
+//                    				case'L':
+//                    				case 'l':
+//           								if (personaje-> y < rows) {
+//            									personaje->y++;
+//              								}
+//          							break;
+//                    				case 'I':
+//                    				case 'i':
+//										if (personaje->x > 1) {
+//												personaje->x--;
+//												printf("%d",personaje->x);
+//											}
+//           							break;
+//                    				case 'K':
+//          							case 'k':
+//          								if (personaje->x < cols) {
+//       									personaje->x++;
+//      								}
+//          								break;
+//
+//          		                 MoverPersonaje(items, personaje->identificador[0], personaje->y , personaje->x);
+//                    	}
                     }
                 } // END handle data from client
             } // END got new incoming connection
         } // END looping through file descriptors
-
-    	MoverPersonaje(items, '@', r, c);
-    	nivel_gui_dibujar(items, "infoMapa->nombre");
+    	nivel_gui_dibujar(items, infoMapa->nombre);
 
     } // END for(;;)--and you thought it would never end!
 
     return 0;
 
-
-    }
+}
