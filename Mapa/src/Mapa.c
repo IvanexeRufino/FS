@@ -101,6 +101,14 @@ t_registroPersonaje *get_personaje_en_socket(int socket) {
 	return list_find(entrenadoresActivos, (void*)_with_socket);
 }
 
+t_registroPokenest *get_pokenest_identificador(char identificador) {
+	int _with_identificador(t_registroPokenest *p) {
+		return (p->identificador == identificador);
+	}
+
+	return list_find(entrenadoresActivos, (void*)_with_identificador);
+}
+
 void recibirEntrenador(int newfd){
 	char* buffer = malloc(2);
 	recv(newfd, buffer, sizeof(char) * 2, 0);
@@ -225,11 +233,10 @@ int main(int argc, char **argv)
     items = list_create();
     list_add_all(items,listaPokenest);
    int rows, cols;
-	int c,r;
 	nivel_gui_inicializar();
 	nivel_gui_get_area_nivel(&rows, &cols);
-	c = 1;
-	r = 1;
+	//int c = 1;
+	//int r = 1;
 	nivel_gui_dibujar(items,  infoMapa->nombre );
 
 
@@ -277,9 +284,65 @@ int main(int argc, char **argv)
                         close(i); // bye!
                         FD_CLR(i, &master); // eliminar del conjunto maestro
                     } else {
+                    	int turno = 0;
 
+                    	while(turno <= fdmax){
+                    		send(turno, "Tu turno", 10, 0);
+                    		recv(turno, buf, sizeof buf, 0);
+                    		char *header;
+                    		char *payload;
+                    		memcpy(&(header), buf, sizeof(char));
+                    		memcpy(&(payload), buf + sizeof(char)  ,  sizeof(char));
+           					char *identificadorPokenest = payload;
+                    			switch(buf[0]){
+                    				case '1': 	{
+                    					//PedirPosicion Pokenest
+
+                    					t_registroPokenest *pokenestSolicitada = get_pokenest_identificador(identificadorPokenest);
+                                		char *msg = "x :";
+                                		strcat(msg, pokenestSolicitada->x);
+                                		strcat(msg," y: ");
+                                		strcat(msg,pokenestSolicitada->y);
+                    					send(turno, msg , 30, 0);
+                    					break;
+                    				}
+                    				case'2':
+                    				{//Mover
+                    					t_registroPersonaje *personaje = get_personaje_en_socket(turno);
+                    					t_registroPokenest *pokenestSolicitada = get_pokenest_identificador(identificadorPokenest);
+                    						if(personaje->ultimoRecurso == 'x'){			//Si la ultima vez me movi en x ahora me tengo que mover en y;
+                    							if(personaje->y <= pokenestSolicitada->y){
+                    								personaje->y++;
+                    								}
+                    							else{
+                    								personaje->y --;
+                    							}
+                    							personaje->ultimoRecurso = "y";
+                    						}
+                    						else{
+                    							if(personaje->x <= pokenestSolicitada->x){
+                    								personaje->x++;
+                   								}
+                    							else{
+                    									personaje->x --;
+                    								}
+                    								personaje->ultimoRecurso = "x";
+                    							}
+                    						MoverPersonaje(items, personaje->identificador[0], personaje->y , personaje->x);
+                    					break;
+                    				}
+                    				case '3':		//Atrapar Pokemon
+                    					break;
+                    				default:
+                    					break;
+
+
+                    		turno ++;
+                    		}
+
+                    	}
                     	//log_info(logger, "Recibiendo datos de un cliente");
-                    	t_registroPersonaje *personaje = get_personaje_en_socket(i);
+ //                   	t_registroPersonaje *personaje = get_personaje_en_socket(i);
 
 //                    	switch(buf[0]){
 //                    				case 'J':
@@ -297,7 +360,7 @@ int main(int argc, char **argv)
 //                    				case 'I':
 //                    				case 'i':
 //										if (personaje->x > 1) {
-//												personaje->x--;
+//												personaje->x0-;
 //												printf("%d",personaje->x);
 //											}
 //           							break;
