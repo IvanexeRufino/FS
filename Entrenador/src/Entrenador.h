@@ -22,7 +22,7 @@
 #include <commons/collections/list.h>
 #include <stdbool.h>
 #include <signal.h>
-
+#include <paquetes.h>
 /*----------------------- Declaraciones de Estructuras ---------------------------------*/
 
 
@@ -62,5 +62,6 @@ typedef struct {
 /*----------------------- Declaraciones de Prototipos ---------------------------------*/
 char* objetivosDelMapa(char* mapaParaAgregar);
 int leerConfiguracionEntrenador(entrenador_datos *datos);
+
 
 #endif /* ENTRENADOR_H_ */

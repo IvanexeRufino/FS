@@ -6,6 +6,8 @@ t_list* items;
 mapa_datos* infoMapa;
 t_list* entrenadoresActivos;
 t_list* entrenadoresBloqueados;
+pthread_mutex_t mutex_EntrenadoresActivos = PTHREAD_MUTEX_INITIALIZER;
+
 
 void leerConfiguracionPokenest(char* mapa);
 
@@ -112,10 +114,10 @@ t_registroPokenest *get_pokenest_identificador(char identificador) {
 void recibirEntrenador(int newfd){
 	char* buffer = malloc(2);
 	recv(newfd, buffer, sizeof(char) * 2, 0);
-	int a;
+	//int a;
 	t_registroPersonaje* nuevoPersonaje = malloc(sizeof(t_registroPersonaje));
-	memcpy(&(a), buffer, sizeof(char));
-	memcpy(&(nuevoPersonaje->identificador), buffer + sizeof(char)  ,  sizeof(char));
+	//memcpy(&(a), buffer, sizeof(char));
+	memcpy(&(nuevoPersonaje->identificador), buffer + sizeof(char)   ,  sizeof(char));
 
 	                    //----RECIBO OBJETIVOS
 	recv(newfd, nuevoPersonaje->objetivos,sizeof(char)*7,0);
@@ -125,7 +127,9 @@ void recibirEntrenador(int newfd){
 	//printf("reciving char: %c\n", nuevoPersonaje->identificador);
 	nuevoPersonaje->x = 1;
 	nuevoPersonaje->y = 1;
+	pthread_mutex_lock(&mutex_EntrenadoresActivos);
 	list_add(entrenadoresActivos, nuevoPersonaje);
+	pthread_mutex_unlock(&mutex_EntrenadoresActivos);
     CrearPersonaje(items, nuevoPersonaje->identificador[0], 0, 0);
     free(buffer);
     free(nuevoPersonaje);
@@ -232,12 +236,14 @@ int main(int argc, char **argv)
 
     items = list_create();
     list_add_all(items,listaPokenest);
+
+
    int rows, cols;
-	nivel_gui_inicializar();
-	nivel_gui_get_area_nivel(&rows, &cols);
-	//int c = 1;
-	//int r = 1;
-	nivel_gui_dibujar(items,  infoMapa->nombre );
+//	nivel_gui_inicializar();
+//	nivel_gui_get_area_nivel(&rows, &cols);
+//	//int c = 1;
+//	//int r = 1;
+//	nivel_gui_dibujar(items,  infoMapa->nombre );
 
 
 
@@ -267,6 +273,10 @@ int main(int argc, char **argv)
                             fdmax = newfd;
                             	///----------------------------------RECIBO ENTRENADOR
                             recibirEntrenador(newfd);
+                            if(list_size(entrenadoresActivos) >0)
+                                {
+                                	puts("entrenador bien agregado");
+                                }
 
                         }
                //      printf("selectserver: new connection from %s on " "socket %d\n", inet_ntop(remoteaddr.ss_family, get_in_addr((struct sockaddr*)&remoteaddr),remoteIP, INET6_ADDRSTRLEN),newfd);
@@ -283,101 +293,77 @@ int main(int argc, char **argv)
                         }
                         close(i); // bye!
                         FD_CLR(i, &master); // eliminar del conjunto maestro
-                    } else {
-                    	int turno = 0;
-
-                    	while(turno <= fdmax){
-                    		send(turno, "Tu turno", 10, 0);
-                    		recv(turno, buf, sizeof buf, 0);
-                    		char *header;
-                    		char *payload;
-                    		memcpy(&(header), buf, sizeof(char));
-                    		memcpy(&(payload), buf + sizeof(char)  ,  sizeof(char));
-           					char *identificadorPokenest = payload;
-                    			switch(buf[0]){
-                    				case '1': 	{
-                    					//PedirPosicion Pokenest
-
-                    					t_registroPokenest *pokenestSolicitada = get_pokenest_identificador(identificadorPokenest);
-                                		char *msg = "x :";
-                                		strcat(msg, pokenestSolicitada->x);
-                                		strcat(msg," y: ");
-                                		strcat(msg,pokenestSolicitada->y);
-                    					send(turno, msg , 30, 0);
-                    					break;
-                    				}
-                    				case'2':
-                    				{//Mover
-                    					t_registroPersonaje *personaje = get_personaje_en_socket(turno);
-                    					t_registroPokenest *pokenestSolicitada = get_pokenest_identificador(identificadorPokenest);
-                    						if(personaje->ultimoRecurso == 'x'){			//Si la ultima vez me movi en x ahora me tengo que mover en y;
-                    							if(personaje->y <= pokenestSolicitada->y){
-                    								personaje->y++;
-                    								}
-                    							else{
-                    								personaje->y --;
-                    							}
-                    							personaje->ultimoRecurso = "y";
-                    						}
-                    						else{
-                    							if(personaje->x <= pokenestSolicitada->x){
-                    								personaje->x++;
-                   								}
-                    							else{
-                    									personaje->x --;
-                    								}
-                    								personaje->ultimoRecurso = "x";
-                    							}
-                    						MoverPersonaje(items, personaje->identificador[0], personaje->y , personaje->x);
-                    					break;
-                    				}
-                    				case '3':		//Atrapar Pokemon
-                    					break;
-                    				default:
-                    					break;
-
-
-                    		turno ++;
-                    		}
-
-                    	}
-                    	//log_info(logger, "Recibiendo datos de un cliente");
- //                   	t_registroPersonaje *personaje = get_personaje_en_socket(i);
-
-//                    	switch(buf[0]){
-//                    				case 'J':
-//                    				case 'j':
-//                    					if (personaje->y > 1) {
-//                    						personaje->y -- ;
-//                         					}
-//                    					break;
-//                    				case'L':
-//                    				case 'l':
-//           								if (personaje-> y < rows) {
-//            									personaje->y++;
-//              								}
-//          							break;
-//                    				case 'I':
-//                    				case 'i':
-//										if (personaje->x > 1) {
-//												personaje->x0-;
-//												printf("%d",personaje->x);
-//											}
-//           							break;
-//                    				case 'K':
-//          							case 'k':
-//          								if (personaje->x < cols) {
-//       									personaje->x++;
-//      								}
-//          								break;
-//
-//          		                 MoverPersonaje(items, personaje->identificador[0], personaje->y , personaje->x);
-//                    	}
                     }
+//                        else {
+//                    	int turno = 0;
+//
+//                    	while(turno <= fdmax){
+//                    		send(turno, "Tu turno", 10, 0);
+//                    		recv(turno, buf, sizeof buf, 0);
+//                    		char *header;
+//                    		char *payload;
+//                    		memcpy(&(header), buf, sizeof(char));
+//                    		memcpy(&(payload), buf + sizeof(char)  ,  sizeof(char));
+//           					char *identificadorPokenest = payload;
+//                    			switch(buf[0]){
+//                    				case '1': 	{
+//                    					//PedirPosicion Pokenest
+//
+//                    					t_registroPokenest *pokenestSolicitada = get_pokenest_identificador(identificadorPokenest);
+//                                		char *msg = "x :";
+//                                		strcat(msg, pokenestSolicitada->x);
+//                                		strcat(msg," y: ");
+//                                		strcat(msg,pokenestSolicitada->y);
+//                    					send(turno, msg , 30, 0);
+//                    					turno++;
+//                    					break;
+//                    				}
+//                    				case'2':
+//                    				{//Mover
+//                    					t_registroPersonaje *personaje = get_personaje_en_socket(turno);
+//                    					t_registroPokenest *pokenestSolicitada = get_pokenest_identificador(identificadorPokenest);
+//                    						if(personaje->ultimoRecurso == 'x'){			//Si la ultima vez me movi en x ahora me tengo que mover en y;
+//                    							if(personaje->y <= pokenestSolicitada->y){
+//                    								personaje->y++;
+//                    								}
+//                    							else{
+//                    								personaje->y --;
+//                    							}
+//                    							personaje->ultimoRecurso = "y";
+//                    						}
+//                    						else{
+//                    							if(personaje->x <= pokenestSolicitada->x){
+//                    								personaje->x++;
+//                   								}
+//                    							else{
+//                    									personaje->x --;
+//                    								}
+//                    								personaje->ultimoRecurso = "x";
+//                    							}
+//                    						MoverPersonaje(items, personaje->identificador[0], personaje->y , personaje->x);
+//                    						turno++;
+//                    						break;
+//
+//                    				}
+//                    				case '3':
+//                    					turno++;//Atrapar Pokemon
+//                    					break;
+//                    				default:
+//                    					turno++;
+//                    					break;
+//
+//
+//                    		//turno ++;
+//                    		}
+//
+//                    	}
+//
+////                    	}
+//                    }
                 } // END handle data from client
             } // END got new incoming connection
         } // END looping through file descriptors
-    	nivel_gui_dibujar(items, infoMapa->nombre);
+    	//nivel_gui_dibujar(items, infoMapa->nombre);
 
     } // END for(;;)--and you thought it would never end!
 

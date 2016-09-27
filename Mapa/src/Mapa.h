@@ -28,7 +28,8 @@
 #include <nivel.h>
 #include <curses.h>
 #include <pthread.h>
-
+#include <paquetes.h>
+#include <semaphore.h>
 /*----------------------- Declaraciones de Estructuras ---------------------------------*/
 
 typedef struct

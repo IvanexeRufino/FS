@@ -4,5 +4,5 @@
 
 USER_OBJS :=
 
-LIBS := -lcommons -lcurses -lnivel-gui
+LIBS :=
 

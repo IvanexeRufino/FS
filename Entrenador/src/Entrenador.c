@@ -1,9 +1,34 @@
 #include "Entrenador.h"
 
+#define PRESENTACION 1
+
+
+
+
+
 t_log* logger;
 entrenador_datos* infoEntrenador;
 pid_t pid;
 t_list* listaDeNiveles;
+
+//int enviarPaquete(int serverSocket)
+//{
+//	t_paquete unPaquete;
+//	char* paqueteAEnviar;
+//		unPaquete = memoria(sizeof(t_paquete));
+//		unPaquete->codOp = PRESENTACION;
+//		unPaquete->tamanioDatos = strlen(infoEntrenador->nombre) + 1;
+//		unPaquete->datos = infoEntrenador->nombre;
+//		paqueteAEnviar = acoplador(unPaquete);
+//		if(send(serverSocket, paqueteAEnviar,size_header + unPaquete->tamanioDatos, 0)<0)
+//		{
+//			log_error(logger, "Error al enviar datos a la plataforma\n");
+//			return -1;
+//		}
+//		free(paqueteAEnviar);
+//		free(unPaquete);
+//		return 1;
+//}
 
 void muerteDefinitivaPorSenial(int aSignal)
 {
@@ -129,7 +154,7 @@ int leerConfiguracionMapa(t_nivel* datos)
 
 void enviarMensajeInicial(int serverSocket){
 	void* buffer = malloc(sizeof(int) + sizeof(char) );
-	int identificador = '0';
+	char identificador = '0';
 	memcpy(buffer, &identificador , sizeof(char));
 	memcpy(buffer + sizeof(char), (infoEntrenador->simbolo), sizeof(char));
 	send(serverSocket, buffer, (2 * sizeof(char)), 0);
@@ -215,6 +240,24 @@ int main(void) {
 		serverSocket = socket(serverInfo->ai_family, serverInfo->ai_socktype, serverInfo->ai_protocol);
 	    connect(serverSocket, serverInfo->ai_addr, serverInfo->ai_addrlen); // Me conecto
 		freeaddrinfo(serverInfo);	// No lo necesitamos mas
+
+//				char* paqueteAEnviar;
+//
+//				t_paquete* unPaquete = memoria(sizeof(t_paquete));
+//				unPaquete->codOp = PRESENTACION;
+//				unPaquete->tamanioDatos = strlen(infoEntrenador->nombre) + 1;
+//				unPaquete->datos = infoEntrenador->nombre;
+//				paqueteAEnviar = acoplador(unPaquete);
+//				if(send(serverSocket, paqueteAEnviar,size_header + unPaquete->tamanioDatos, 0)<0)
+//				{
+//					log_error(logger, "Error al enviar datos a la plataforma\n");
+//					return -1;
+//				}
+//				free(paqueteAEnviar);
+//				free(unPaquete);
+//				return 1;
+
+
 
 		enviarMensajeInicial(serverSocket);
 		sendObjetivosMapa(serverSocket);
