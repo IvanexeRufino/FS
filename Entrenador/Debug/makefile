@@ -29,7 +29,7 @@ all: Entrenador
 Entrenador: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C Linker'
-	gcc -L"/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Shared/src" -o "Entrenador" $(OBJS) $(USER_OBJS) $(LIBS)
+	gcc  -o "Entrenador" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 

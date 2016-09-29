@@ -22,7 +22,7 @@
 #include <commons/collections/list.h>
 #include <stdbool.h>
 #include <signal.h>
-#include <paquetes.h>
+
 /*----------------------- Declaraciones de Estructuras ---------------------------------*/
 
 

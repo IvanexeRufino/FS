@@ -111,13 +111,32 @@ t_registroPokenest *get_pokenest_identificador(char identificador) {
 	return list_find(entrenadoresActivos, (void*)_with_identificador);
 }
 
+void str_cut(char *str, int begin, int len)
+{
+    int l = strlen(str);
+
+    if (len < 0) len = l - begin;
+    if (begin + len > l) len = l - begin;
+    memmove(str + begin, str + begin + len, l - len + 1);
+
+    return;
+}
+
+
 void recibirEntrenador(int newfd){
 	char* buffer = malloc(2);
 	recv(newfd, buffer, sizeof(char) * 2, 0);
 	//int a;
-	t_registroPersonaje* nuevoPersonaje = malloc(sizeof(t_registroPersonaje));
+
+
+	t_registroPersonaje *nuevoPersonaje;
+	nuevoPersonaje = malloc(sizeof(t_registroPersonaje));
 	//memcpy(&(a), buffer, sizeof(char));
-	memcpy(&(nuevoPersonaje->identificador), buffer + sizeof(char)   ,  sizeof(char));
+
+	char* bufferRecortado = malloc(2);
+	strcpy(bufferRecortado, buffer);
+	str_cut(bufferRecortado,0,1);
+	memcpy((nuevoPersonaje->identificador), bufferRecortado,  sizeof(char));
 
 	                    //----RECIBO OBJETIVOS
 	recv(newfd, nuevoPersonaje->objetivos,sizeof(char)*7,0);
@@ -127,13 +146,20 @@ void recibirEntrenador(int newfd){
 	//printf("reciving char: %c\n", nuevoPersonaje->identificador);
 	nuevoPersonaje->x = 1;
 	nuevoPersonaje->y = 1;
-	pthread_mutex_lock(&mutex_EntrenadoresActivos);
-	list_add(entrenadoresActivos, nuevoPersonaje);
-	pthread_mutex_unlock(&mutex_EntrenadoresActivos);
-    CrearPersonaje(items, nuevoPersonaje->identificador[0], 0, 0);
+	char id = (nuevoPersonaje->identificador)[0];
+    //CrearPersonaje(items, id, nuevoPersonaje->x, nuevoPersonaje->y);
+    pthread_mutex_lock(&mutex_EntrenadoresActivos);
+    list_add(entrenadoresActivos, nuevoPersonaje);
+    pthread_mutex_unlock(&mutex_EntrenadoresActivos);
     free(buffer);
-    free(nuevoPersonaje);
+//    free(nuevoPersonaje);
+    free(bufferRecortado);
+    //nuevoPersonaje = NULL;
+
+
 }
+
+
 
 
 int main(int argc, char **argv)
@@ -276,6 +302,8 @@ int main(int argc, char **argv)
                             if(list_size(entrenadoresActivos) >0)
                                 {
                                 	puts("entrenador bien agregado");
+
+
                                 }
 
                         }
@@ -304,6 +332,7 @@ int main(int argc, char **argv)
 //                    		char *payload;
 //                    		memcpy(&(header), buf, sizeof(char));
 //                    		memcpy(&(payload), buf + sizeof(char)  ,  sizeof(char));
+
 //           					char *identificadorPokenest = payload;
 //                    			switch(buf[0]){
 //                    				case '1': 	{
