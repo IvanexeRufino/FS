@@ -574,3 +574,32 @@
 [INFO] 16:42:15:487 ENTRENADOR/(8912:8912): Conectado al servidor
 [INFO] 16:42:15:487 ENTRENADOR/(8912:8912): Se envio el mensaje
 [INFO] 16:42:19:59 ENTRENADOR/(8912:8912): El personaje se desconecto
+[INFO] 16:47:29:429 ENTRENADOR/(9019:9019): Proceso ENTRENADOR
+[INFO] 16:48:26:740 ENTRENADOR/(9019:9019): Archivo de configuracion leido correctamente
+[INFO] 17:33:08:650 ENTRENADOR/(9576:9576): Proceso ENTRENADOR
+[INFO] 17:33:10:97 ENTRENADOR/(9576:9576): Archivo de configuracion leido correctamente
+[INFO] 17:33:10:97 ENTRENADOR/(9576:9576): Conectado al servidor
+[INFO] 17:33:10:98 ENTRENADOR/(9576:9576): Se envio el mensaje
+[INFO] 17:34:33:796 ENTRENADOR/(9576:9576): El personaje se desconecto
+[INFO] 17:34:50:869 ENTRENADOR/(9680:9680): Proceso ENTRENADOR
+[INFO] 17:34:51:918 ENTRENADOR/(9680:9680): Archivo de configuracion leido correctamente
+[INFO] 17:34:51:918 ENTRENADOR/(9680:9680): Conectado al servidor
+[INFO] 17:34:51:918 ENTRENADOR/(9680:9680): Se envio el mensaje
+[INFO] 17:45:14:439 ENTRENADOR/(9680:9680): El personaje se desconecto
+[INFO] 18:01:16:410 ENTRENADOR/(10799:10799): Proceso ENTRENADOR
+[INFO] 18:01:18:159 ENTRENADOR/(10799:10799): Archivo de configuracion leido correctamente
+[INFO] 18:01:18:159 ENTRENADOR/(10799:10799): Conectado al servidor
+[INFO] 18:01:18:159 ENTRENADOR/(10799:10799): Se envio el mensaje
+[INFO] 18:14:20:672 ENTRENADOR/(10799:10799): El personaje se desconecto
+[INFO] 18:17:00:256 ENTRENADOR/(11063:11063): Proceso ENTRENADOR
+[INFO] 18:17:05:288 ENTRENADOR/(11063:11063): Archivo de configuracion leido correctamente
+[INFO] 18:17:05:288 ENTRENADOR/(11063:11063): Conectado al servidor
+[INFO] 18:17:05:288 ENTRENADOR/(11063:11063): Se envio el mensaje
+[INFO] 00:10:32:777 ENTRENADOR/(11063:11063): El personaje se desconecto
+[INFO] 00:11:01:956 ENTRENADOR/(11240:11240): Proceso ENTRENADOR
+[INFO] 00:11:02:884 ENTRENADOR/(11240:11240): Archivo de configuracion leido correctamente
+[INFO] 00:11:02:884 ENTRENADOR/(11240:11240): Conectado al servidor
+[INFO] 00:11:02:884 ENTRENADOR/(11240:11240): Se envio el mensaje
+[INFO] 00:11:11:328 ENTRENADOR/(11240:11240): El personaje se desconecto
+[INFO] 00:11:12:490 ENTRENADOR/(11242:11242): Proceso ENTRENADOR
+[INFO] 00:11:13:636 ENTRENADOR/(11242:11242): Archivo de configuracion leido correctamente

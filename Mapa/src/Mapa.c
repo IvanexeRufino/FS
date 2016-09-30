@@ -71,7 +71,8 @@ int leerConfiguracionMapa( t_list* listaPokenest)
 }
 
 void leerConfiguracionPokenest(char mapa[10]){
-	char pathpokenestMetadata[100] = "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Mapa/Mapas/Pueblo";
+
+	char pathpokenestMetadata[256] = "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Mapa/Mapas/Pueblo";
 	strcat(pathpokenestMetadata, mapa);
 	strcat(pathpokenestMetadata,"/PokeNests/Pikachu/metadata");
 	t_config* configNest = config_create(pathpokenestMetadata);
@@ -87,7 +88,10 @@ void leerConfiguracionPokenest(char mapa[10]){
 											,pokenest->x, pokenest->y, pokenest->identificador);
 
 	list_add(listaPokenest,pokenest);
+
+
 	}
+
 }
 
 void funcionDelThread (t_list* entrenadoresActivos){
@@ -188,6 +192,12 @@ int main(int argc, char **argv)
  pthread_create (&idHiloPlanificador, NULL, (void*) funcionDelThread, NULL);
 
  pthread_join(idHiloPlanificador,0);
+
+// 	 char pueblo[10] = "Paleta";
+// 	 leerConfiguracionPokenest(pueblo);
+//
+// 		 puts("Pokenest bien leida");
+
 	// --------------------------------
 	//Inicializo la config del mapa
 
@@ -264,7 +274,7 @@ int main(int argc, char **argv)
     list_add_all(items,listaPokenest);
 
 
-   int rows, cols;
+//   int rows, cols;
 //	nivel_gui_inicializar();
 //	nivel_gui_get_area_nivel(&rows, &cols);
 //	//int c = 1;
