@@ -66,12 +66,6 @@ void reconocerOSADA(void) {
 
 }
 
-void cargarTablaDeArchivos() {
-
-}
-
-//ACA ESTOY
-
 int buscarIndiceConPadre(char* nombreAbuscar, int padre)
 {
 	int i;
@@ -114,7 +108,7 @@ int obtenerIndice(char* path) {
 		return archivo ;
 }
 
-osada_file*  obtenerArchivo(char* path) {
+osada_file* obtenerArchivo(char* path) {
 
 	int indice = obtenerIndice(path);
 
@@ -126,7 +120,7 @@ osada_file*  obtenerArchivo(char* path) {
 
 }
 
-//leer archivo
+//leer archivo incompleto
 int leer_archivo(char* path) {
 	osada_file* archivo = obtenerArchivo(path);
 
@@ -151,6 +145,19 @@ t_list* listaDeHijosDelArchivo(int indiceDelPadre)
 		}
 	}
 	return listaDeHijos;
+}
+
+//borrar directorio vacio
+int borrar_directorio(char* path)
+{
+	osada_file* archivo = obtenerArchivo(path);
+	int indiceArchivo = obtenerIndice(path);
+	t_list* listaDeHijos = listaDeHijosDelArchivo(indiceArchivo);
+	if(archivo->state == 2 && list_is_empty(listaDeHijos))
+	{
+		//empezar a remover del fileSystem
+
+	}
 }
 
 int main () {
