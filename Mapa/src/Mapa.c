@@ -1,5 +1,5 @@
 #include "Mapa.h"
-
+#include <dirent.h>
 
 t_list* listaPokenest;
 t_list* items;
@@ -9,7 +9,7 @@ t_list* entrenadoresBloqueados;
 pthread_mutex_t mutex_EntrenadoresActivos = PTHREAD_MUTEX_INITIALIZER;
 
 
-void leerConfiguracionPokenest(char* mapa);
+void leerConfiguracionPokenest(char* mapa, char* path);
 
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
@@ -28,7 +28,10 @@ int leerConfiguracionMapa( t_list* listaPokenest)
 	printf("%s", "Nombre del Mapa?\n");
 	scanf("%s",nombre);
 	char pathconfigMetadata[90] = "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Mapa/Mapas/Pueblo";
+	char path[90];
 	strcat(pathconfigMetadata, nombre);
+	strcat(path,pathconfigMetadata);
+	strcat(path, "/PokeNests");
 	strcat(pathconfigMetadata,  "/metadata");
 	t_config* config = config_create(pathconfigMetadata);
 
@@ -59,8 +62,23 @@ int leerConfiguracionMapa( t_list* listaPokenest)
 								infoMapa->ipEscucha,
 								infoMapa->puertoEscucha);
 		//Leo todas la pokenest ******************************************************* POR AHORA UNA
+		//puts(path);
+		DIR *dp;
+		struct dirent *ep;
+		dp = opendir (path);
+			if (dp != NULL)
+			{
+			while (ep = readdir (dp)){
 
-//	leerConfiguracionPokenest(nombre);
+				  if(ep->d_name[0]!='.'){
+					  puts (ep->d_name);
+					  leerConfiguracionPokenest(nombre,ep->d_name);
+				  }
+			}
+				  (void) closedir (dp);
+			}
+		else
+			perror ("Couldn't open the directory");
 
 	}
 	else
@@ -70,22 +88,54 @@ int leerConfiguracionMapa( t_list* listaPokenest)
 	return 1 ;
 }
 
-void leerConfiguracionPokenest(char mapa[10]){
-
+void leerConfiguracionPokenest(char mapa[10], char pokemon[256]){
+	int cantidadPokemon = 0;
 	char pathpokenestMetadata[256] = "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Mapa/Mapas/Pueblo";
 	strcat(pathpokenestMetadata, mapa);
-	strcat(pathpokenestMetadata,"/PokeNests/Pikachu/metadata");
+	char path[256];
+	strcpy(path,pathpokenestMetadata);
+	strcat(path,"/PokeNests/");
+	strcat(path,pokemon);
+	strcpy(pathpokenestMetadata,path);
+	strcat(pathpokenestMetadata,"/metadata");
+	strcat(path,"/");
 	t_config* configNest = config_create(pathpokenestMetadata);
+	t_registroPokenest* pokenest = malloc(sizeof(t_registroPokenest));
+
+	//puts(path);
+		DIR *dp;
+		  struct dirent *ep;
+		  dp = opendir (path);
+
+		  if (dp != NULL)
+		  {
+		    while (ep = readdir (dp)){
+		    	 if(ep->d_name[0]!='.' && ep->d_name[0]!='m' ){
+		    		 cantidadPokemon ++;
+				      puts (ep->d_name);
+		    	 }
+
+		    }
+
+		    (void) closedir (dp);
+		  }
+		  else
+		    perror ("Couldn't open the directory");
+
+
+		  pokenest->cantidadDisp = cantidadPokemon;
+
 	if (config_has_property(configNest, "Tipo") && config_has_property(configNest, "Identificador")){
-		t_registroPokenest* pokenest = malloc(sizeof(t_registroPokenest));
+
 		pokenest->tipo = config_get_string_value(configNest, "Tipo");
 		pokenest->identificador= config_get_string_value(configNest, "Identificador");
 		pokenest->x =config_get_int_value(configNest,"X");
 		pokenest->y = config_get_int_value(configNest,"Y");
 
-		printf("\n El nombre del Nest es: Pikachu\n su posicion es X: %d\n Y es: %d\n "
-							"su identificador: %s\n"
-											,pokenest->x, pokenest->y, pokenest->identificador);
+		printf("\n El Tipo del Nest es: %s\n su posicion es X: %d\n Y es: %d\n "
+							"su identificador: %s\n Y hay %d Pokemons de ese Tipo\n"
+											,pokenest->tipo,pokenest->x, pokenest->y, pokenest->identificador, pokenest->cantidadDisp);
+
 
 	list_add(listaPokenest,pokenest);
 
@@ -169,7 +219,9 @@ void recibirEntrenador(int newfd){
 int main(int argc, char **argv)
 {
 	listaPokenest = malloc(sizeof(t_registroPokenest));
+	t_registroPokenest *pokenestPrueba = malloc(sizeof(t_registroPokenest));
 	listaPokenest = list_create();
+	printf("%d",list_size(listaPokenest));
 	items = malloc(sizeof(t_list));
 	items = list_create();
 	entrenadoresActivos = malloc(sizeof(t_list));
@@ -186,6 +238,15 @@ int main(int argc, char **argv)
 		  		  log_info(logger, "Archivo de configuracion leido correctamente");
 			  else
 				  log_error(logger,"Error la leer archivo de configuracion");
+
+	  int ii = 0;
+	  while(ii!= list_size(listaPokenest)){
+		  pokenestPrueba = list_get(listaPokenest,ii);
+		   printf("%d",pokenestPrueba->cantidadDisp);
+		   puts(pokenestPrueba->identificador);
+		  ii++;
+	  }
+
 
  pthread_t idHiloPlanificador;
 
