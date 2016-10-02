@@ -23,21 +23,19 @@ void *get_in_addr(struct sockaddr *sa)
 
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
-
 int leerConfiguracionMapa( t_list* listaPokenest)
 {
 
-	char nombre[10];
+	char nombre[20];
 	printf("%s", "Nombre del Mapa?\n");
 	scanf("%s",nombre);
-	char pathconfigMetadata[90] = "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Mapa/Mapas/Pueblo";
-	char path[90];
+	char pathconfigMetadata[256] = "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Mapa/Mapas/";
+	char path[256];
 	strcat(pathconfigMetadata, nombre);
-	strcat(path,pathconfigMetadata);
+	strcpy(path,pathconfigMetadata);
 	strcat(path, "/PokeNests");
 	strcat(pathconfigMetadata,  "/metadata");
 	t_config* config = config_create(pathconfigMetadata);
-
 	// Verifico que los parametros tengan sus valores OK
 	if ( config_has_property(config, "IP") && config_has_property(config, "Puerto")
 	&& config_has_property(config, "algoritmo") && config_has_property(config, "quantum")
@@ -65,7 +63,9 @@ int leerConfiguracionMapa( t_list* listaPokenest)
 								infoMapa->ipEscucha,
 								infoMapa->puertoEscucha);
 		//Leo todas la pokenest ******************************************************* POR AHORA UNA
-		//puts(path);
+		puts(pathconfigMetadata);
+		puts(path);
+		puts(path);
 		DIR *dp;
 		struct dirent *ep;
 		dp = opendir (path);
@@ -91,9 +91,9 @@ int leerConfiguracionMapa( t_list* listaPokenest)
 	return 1 ;
 }
 
-void leerConfiguracionPokenest(char mapa[10], char pokemon[256]){
+void leerConfiguracionPokenest(char mapa[20], char pokemon[256]){
 	int cantidadPokemon = 0;
-	char pathpokenestMetadata[256] = "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Mapa/Mapas/Pueblo";
+	char pathpokenestMetadata[256] = "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Mapa/Mapas/";
 	strcat(pathpokenestMetadata, mapa);
 	char path[256];
 	strcpy(path,pathpokenestMetadata);
@@ -146,7 +146,6 @@ void leerConfiguracionPokenest(char mapa[10], char pokemon[256]){
 	}
 
 }
-
 void funcionDelThread (int newfd){
 
 	printf("%d",newfd);
