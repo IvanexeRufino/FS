@@ -11,25 +11,6 @@ entrenador_datos* infoEntrenador;
 pid_t pid;
 t_list* listaDeNiveles;
 
-//int enviarPaquete(int serverSocket)
-//{
-//	t_paquete unPaquete;
-//	char* paqueteAEnviar;
-//		unPaquete = memoria(sizeof(t_paquete));
-//		unPaquete->codOp = PRESENTACION;
-//		unPaquete->tamanioDatos = strlen(infoEntrenador->nombre) + 1;
-//		unPaquete->datos = infoEntrenador->nombre;
-//		paqueteAEnviar = acoplador(unPaquete);
-//		if(send(serverSocket, paqueteAEnviar,size_header + unPaquete->tamanioDatos, 0)<0)
-//		{
-//			log_error(logger, "Error al enviar datos a la plataforma\n");
-//			return -1;
-//		}
-//		free(paqueteAEnviar);
-//		free(unPaquete);
-//		return 1;
-//}
-
 void muerteDefinitivaPorSenial(int aSignal)
 {
 	log_info(logger,"El personaje se desconecto");
@@ -157,7 +138,7 @@ void enviarMensajeInicial(int serverSocket){
 	char identificador = '0';
 	memcpy(buffer, &identificador , sizeof(char));
 	memcpy(buffer + sizeof(char), (infoEntrenador->simbolo), sizeof(char));
-	send(serverSocket, buffer, (2 * sizeof(char)), 0);
+	send(serverSocket, buffer, strlen(buffer)+1, 0);
 	puts(buffer);
 	free(buffer);
 	puts("conectado");
@@ -207,6 +188,55 @@ void sendObjetivosMapa(int serverSocket)
 	puts("conectado");
 }
 
+int conectarConServer(char *ipServer, int puertoServer)
+{
+	struct sockaddr_in socket_info;
+	int nuevoSocket;
+	// Se carga informacion del socket
+	socket_info.sin_family = AF_INET;
+	socket_info.sin_addr.s_addr = inet_addr(ipServer);
+	socket_info.sin_port = htons(puertoServer);
+
+	// Crear un socket:
+	// AF_INET, SOCK_STREM, 0
+	nuevoSocket = socket (AF_INET, SOCK_STREAM, 0);
+	if (nuevoSocket < 0)
+		return -1;
+	// Conectar el socket con la direccion 'socketInfo'.
+	if (connect (nuevoSocket,(struct sockaddr *)&socket_info,sizeof (socket_info)) != 0)
+	{
+		perror("Problema al intentar la conexión con el Servidor");
+				exit(3);
+		return -1;
+	}
+
+	return nuevoSocket;
+}
+
+int crearSocketCliente(char ip[], int puerto) {
+	int socketCliente;
+	struct sockaddr_in servaddr;
+
+	if ((socketCliente = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+		perror("Problem creando el Socket.");
+		exit(2);
+	}
+
+	memset(&servaddr, 0, sizeof(servaddr));
+	servaddr.sin_family = AF_INET;
+	servaddr.sin_addr.s_addr = inet_addr(ip);
+	servaddr.sin_port = htons(puerto);
+
+	if (connect(socketCliente, (struct sockaddr *) &servaddr, sizeof(servaddr))
+			< 0) {
+		perror("Problema al intentar la conexión con el Servidor");
+		exit(3);
+	}
+	return socketCliente;
+}
+
+
+
 int main(void) {
 	pid = getpid();
 	printf("El PID del proceso Personaje es %d\n", pid);
@@ -222,11 +252,9 @@ int main(void) {
 				log_error(logger,"Error la leer archivo de configuracion");
 
 
-	struct addrinfo hints;
-	struct addrinfo *serverInfo;
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_UNSPEC;		// Permite que la maquina se encargue de verificar si usamos IPv4 o IPv6
-	hints.ai_socktype = SOCK_STREAM;	// Indica que usaremos el protocolo TCP
+
+while(1){
+
 
 
 	int j;
@@ -234,53 +262,24 @@ int main(void) {
 
 		t_nivel* mapa = list_get(listaDeNiveles,j);
 		leerConfiguracionMapa(mapa);
-
-		getaddrinfo(mapa->ipMapa, mapa->socketMapa , &hints, &serverInfo);	// Carga en serverInfo los datos de la conexion
-		int serverSocket;		//	Obtiene un socket
-		serverSocket = socket(serverInfo->ai_family, serverInfo->ai_socktype, serverInfo->ai_protocol);
-	    connect(serverSocket, serverInfo->ai_addr, serverInfo->ai_addrlen); // Me conecto
-		freeaddrinfo(serverInfo);	// No lo necesitamos mas
-
-//				char* paqueteAEnviar;
-//
-//				t_paquete* unPaquete = memoria(sizeof(t_paquete));
-//				unPaquete->codOp = PRESENTACION;
-//				unPaquete->tamanioDatos = strlen(infoEntrenador->nombre) + 1;
-//				unPaquete->datos = infoEntrenador->nombre;
-//				paqueteAEnviar = acoplador(unPaquete);
-//				if(send(serverSocket, paqueteAEnviar,size_header + unPaquete->tamanioDatos, 0)<0)
-//				{
-//					log_error(logger, "Error al enviar datos a la plataforma\n");
-//					return -1;
-//				}
-//				free(paqueteAEnviar);
-//				free(unPaquete);
-//				return 1;
+		int socketCliente;
+		socketCliente = conectarConServer(mapa->ipMapa, 10000);
 
 
 
-		enviarMensajeInicial(serverSocket);
-		sendObjetivosMapa(serverSocket);
+
+		char* msj = "hola";
+		send(socketCliente,msj,strlen(msj)+1,0);
+
+
+//		enviarMensajeInicial(serverSocket);
+//		sendObjetivosMapa(serverSocket);
 
 		log_info(logger, "Conectado al servidor");
 		puts("conectado");
 
-		int enviar = 1;
-		char message[PACKAGESIZE];
-		while(enviar){
-			fgets(message, PACKAGESIZE, stdin);			// Lee una linea en el stdin (lo que escribimos en la consola) hasta encontrar un \n (y lo incluye) o llegar a PACKAGESIZE.
-			if (!strcmp(message,"exit\n"))
-				{
-					enviar = 0;
-					log_info(logger, "El usuario decidio salir");// Chequeo que el usuario no quiera salir
-				}
-			if (enviar)
-				{
-					send(serverSocket, message, strlen(message) + 1, 0);
-					log_info(logger, "Se envio el mensaje");  // Solo envio si el usuario no quiere salir.
-				}
-			}
 
+	}
 	}
 	return EXIT_SUCCESS;
 }

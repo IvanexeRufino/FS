@@ -1,6 +1,9 @@
 #include "Mapa.h"
 #include <dirent.h>
 
+
+#define BACKLOG 10
+
 t_list* listaPokenest;
 t_list* items;
 mapa_datos* infoMapa;
@@ -144,9 +147,9 @@ void leerConfiguracionPokenest(char mapa[10], char pokemon[256]){
 
 }
 
-void funcionDelThread (t_list* entrenadoresActivos){
+void funcionDelThread (int newfd){
 
-	puts("hola");
+	printf("%d",newfd);
 }
 
 t_registroPersonaje *get_personaje_en_socket(int socket) {
@@ -213,6 +216,77 @@ void recibirEntrenador(int newfd){
 
 }
 
+int crearSocketServidor(char *puerto) {
+	int BACKLOOG = 5;
+	struct addrinfo hints;
+	struct addrinfo* serverInfo;
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_flags = AI_PASSIVE;
+	hints.ai_socktype = SOCK_STREAM;
+	getaddrinfo(NULL, puerto, &hints, &serverInfo);
+	int listenningSocket;
+	listenningSocket = socket(serverInfo->ai_family, serverInfo->ai_socktype,
+			serverInfo->ai_protocol);
+	int yes =1;
+	setsockopt(listenningSocket,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof(int));
+	bind(listenningSocket, serverInfo->ai_addr, serverInfo->ai_addrlen);
+	freeaddrinfo(serverInfo);
+
+	listen(listenningSocket, BACKLOOG);
+	return listenningSocket;
+}
+
+int IniciarSocketServidor(int puertoServer)
+{
+	struct sockaddr_in socketInfo;
+		int socketEscucha;
+		int optval = 1;
+
+		// Crear un socket
+		socketEscucha = socket (AF_INET, SOCK_STREAM, 0);
+		if (socketEscucha == -1)
+		 	return -1;
+
+		setsockopt(socketEscucha, SOL_SOCKET, SO_REUSEADDR, &optval,
+				sizeof(optval));
+		socketInfo.sin_family = AF_INET;
+		socketInfo.sin_port = htons(puertoServer);
+		socketInfo.sin_addr.s_addr = INADDR_ANY;
+		if (bind (socketEscucha,(struct sockaddr *)&socketInfo,sizeof (socketInfo)) != 0)
+		{
+			close (socketEscucha);
+			return -1;
+		}
+
+		/*
+		* Se avisa al sistema que comience a atender llamadas de clientes
+		*/
+		if (listen (socketEscucha, 10) == -1)
+		{
+			close (socketEscucha);
+			return -1;
+		}
+		/*
+		* Se devuelve el descriptor del socket servidor
+		*/
+		return socketEscucha;
+	}
+
+
+int AceptarConexionCliente(int socketServer)
+{
+	socklen_t longitudCliente;//esta variable tiene inicialmente el tamaño de la estructura cliente que se le pase
+	struct sockaddr cliente;
+	int socketNuevaConexion;//esta variable va a tener la descripcion del nuevo socket que estaria creando
+	longitudCliente = sizeof(cliente);
+	socketNuevaConexion = accept (socketServer, &cliente, &longitudCliente);//acepto la conexion del cliente
+	if (socketNuevaConexion < 0)
+		return -1;
+
+	return socketNuevaConexion;
+
+}
 
 
 
@@ -248,93 +322,17 @@ int main(int argc, char **argv)
 	  }
 
 
- pthread_t idHiloPlanificador;
-
- pthread_create (&idHiloPlanificador, NULL, (void*) funcionDelThread, NULL);
-
- pthread_join(idHiloPlanificador,0);
-
-// 	 char pueblo[10] = "Paleta";
-// 	 leerConfiguracionPokenest(pueblo);
+// pthread_t idHiloPlanificador;
 //
-// 		 puts("Pokenest bien leida");
+// pthread_create (&idHiloPlanificador, NULL, (void*) funcionDelThread, 5);
+//
+// pthread_join(idHiloPlanificador,0);
 
-	// --------------------------------
-	//Inicializo la config del mapa
+ items = list_create();
+     list_add_all(items,listaPokenest);
 
-    fd_set master;    // conjunto maestro de descriptores de fichero
-    fd_set read_fds;  // conjunto temporal de descriptores de fichero para select()
-    int fdmax;        // número máximo de descriptores de fichero
-
-    int listener;     // descriptor de socket a la escucha
-    int newfd;        // descriptor de socket de nueva conexión aceptada
-    struct sockaddr_storage remoteaddr; // client address
-    socklen_t addrlen;
-
-    char buf[256];    // buffer para datos del cliente
-    int nbytes;
-
-    int yes=1;        // para setsockopt() SO_REUSEADDR, más abajo
-    int i, rv;
-
-    struct addrinfo hints, *ai, *p;
-
-    FD_ZERO(&master);    // borra los conjuntos maestro
-    FD_ZERO(&read_fds);  // borra los conjuntos temporal
-
-    // get us a socket and bind it
-    memset(&hints, 0, sizeof hints);
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_PASSIVE;
-    if ((rv = getaddrinfo(NULL,infoMapa->puertoEscucha , &hints, &ai)) != 0) {
-        log_info(logger, "Fallo la lectura de datos locales para el socket");
-        exit(1);
-    }
-
-    for(p = ai; p != NULL; p = p->ai_next) {
-        listener = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
-        if (listener < 0) {
-            continue;
-        }
-
-        // obviar el mensaje "address already in use" (la dirección ya se está usando)
-        setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
-
-        if (bind(listener, p->ai_addr, p->ai_addrlen) < 0) {
-            close(listener);
-            continue;
-        }
-
-        break;
-    }
-
-    // if we got here, it means we didn't get bound
-    if (p == NULL) {
-        log_info(logger, "fallo el bind con el socket listener");
-        exit(2);
-    }
-
-    freeaddrinfo(ai); // all done with this
-
-    // Aca ponemos a escuchar y validar si hay un error
-    if (listen(listener, 10) == -1) {
-        perror("listen");
-        exit(3);
-    }
-
-    // añadir listener al conjunto maestro
-    FD_SET(listener, &master);
-
-    // seguir la pista del descriptor de fichero mayor
-    fdmax = listener; // por ahora es éste
 
 	//Inicializo la gui --------------------------------
-
-    items = list_create();
-    list_add_all(items,listaPokenest);
-
-
 //   int rows, cols;
 //	nivel_gui_inicializar();
 //	nivel_gui_get_area_nivel(&rows, &cols);
@@ -345,128 +343,19 @@ int main(int argc, char **argv)
 
 
     // bucle principal
-    for(;;) {
-    	read_fds = master; // cópialo
-        if (select(fdmax+1, &read_fds, NULL, NULL, NULL) == -1) {
-            perror("select");
-            exit(4);
-        }
+     	 int socketServidor;
+     	 int newfd;
+    	socketServidor = crearSocketServidor(infoMapa->puertoEscucha);
+    	IniciarSocketServidor(infoMapa->puertoEscucha);
+    	newfd = AceptarConexionCliente(socketServidor);
+    	printf("%d", newfd);
 
-        // explorar conexiones existentes en busca de datos que leer
-        for(i = 0; i <= fdmax; i++) {
-            if (FD_ISSET(i, &read_fds)) { // ¡tenemos datos!
-                if (i == listener) {
-                    //gestionar nuevas conexiones
-                    addrlen = sizeof remoteaddr;
-                    newfd = accept(listener,
-                        (struct sockaddr *)&remoteaddr,
-                        &addrlen);
-
-                    if (newfd == -1) {
-                        log_info(logger, "Error en el accept");
-                    } else {
-                        FD_SET(newfd, &master); // añadir al conjunto maestro
-                        if (newfd > fdmax) {    // actualizar el máximo
-                            fdmax = newfd;
-                            	///----------------------------------RECIBO ENTRENADOR
-                            recibirEntrenador(newfd);
-                            if(list_size(entrenadoresActivos) >0)
-                                {
-                                	puts("entrenador bien agregado");
+    	pthread_t idHilo;
+    	pthread_create (&idHilo, NULL, (void*) funcionDelThread, newfd);
+    	pthread_join(idHilo,0);
 
 
-                                }
 
-                        }
-               //      printf("selectserver: new connection from %s on " "socket %d\n", inet_ntop(remoteaddr.ss_family, get_in_addr((struct sockaddr*)&remoteaddr),remoteIP, INET6_ADDRSTRLEN),newfd);
-                    }
-                } else {
-                    // gestionar datos de un cliente
-                    if ((nbytes = recv(i, buf, sizeof buf, 0)) <= 0) {
-                        // error o conexión cerrada por el cliente
-                        if (nbytes == 0) {
-                            // conexión cerrada
-                           printf("selectserver: socket %d hung up\n", i);
-                        } else {
-                            log_info(logger, "Error al recibir datos");
-                        }
-                        close(i); // bye!
-                        FD_CLR(i, &master); // eliminar del conjunto maestro
-                    }
-//                        else {
-//                    	int turno = 0;
-//
-//                    	while(turno <= fdmax){
-//                    		send(turno, "Tu turno", 10, 0);
-//                    		recv(turno, buf, sizeof buf, 0);
-//                    		char *header;
-//                    		char *payload;
-//                    		memcpy(&(header), buf, sizeof(char));
-//                    		memcpy(&(payload), buf + sizeof(char)  ,  sizeof(char));
-
-//           					char *identificadorPokenest = payload;
-//                    			switch(buf[0]){
-//                    				case '1': 	{
-//                    					//PedirPosicion Pokenest
-//
-//                    					t_registroPokenest *pokenestSolicitada = get_pokenest_identificador(identificadorPokenest);
-//                                		char *msg = "x :";
-//                                		strcat(msg, pokenestSolicitada->x);
-//                                		strcat(msg," y: ");
-//                                		strcat(msg,pokenestSolicitada->y);
-//                    					send(turno, msg , 30, 0);
-//                    					turno++;
-//                    					break;
-//                    				}
-//                    				case'2':
-//                    				{//Mover
-//                    					t_registroPersonaje *personaje = get_personaje_en_socket(turno);
-//                    					t_registroPokenest *pokenestSolicitada = get_pokenest_identificador(identificadorPokenest);
-//                    						if(personaje->ultimoRecurso == 'x'){			//Si la ultima vez me movi en x ahora me tengo que mover en y;
-//                    							if(personaje->y <= pokenestSolicitada->y){
-//                    								personaje->y++;
-//                    								}
-//                    							else{
-//                    								personaje->y --;
-//                    							}
-//                    							personaje->ultimoRecurso = "y";
-//                    						}
-//                    						else{
-//                    							if(personaje->x <= pokenestSolicitada->x){
-//                    								personaje->x++;
-//                   								}
-//                    							else{
-//                    									personaje->x --;
-//                    								}
-//                    								personaje->ultimoRecurso = "x";
-//                    							}
-//                    						MoverPersonaje(items, personaje->identificador[0], personaje->y , personaje->x);
-//                    						turno++;
-//                    						break;
-//
-//                    				}
-//                    				case '3':
-//                    					turno++;//Atrapar Pokemon
-//                    					break;
-//                    				default:
-//                    					turno++;
-//                    					break;
-//
-//
-//                    		//turno ++;
-//                    		}
-//
-//                    	}
-//
-////                    	}
-//                    }
-                } // END handle data from client
-            } // END got new incoming connection
-        } // END looping through file descriptors
-    	//nivel_gui_dibujar(items, infoMapa->nombre);
-
-    } // END for(;;)--and you thought it would never end!
-
-    return 0;
+    	                return 0;
 
 }
