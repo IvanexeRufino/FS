@@ -2,10 +2,6 @@
 
 #define PRESENTACION 1
 
-
-
-
-
 t_log* logger;
 entrenador_datos* infoEntrenador;
 pid_t pid;
@@ -18,6 +14,28 @@ void muerteDefinitivaPorSenial(int aSignal)
 	signal(SIGINT, muerteDefinitivaPorSenial);
 }
 
+/*t_nivel* nivelActual*/
+void gameOver()
+{
+	char respuesta= 'a';
+	printf("GAME OVER!!! Parece que el personaje %s ha muerto y se ha quedado sin vidas,¿Desea continuar?(S/n).\n",infoEntrenador->nombre);
+	scanf("%c", &respuesta);
+	while (respuesta != 'S' || respuesta != 'n'){
+		printf("Por favor responda si desea continuar solamente con (S/n).\n");
+		scanf("%c", &respuesta);
+	}
+	if (respuesta == 'n')
+	{
+		printf("Gracias por jugar! Vuelva Pronto!\n");
+		return;
+	}
+	else if (respuesta == 'S')
+	{
+		printf("Gracias por continuar jugando! Se le han otorgado 3 vidas mas!\n");
+	return;
+	}
+}
+
 void muertePorSenial(int num)
 {
 	signal(SIGTERM,muertePorSenial);//Por consola kill -15 PID
@@ -28,10 +46,9 @@ void muertePorSenial(int num)
 	}
 	else
 	{
-		gameOver(NULL);
+		gameOver();
 	}
 }
-
 
 void sumarVida(int aSignal)
 {
@@ -40,15 +57,6 @@ void sumarVida(int aSignal)
 	 signal(SIGUSR1, sumarVida);
 	 return ;
 }
-
-void gameOver (/*t_nivel* nivelActual*/)
-{
-	char respuesta;
-	printf("GAME OVER!!! Parece que el personaje %s ha muerto y se ha quedado sin vidas.\n.",infoEntrenador->nombre);
-	scanf("%c", &respuesta);
-	return;
-}
-
 
 char* objetivosDelMapa(char* mapaParaAgregar) {
 	char* objetoYparentesisIzquierdo= "obj[";
@@ -60,7 +68,6 @@ char* objetivosDelMapa(char* mapaParaAgregar) {
 	strcat(new,parentesisDerecho);
 	return new;
 }
-
 
 void imprimirClaveYValor(char* key, void* data) {
 		char* pokemon = (char *) data;
@@ -132,7 +139,6 @@ int leerConfiguracionMapa(t_nivel* datos)
 	else		return -1;
 }
 
-
 void enviarMensajeInicial(int serverSocket){
 	void* buffer = malloc(sizeof(int) + sizeof(char) );
 	char identificador = '0';
@@ -203,11 +209,14 @@ int conectarConServer(char *ipServer, int puertoServer)
 	if (nuevoSocket < 0)
 		return -1;
 	// Conectar el socket con la direccion 'socketInfo'.
-	if (connect (nuevoSocket,(struct sockaddr *)&socket_info,sizeof (socket_info)) != 0)
-	{
-		perror("Problema al intentar la conexión con el Servidor");
-				exit(3);
-		return -1;
+	int conecto = connect (nuevoSocket,(struct sockaddr *)&socket_info,sizeof (socket_info));
+	int mostrarEsperaAconectar=0;
+	while (conecto != 0){
+		mostrarEsperaAconectar++;
+		if (mostrarEsperaAconectar == 1){
+			printf("Esperando que el mapa se levante\n");
+		}
+		conecto = connect (nuevoSocket,(struct sockaddr *)&socket_info,sizeof (socket_info));
 	}
 
 	return nuevoSocket;
@@ -235,8 +244,6 @@ int crearSocketCliente(char ip[], int puerto) {
 	return socketCliente;
 }
 
-
-
 int main(void) {
 	pid = getpid();
 	printf("El PID del proceso Personaje es %d\n", pid);
@@ -251,35 +258,25 @@ int main(void) {
 			else
 				log_error(logger,"Error la leer archivo de configuracion");
 
-
-
-while(1){
-
-
-
+while(1)
+	{
 	int j;
-	for(j = 0 ; j< list_size(listaDeNiveles); j++){
+		for(j = 0 ; j< list_size(listaDeNiveles); j++)
+		{
+			t_nivel* mapa = list_get(listaDeNiveles,j);
+			leerConfiguracionMapa(mapa);
+			int socketCliente;
+			socketCliente = conectarConServer(mapa->ipMapa, 10000);
 
-		t_nivel* mapa = list_get(listaDeNiveles,j);
-		leerConfiguracionMapa(mapa);
-		int socketCliente;
-		socketCliente = conectarConServer(mapa->ipMapa, 10000);
+			char* msj = "hola";
+			send(socketCliente,msj,strlen(msj)+1,0);
 
+//			enviarMensajeInicial(serverSocket);
+//			sendObjetivosMapa(serverSocket);
 
-
-
-		char* msj = "hola";
-		send(socketCliente,msj,strlen(msj)+1,0);
-
-
-//		enviarMensajeInicial(serverSocket);
-//		sendObjetivosMapa(serverSocket);
-
-		log_info(logger, "Conectado al servidor");
-		puts("conectado");
-
-
-	}
+			log_info(logger, "Conectado al servidor");
+			puts("conectado");
+		}
 	}
 	return EXIT_SUCCESS;
 }

@@ -22,9 +22,9 @@
 #include <commons/collections/list.h>
 #include <stdbool.h>
 #include <signal.h>
+#include <arpa/inet.h>
 
 /*----------------------- Declaraciones de Estructuras ---------------------------------*/
-
 
 typedef struct
 {
@@ -43,7 +43,6 @@ typedef struct {
 	pthread_t threadIdNivel;
 } t_nivel;
 
-
 /*----------------------- Declaraciones de Constantes ----------------------------------*/
 	/* Configuración de SOCKETS */
 
@@ -60,8 +59,20 @@ typedef struct {
 	#define T_LOG_LEVEL LOG_LEVEL_INFO
 
 /*----------------------- Declaraciones de Prototipos ---------------------------------*/
-char* objetivosDelMapa(char* mapaParaAgregar);
-int leerConfiguracionEntrenador(entrenador_datos *datos);
 
+char* objetivosDelMapa(char* );
+int leerConfiguracionEntrenador(entrenador_datos *);
+void muerteDefinitivaPorSenial(int );
+void gameOver();
+void muertePorSenial(int );
+void sumarVida(int );
+char* objetivosDelMapa(char* );
+void imprimirClaveYValor(char* , void* );
+int leerConfiguracionMapa(t_nivel* );
+void enviarMensajeInicial(int );
+void jugarTurno(int );
+void sendObjetivosMapa(int );
+int conectarConServer(char *, int );
+int crearSocketCliente(char [], int );
 
 #endif /* ENTRENADOR_H_ */
