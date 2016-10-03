@@ -30,12 +30,16 @@ typedef struct
 {
 	char *nombre;
 	char *simbolo;
-	//t_list* hojaDeViaje;
 	int vidas;
+	int posicionEnX;
+	int posicionEnY;
 } entrenador_datos;
 
 typedef struct {
-	char* socketMapa;
+	int puertoMapa;
+	int socketMapa;
+	int pokemonActualPosicionEnX;
+	int pokemonActualPosicionEnY;
 	char* ipMapa;
 	char* nivel;
 	bool estaTerminado;

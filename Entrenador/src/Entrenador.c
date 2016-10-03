@@ -132,7 +132,7 @@ int leerConfiguracionMapa(t_nivel* datos)
 	t_config* config = config_create(pathconfigMetadata);
 	if ( config_has_property(config, "Puerto"))
 	{
-		datos->socketMapa = config_get_string_value(config, "Puerto");
+		datos->puertoMapa = config_get_int_value(config, "Puerto");
 		datos->ipMapa = config_get_string_value(config, "IP");
 			return 1;
 	}
@@ -140,14 +140,20 @@ int leerConfiguracionMapa(t_nivel* datos)
 }
 
 void enviarMensajeInicial(int serverSocket){
-	void* buffer = malloc(sizeof(int) + sizeof(char) );
-	char identificador = '0';
-	memcpy(buffer, &identificador , sizeof(char));
-	memcpy(buffer + sizeof(char), (infoEntrenador->simbolo), sizeof(char));
+	//void* buffer = malloc(sizeof(int) + sizeof(char) );
+	//char identificador = '0';
+	//memcpy(buffer, &identificador , sizeof(char));
+	//memcpy(buffer + sizeof(char), (infoEntrenador->simbolo), sizeof(char));
+
+	char* buffer = malloc(sizeof(int) + sizeof(char) );
+	char* identificador = "0";
+	strcpy(buffer,identificador);
+	strcat(buffer,infoEntrenador->simbolo);
 	send(serverSocket, buffer, strlen(buffer)+1, 0);
+	puts("Se ha enviado: ");
 	puts(buffer);
 	free(buffer);
-	puts("conectado");
+
 }
 
 void jugarTurno(int socket){
@@ -264,18 +270,35 @@ while(1)
 		for(j = 0 ; j< list_size(listaDeNiveles); j++)
 		{
 			t_nivel* mapa = list_get(listaDeNiveles,j);
-			leerConfiguracionMapa(mapa);
-			int socketCliente;
-			socketCliente = conectarConServer(mapa->ipMapa, 10000);
+			leerConfiguracionMapa(mapa);				      					   //Busco en los archivos de config la ip y el socket
+			int socketServidor = conectarConServer(mapa->ipMapa, mapa->puertoMapa); //Me conecto con el Mapa
+			mapa->socketMapa = socketServidor;
+			log_info(logger, "Conectado al servidor");							   // Lo reflejo en el log
+			enviarMensajeInicial(mapa->puertoMapa);								   //Le envio el simbolo al Mapa - HEADER ID es el 0
+			int k=0;															   //La utilizo para moverme entre objetivos de pokemones
+			for(k = 0 ; k< list_size(mapa->objetivos); k++)
+					{
+					list_get(mapa->objetivos,k);
+					char* buffer = malloc(1);
+					recv(socketServidor, buffer, sizeof(char), 0);
+					if(buffer == '0')											// Es la señal que me dice que es mi turno
+						{
+						//infoEntrenador->posicionEnX = solicitarPosicionEnX();		//Le envio en el header el ID 1 --Falta implementar
+						//infoEntrenador->posicionEnY = solicitarPosicionEnY();		//Le envio en el header el ID 2 --Falta implementar
+							while(infoEntrenador->posicionEnX != mapa->pokemonActualPosicionEnX && infoEntrenador->posicionEnY != mapa->pokemonActualPosicionEnY)
+							{
+								//en Desarrollo
 
-			char* msj = "hola";
-			send(socketCliente,msj,strlen(msj)+1,0);
-
-//			enviarMensajeInicial(serverSocket);
-//			sendObjetivosMapa(serverSocket);
-
-			log_info(logger, "Conectado al servidor");
-			puts("conectado");
+								//solicitarAvanzar();									//Le envio en el header el ID 3
+							}
+						//int atrapado=atraparPokemon();  								//Le envio en el header el ID 4
+						//if (atrapado == 1)
+						//	{
+						//	printf("Felicitaciones, capturaste el pokemon nro %d \n",k);
+						//	}
+						}
+					}
+			printf("Felicitaciones, terminaste de capturar todos los pokemons del mapa nro %d \n",j);
 		}
 	}
 	return EXIT_SUCCESS;
