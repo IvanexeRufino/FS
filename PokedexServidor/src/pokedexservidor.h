@@ -30,7 +30,7 @@
 
 /* -- configuracion de sockets -- */
 
-#define PORT "10000"
+#define PORT "9999"
 
 /* -- configuracion de log -- */
 
