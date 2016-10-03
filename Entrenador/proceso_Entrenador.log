@@ -35,3 +35,9 @@
 [INFO] 21:47:17:941 ENTRENADOR/(3031:3031): Proceso ENTRENADOR
 [INFO] 21:47:27:433 ENTRENADOR/(3031:3031): Archivo de configuracion leido correctamente
 [INFO] 21:47:35:13 ENTRENADOR/(3031:3031): Conectado al servidor
+[INFO] 13:51:24:57 ENTRENADOR/(6543:6543): Proceso ENTRENADOR
+[INFO] 13:51:37:766 ENTRENADOR/(6543:6543): Archivo de configuracion leido correctamente
+[INFO] 13:52:00:773 ENTRENADOR/(6577:6577): Proceso ENTRENADOR
+[INFO] 13:52:06:840 ENTRENADOR/(6577:6577): Archivo de configuracion leido correctamente
+[INFO] 13:52:27:359 ENTRENADOR/(6543:6543): Conectado al servidor
+[INFO] 13:52:32:686 ENTRENADOR/(6577:6577): Conectado al servidor

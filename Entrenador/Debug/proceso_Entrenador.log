@@ -611,3 +611,134 @@
 [INFO] 16:21:57:134 ENTRENADOR/(3844:3844): Archivo de configuracion leido correctamente
 [INFO] 16:35:22:504 ENTRENADOR/(4483:4483): Proceso ENTRENADOR
 [INFO] 16:35:24:618 ENTRENADOR/(4483:4483): Archivo de configuracion leido correctamente
+[INFO] 09:41:41:812 ENTRENADOR/(2419:2419): Proceso ENTRENADOR
+[INFO] 09:41:43:471 ENTRENADOR/(2419:2419): Archivo de configuracion leido correctamente
+[INFO] 09:41:43:487 ENTRENADOR/(2419:2419): Conectado al servidor
+[INFO] 09:43:10:138 ENTRENADOR/(2419:2419): El personaje se desconecto
+[INFO] 09:43:13:653 ENTRENADOR/(2423:2423): Proceso ENTRENADOR
+[INFO] 09:43:17:13 ENTRENADOR/(2423:2423): Archivo de configuracion leido correctamente
+[INFO] 09:43:17:14 ENTRENADOR/(2423:2423): Conectado al servidor
+[INFO] 09:43:46:939 ENTRENADOR/(2423:2423): El personaje se desconecto
+[INFO] 09:43:49:307 ENTRENADOR/(2427:2427): Proceso ENTRENADOR
+[INFO] 09:43:51:437 ENTRENADOR/(2427:2427): Archivo de configuracion leido correctamente
+[INFO] 09:43:51:443 ENTRENADOR/(2427:2427): Conectado al servidor
+[INFO] 09:44:04:617 ENTRENADOR/(2427:2427): El personaje se desconecto
+[INFO] 09:44:31:568 ENTRENADOR/(2433:2433): Proceso ENTRENADOR
+[INFO] 09:44:33:990 ENTRENADOR/(2433:2433): Archivo de configuracion leido correctamente
+[INFO] 09:44:33:993 ENTRENADOR/(2433:2433): Conectado al servidor
+[INFO] 09:44:41:886 ENTRENADOR/(2433:2433): El personaje se desconecto
+[INFO] 10:42:53:916 ENTRENADOR/(2730:2730): Proceso ENTRENADOR
+[INFO] 10:42:55:569 ENTRENADOR/(2730:2730): Archivo de configuracion leido correctamente
+[INFO] 10:42:55:575 ENTRENADOR/(2730:2730): Conectado al servidor
+[INFO] 10:43:35:268 ENTRENADOR/(2730:2730): Conectado al servidor
+[INFO] 10:43:47:72 ENTRENADOR/(2730:2730): Conectado al servidor
+[INFO] 10:43:56:138 ENTRENADOR/(2730:2730): Conectado al servidor
+[INFO] 10:45:58:323 ENTRENADOR/(2730:2730): El personaje se desconecto
+[INFO] 10:46:12:256 ENTRENADOR/(2775:2775): Proceso ENTRENADOR
+[INFO] 10:46:13:698 ENTRENADOR/(2775:2775): Archivo de configuracion leido correctamente
+[INFO] 10:47:19:356 ENTRENADOR/(2775:2775): Conectado al servidor
+[INFO] 10:49:44:421 ENTRENADOR/(2824:2824): Proceso ENTRENADOR
+[INFO] 10:49:45:681 ENTRENADOR/(2824:2824): Archivo de configuracion leido correctamente
+[INFO] 10:49:45:687 ENTRENADOR/(2824:2824): Conectado al servidor
+[INFO] 10:51:20:765 ENTRENADOR/(2824:2824): El personaje se desconecto
+[INFO] 10:51:37:438 ENTRENADOR/(2875:2875): Proceso ENTRENADOR
+[INFO] 10:51:39:505 ENTRENADOR/(2875:2875): Archivo de configuracion leido correctamente
+[INFO] 10:51:39:510 ENTRENADOR/(2875:2875): Conectado al servidor
+[INFO] 10:52:03:866 ENTRENADOR/(2875:2875): El personaje se desconecto
+[INFO] 10:57:00:219 ENTRENADOR/(2904:2904): Proceso ENTRENADOR
+[INFO] 10:57:04:195 ENTRENADOR/(2905:2905): Proceso ENTRENADOR
+[INFO] 10:57:12:608 ENTRENADOR/(2904:2904): Archivo de configuracion leido correctamente
+[INFO] 10:57:12:613 ENTRENADOR/(2904:2904): Conectado al servidor
+[INFO] 10:57:12:952 ENTRENADOR/(2905:2905): Archivo de configuracion leido correctamente
+[INFO] 10:57:22:495 ENTRENADOR/(2905:2905): El personaje se desconecto
+[INFO] 10:57:23:294 ENTRENADOR/(2904:2904): El personaje se desconecto
+[INFO] 11:09:26:368 ENTRENADOR/(3081:3081): Proceso ENTRENADOR
+[INFO] 11:09:27:452 ENTRENADOR/(3081:3081): Archivo de configuracion leido correctamente
+[INFO] 11:09:50:285 ENTRENADOR/(3081:3081): Conectado al servidor
+[INFO] 11:10:36:227 ENTRENADOR/(3081:3081): El personaje se desconecto
+[INFO] 11:10:37:334 ENTRENADOR/(3114:3114): Proceso ENTRENADOR
+[INFO] 11:10:38:406 ENTRENADOR/(3114:3114): Archivo de configuracion leido correctamente
+[INFO] 11:10:42:75 ENTRENADOR/(3114:3114): Conectado al servidor
+[INFO] 11:11:20:602 ENTRENADOR/(3114:3114): El personaje se desconecto
+[INFO] 11:11:39:440 ENTRENADOR/(3150:3150): Proceso ENTRENADOR
+[INFO] 11:11:40:645 ENTRENADOR/(3150:3150): Archivo de configuracion leido correctamente
+[INFO] 11:11:58:948 ENTRENADOR/(3150:3150): Conectado al servidor
+[INFO] 11:13:17:57 ENTRENADOR/(3150:3150): El personaje se desconecto
+[INFO] 11:14:25:92 ENTRENADOR/(3296:3296): Proceso ENTRENADOR
+[INFO] 11:14:26:208 ENTRENADOR/(3296:3296): Archivo de configuracion leido correctamente
+[INFO] 11:14:42:84 ENTRENADOR/(3296:3296): Conectado al servidor
+[INFO] 11:16:37:592 ENTRENADOR/(3296:3296): El personaje se desconecto
+[INFO] 11:38:27:943 ENTRENADOR/(4094:4094): Proceso ENTRENADOR
+[INFO] 11:38:35:482 ENTRENADOR/(4094:4094): Archivo de configuracion leido correctamente
+[INFO] 11:38:35:485 ENTRENADOR/(4094:4094): Conectado al servidor
+[INFO] 11:38:53:552 ENTRENADOR/(4094:4094): El personaje se desconecto
+[INFO] 11:59:25:950 ENTRENADOR/(4231:4231): Proceso ENTRENADOR
+[INFO] 11:59:27:738 ENTRENADOR/(4231:4231): Archivo de configuracion leido correctamente
+[INFO] 11:59:27:740 ENTRENADOR/(4231:4231): Conectado al servidor
+[INFO] 12:25:12:598 ENTRENADOR/(4623:4623): Proceso ENTRENADOR
+[INFO] 12:25:13:894 ENTRENADOR/(4623:4623): Archivo de configuracion leido correctamente
+[INFO] 12:25:26:135 ENTRENADOR/(4623:4623): Conectado al servidor
+[INFO] 12:29:29:926 ENTRENADOR/(4623:4623): El personaje se desconecto
+[INFO] 12:29:37:723 ENTRENADOR/(4679:4679): Proceso ENTRENADOR
+[INFO] 12:29:38:545 ENTRENADOR/(4679:4679): Archivo de configuracion leido correctamente
+[INFO] 12:29:38:547 ENTRENADOR/(4679:4679): Conectado al servidor
+[INFO] 12:29:51:80 ENTRENADOR/(4679:4679): El personaje se desconecto
+[INFO] 12:32:37:281 ENTRENADOR/(4733:4733): Proceso ENTRENADOR
+[INFO] 12:32:38:70 ENTRENADOR/(4733:4733): Archivo de configuracion leido correctamente
+[INFO] 12:32:38:72 ENTRENADOR/(4733:4733): Conectado al servidor
+[INFO] 12:32:48:960 ENTRENADOR/(4733:4733): El personaje se desconecto
+[INFO] 12:34:32:801 ENTRENADOR/(4870:4870): Proceso ENTRENADOR
+[INFO] 12:34:34:447 ENTRENADOR/(4870:4870): Archivo de configuracion leido correctamente
+[INFO] 12:34:34:448 ENTRENADOR/(4870:4870): Conectado al servidor
+[INFO] 12:35:46:562 ENTRENADOR/(4870:4870): El personaje se desconecto
+[INFO] 12:35:54:807 ENTRENADOR/(4938:4938): Proceso ENTRENADOR
+[INFO] 12:35:55:580 ENTRENADOR/(4938:4938): Archivo de configuracion leido correctamente
+[INFO] 12:35:55:586 ENTRENADOR/(4938:4938): Conectado al servidor
+[INFO] 12:36:37:426 ENTRENADOR/(4938:4938): El personaje se desconecto
+[INFO] 12:36:44:988 ENTRENADOR/(4972:4972): Proceso ENTRENADOR
+[INFO] 12:36:45:822 ENTRENADOR/(4972:4972): Archivo de configuracion leido correctamente
+[INFO] 12:36:45:823 ENTRENADOR/(4972:4972): Conectado al servidor
+[INFO] 12:42:36:665 ENTRENADOR/(4972:4972): El personaje se desconecto
+[INFO] 12:42:45:436 ENTRENADOR/(5202:5202): Proceso ENTRENADOR
+[INFO] 12:42:47:349 ENTRENADOR/(5202:5202): Archivo de configuracion leido correctamente
+[INFO] 12:42:47:358 ENTRENADOR/(5202:5202): Conectado al servidor
+[INFO] 13:06:02:84 ENTRENADOR/(5202:5202): El personaje se desconecto
+[INFO] 13:06:11:137 ENTRENADOR/(5783:5783): Proceso ENTRENADOR
+[INFO] 13:06:12:351 ENTRENADOR/(5783:5783): Archivo de configuracion leido correctamente
+[INFO] 13:06:12:352 ENTRENADOR/(5783:5783): Conectado al servidor
+[INFO] 13:06:35:106 ENTRENADOR/(5783:5783): El personaje se desconecto
+[INFO] 13:06:44:495 ENTRENADOR/(5785:5785): Proceso ENTRENADOR
+[INFO] 13:06:45:543 ENTRENADOR/(5785:5785): Archivo de configuracion leido correctamente
+[INFO] 13:06:45:545 ENTRENADOR/(5785:5785): Conectado al servidor
+[INFO] 13:07:14:136 ENTRENADOR/(5785:5785): El personaje se desconecto
+[INFO] 13:10:54:264 ENTRENADOR/(5940:5940): Proceso ENTRENADOR
+[INFO] 13:10:55:201 ENTRENADOR/(5940:5940): Archivo de configuracion leido correctamente
+[INFO] 13:10:55:204 ENTRENADOR/(5940:5940): Conectado al servidor
+[INFO] 13:12:04:514 ENTRENADOR/(5940:5940): El personaje se desconecto
+[INFO] 13:33:32:997 ENTRENADOR/(6069:6069): Proceso ENTRENADOR
+[INFO] 13:33:34:54 ENTRENADOR/(6069:6069): Archivo de configuracion leido correctamente
+[INFO] 13:33:34:55 ENTRENADOR/(6069:6069): Conectado al servidor
+[INFO] 13:34:31:655 ENTRENADOR/(6069:6069): El personaje se desconecto
+[INFO] 14:29:26:185 ENTRENADOR/(7193:7193): Proceso ENTRENADOR
+[INFO] 14:29:27:114 ENTRENADOR/(7193:7193): Archivo de configuracion leido correctamente
+[INFO] 14:29:27:116 ENTRENADOR/(7193:7193): Conectado al servidor
+[INFO] 14:30:02:742 ENTRENADOR/(7193:7193): El personaje se desconecto
+[INFO] 14:37:03:176 ENTRENADOR/(7339:7339): Proceso ENTRENADOR
+[INFO] 14:37:05:66 ENTRENADOR/(7339:7339): Archivo de configuracion leido correctamente
+[INFO] 14:37:05:70 ENTRENADOR/(7339:7339): Conectado al servidor
+[INFO] 14:38:31:623 ENTRENADOR/(7339:7339): El personaje se desconecto
+[INFO] 14:38:40:269 ENTRENADOR/(7386:7386): Proceso ENTRENADOR
+[INFO] 14:38:42:8 ENTRENADOR/(7386:7386): Archivo de configuracion leido correctamente
+[INFO] 14:38:42:12 ENTRENADOR/(7386:7386): Conectado al servidor
+[INFO] 14:38:46:708 ENTRENADOR/(7386:7386): El personaje se desconecto
+[INFO] 14:40:17:897 ENTRENADOR/(7433:7433): Proceso ENTRENADOR
+[INFO] 14:40:18:885 ENTRENADOR/(7433:7433): Archivo de configuracion leido correctamente
+[INFO] 14:40:18:888 ENTRENADOR/(7433:7433): Conectado al servidor
+[INFO] 14:40:21:783 ENTRENADOR/(7433:7433): El personaje se desconecto
+[INFO] 15:29:32:74 ENTRENADOR/(8373:8373): Proceso ENTRENADOR
+[INFO] 15:29:33:387 ENTRENADOR/(8373:8373): Archivo de configuracion leido correctamente
+[INFO] 15:29:33:389 ENTRENADOR/(8373:8373): Conectado al servidor
+[INFO] 15:31:50:621 ENTRENADOR/(8467:8467): Proceso ENTRENADOR
+[INFO] 15:31:51:670 ENTRENADOR/(8467:8467): Archivo de configuracion leido correctamente
+[INFO] 15:31:51:674 ENTRENADOR/(8467:8467): Conectado al servidor
+[INFO] 15:32:32:759 ENTRENADOR/(8467:8467): El personaje se desconecto

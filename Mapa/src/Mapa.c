@@ -146,9 +146,83 @@ void leerConfiguracionPokenest(char mapa[20], char pokemon[256]){
 	}
 
 }
-void funcionDelThread (int newfd){
 
-	printf("%d",newfd);
+void str_cut(char *str, int begin, int len)
+{
+    int l = strlen(str);
+
+    if (len < 0) len = l - begin;
+    if (begin + len > l) len = l - begin;
+    memmove(str + begin, str + begin + len, l - len + 1);
+
+    return;
+}
+
+void recibirBienvenidaEntrenador(int newfd,t_registroPersonaje *nuevoPersonaje)
+{
+	char* buffer = malloc(2);
+	recv(newfd, buffer, sizeof(char) * 2, 0);
+	printf("Lo que recibio del cliente %d es esto: %s\n", newfd,buffer);
+
+	char bufferConAccion;
+	bufferConAccion=buffer[0];
+	printf("La accion que pide hacer el entrenador es %c\n", bufferConAccion);
+
+	char bufferConID;
+	bufferConID=buffer[1];
+	printf("El ID del entrenador es %c\n", bufferConID);
+
+	(nuevoPersonaje->identificador)[0]=bufferConID;
+
+	//memcpy((nuevoPersonaje->identificador), bufferConID,  sizeof(char));
+
+}
+void envioQueEsTuTurno(newfd)
+{
+	char* tuTurno = "0";
+	send(newfd,tuTurno,strlen(tuTurno),0);
+}
+void recibirQueHacer(newfd)
+{
+	char* buffer = malloc(sizeof(char)+sizeof(int));
+	recv(newfd, buffer,(sizeof(char)+sizeof(int)),0);
+	printf("Lo que recibio para hacer es esto: %s\n",buffer);
+
+	char bufferConAccion;        //Vendria a ser el header
+	bufferConAccion=buffer[0];
+	printf("Separo el header y me queda: %c\n",bufferConAccion);
+
+	char* payload = malloc(sizeof(char)+sizeof(int));
+	strcpy(payload, buffer);
+	str_cut(payload,0,1);
+	printf("Separo el payload y me queda esto: %s\n",payload);
+
+	switch(bufferConAccion)
+	{
+	case ('1'):
+		//envioCoordenadaPokemonEnX(payload); 			//En el payload estaria recibiendo el pokemon que necesito atrapar
+		//envioCoordenadaPokemonEnY(payload);			//aca le envio al entrenador la posicion completa
+		break;
+	case ('2'):
+		//reciboCoordenadaEntrenadorEnX(payload);		//En el payload estaria recibiendo la posicion del entrenador
+		//reciboCoordenadaEntrenadorEnY(payload);		//aca recibo del entrenador la posicion completa de el mismo
+		break;
+	case ('3'):
+		//envioQueSeAtrapoPokemon()
+		break;
+	}
+
+}
+
+void funcionDelThread (int newfd)
+{
+	t_registroPersonaje *nuevoPersonaje;
+	nuevoPersonaje = malloc(sizeof(t_registroPersonaje));
+
+	recibirBienvenidaEntrenador(newfd,nuevoPersonaje);
+	//aca deberia haber un while(mientras el planificador le otorgue quantum)
+	envioQueEsTuTurno(newfd);
+	recibirQueHacer(newfd);
 }
 
 t_registroPersonaje *get_personaje_en_socket(int socket) {
@@ -161,21 +235,10 @@ t_registroPersonaje *get_personaje_en_socket(int socket) {
 
 t_registroPokenest *get_pokenest_identificador(char identificador) {
 	int _with_identificador(t_registroPokenest *p) {
-		return (p->identificador == identificador);
+		return (p->identificador[0] == identificador);
 	}
 
 	return list_find(entrenadoresActivos, (void*)_with_identificador);
-}
-
-void str_cut(char *str, int begin, int len)
-{
-    int l = strlen(str);
-
-    if (len < 0) len = l - begin;
-    if (begin + len > l) len = l - begin;
-    memmove(str + begin, str + begin + len, l - len + 1);
-
-    return;
 }
 
 
@@ -203,7 +266,7 @@ void recibirEntrenador(int newfd){
 	nuevoPersonaje->x = 1;
 	nuevoPersonaje->y = 1;
 	char id = (nuevoPersonaje->identificador)[0];
-    CrearPersonaje(items, nuevoPersonaje->identificador , nuevoPersonaje->x, nuevoPersonaje->y);
+    CrearPersonaje(items, nuevoPersonaje->identificador[0], nuevoPersonaje->x, nuevoPersonaje->y);
     pthread_mutex_lock(&mutex_EntrenadoresActivos);
 
     list_add(entrenadoresActivos, nuevoPersonaje);
@@ -273,8 +336,6 @@ int IniciarSocketServidor(int puertoServer)
 		return socketEscucha;
 	}
 
-
-
 int AceptarConexionCliente(int socketServer)
 {
 	socklen_t longitudCliente;//esta variable tiene inicialmente el tamaño de la estructura cliente que se le pase
@@ -289,8 +350,6 @@ int AceptarConexionCliente(int socketServer)
 
 }
 
-
-
 int main(int argc, char **argv)
 {
 
@@ -299,8 +358,8 @@ int main(int argc, char **argv)
 	listaPokenest = malloc(sizeof(t_registroPokenest));
 	listaPokenest = list_create();
 	items = list_create();
-	nivel_gui_inicializar();
-	nivel_gui_get_area_nivel(&rows, &cols);
+	//nivel_gui_inicializar();
+	//nivel_gui_get_area_nivel(&rows, &cols);
 	entrenadoresActivos = malloc(sizeof(t_list));
 	entrenadoresBloqueados = malloc (sizeof(t_list));
 
@@ -316,9 +375,9 @@ int main(int argc, char **argv)
 			  else
 				  log_error(logger,"Error la leer archivo de configuracion");
 
-	  nivel_gui_inicializar();
-	  		nivel_gui_get_area_nivel(&rows, &cols);
-	  		nivel_gui_dibujar(items,&argv);
+	//  nivel_gui_inicializar();
+	  	//	nivel_gui_get_area_nivel(&rows, &cols);
+	  	//	nivel_gui_dibujar(items,&argv);
 //	  int ii = 0;
 //	  while(ii!= list_size(listaPokenest)){
 //		  pokenestPrueba = list_get(listaPokenest,ii);
@@ -327,33 +386,27 @@ int main(int argc, char **argv)
 //		  ii++;
 //	  }
 
-
 // pthread_t idHiloPlanificador;
 //
 // pthread_create (&idHiloPlanificador, NULL, (void*) funcionDelThread, 5);
 //
 // pthread_join(idHiloPlanificador,0);
 
-
-
-
-
-
     // bucle principal
      	 int socketServidor;
      	 int newfd;
     	socketServidor = crearSocketServidor(infoMapa->puertoEscucha);
-    	IniciarSocketServidor(infoMapa->puertoEscucha);
+    	IniciarSocketServidor(atoi(infoMapa->puertoEscucha));
     	newfd = AceptarConexionCliente(socketServidor);
-    	printf("%d", newfd);
+    	printf("El cliente nuevo se ha conectado por el socket %d\n", newfd);
 
-    	pthread_t idHilo;
-    	pthread_create (&idHilo, NULL, (void*) funcionDelThread, newfd);
-    	pthread_join(idHilo,0);
+    	//pthread_t idHilo;
+    	//pthread_create (&idHilo,NULL,(void*)funcionDelThread,newfd);
+    	//pthread_join(idHilo,0);
+    	funcionDelThread(newfd);
 
-
-    	while(1)
-    		 nivel_gui_dibujar(items, argv );
+    	//while(1)
+    		// nivel_gui_dibujar(items, argv );
 
  return 0;
 
