@@ -54,7 +54,7 @@ typedef struct
 
 typedef struct
 {
-	char *nombre;
+	char* nombre;
 	char *ipEscucha;
 	char *puertoEscucha;
 	int quantum;

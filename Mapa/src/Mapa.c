@@ -13,7 +13,6 @@ pthread_mutex_t mutex_EntrenadoresActivos = PTHREAD_MUTEX_INITIALIZER;
 
 
 void leerConfiguracionPokenest(char* mapa, char* path);
-
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
 {
@@ -63,9 +62,7 @@ int leerConfiguracionMapa( t_list* listaPokenest)
 								infoMapa->ipEscucha,
 								infoMapa->puertoEscucha);
 		//Leo todas la pokenest ******************************************************* POR AHORA UNA
-		puts(pathconfigMetadata);
-		puts(path);
-		puts(path);
+
 		DIR *dp;
 		struct dirent *ep;
 		dp = opendir (path);
@@ -74,12 +71,14 @@ int leerConfiguracionMapa( t_list* listaPokenest)
 			while (ep = readdir (dp)){
 
 				  if(ep->d_name[0]!='.'){
-					  puts (ep->d_name);
+//					  puts (ep->d_name);
 					  leerConfiguracionPokenest(nombre,ep->d_name);
 				  }
 			}
 				  (void) closedir (dp);
+
 			}
+
 		else
 			perror ("Couldn't open the directory");
 
@@ -115,7 +114,7 @@ void leerConfiguracionPokenest(char mapa[20], char pokemon[256]){
 		    while (ep = readdir (dp)){
 		    	 if(ep->d_name[0]!='.' && ep->d_name[0]!='m' ){
 		    		 cantidadPokemon ++;
-				      puts (ep->d_name);
+//				      puts (ep->d_name);
 		    	 }
 
 		    }
@@ -135,10 +134,11 @@ void leerConfiguracionPokenest(char mapa[20], char pokemon[256]){
 		pokenest->x =config_get_int_value(configNest,"X");
 		pokenest->y = config_get_int_value(configNest,"Y");
 
-		printf("\n El Tipo del Nest es: %s\n su posicion es X: %d\n Y es: %d\n "
-							"su identificador: %s\n Y hay %d Pokemons de ese Tipo\n"
-											,pokenest->tipo,pokenest->x, pokenest->y, pokenest->identificador, pokenest->cantidadDisp);
+//		printf("\n El Tipo del Nest es: %s\n su posicion es X: %d\n Y es: %d\n "
+//							"su identificador: %s\n Y hay %d Pokemons de ese Tipo\n"
+//											,pokenest->tipo,pokenest->x, pokenest->y, pokenest->identificador, pokenest->cantidadDisp);
 
+	CrearCaja(items, config_get_string_value(configNest, "Identificador")[0] , pokenest->x , pokenest->y ,pokenest->cantidadDisp);
 
 	list_add(listaPokenest,pokenest);
 
@@ -203,8 +203,9 @@ void recibirEntrenador(int newfd){
 	nuevoPersonaje->x = 1;
 	nuevoPersonaje->y = 1;
 	char id = (nuevoPersonaje->identificador)[0];
-    //CrearPersonaje(items, id, nuevoPersonaje->x, nuevoPersonaje->y);
+    CrearPersonaje(items, nuevoPersonaje->identificador , nuevoPersonaje->x, nuevoPersonaje->y);
     pthread_mutex_lock(&mutex_EntrenadoresActivos);
+
     list_add(entrenadoresActivos, nuevoPersonaje);
     pthread_mutex_unlock(&mutex_EntrenadoresActivos);
     free(buffer);
@@ -273,6 +274,7 @@ int IniciarSocketServidor(int puertoServer)
 	}
 
 
+
 int AceptarConexionCliente(int socketServer)
 {
 	socklen_t longitudCliente;//esta variable tiene inicialmente el tamaño de la estructura cliente que se le pase
@@ -291,19 +293,21 @@ int AceptarConexionCliente(int socketServer)
 
 int main(int argc, char **argv)
 {
+
+	int rows;
+	int cols;
 	listaPokenest = malloc(sizeof(t_registroPokenest));
-	t_registroPokenest *pokenestPrueba = malloc(sizeof(t_registroPokenest));
 	listaPokenest = list_create();
-	printf("%d",list_size(listaPokenest));
-	items = malloc(sizeof(t_list));
 	items = list_create();
+	nivel_gui_inicializar();
+	nivel_gui_get_area_nivel(&rows, &cols);
 	entrenadoresActivos = malloc(sizeof(t_list));
 	entrenadoresBloqueados = malloc (sizeof(t_list));
 
 		/* Inicializacion y registro inicial de ejecucion */
 		t_log* logger;
 		logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
-		log_info(logger, PROGRAM_DESCRIPTION);
+//		log_info(logger, PROGRAM_DESCRIPTION);
 
 	//--------
 	  infoMapa = malloc((sizeof(char*)*4 + sizeof(int)*4));
@@ -312,13 +316,16 @@ int main(int argc, char **argv)
 			  else
 				  log_error(logger,"Error la leer archivo de configuracion");
 
-	  int ii = 0;
-	  while(ii!= list_size(listaPokenest)){
-		  pokenestPrueba = list_get(listaPokenest,ii);
-		   printf("%d",pokenestPrueba->cantidadDisp);
-		   puts(pokenestPrueba->identificador);
-		  ii++;
-	  }
+	  nivel_gui_inicializar();
+	  		nivel_gui_get_area_nivel(&rows, &cols);
+	  		nivel_gui_dibujar(items,&argv);
+//	  int ii = 0;
+//	  while(ii!= list_size(listaPokenest)){
+//		  pokenestPrueba = list_get(listaPokenest,ii);
+//		   printf("%d",pokenestPrueba->cantidadDisp);
+//		   puts(pokenestPrueba->identificador);
+//		  ii++;
+//	  }
 
 
 // pthread_t idHiloPlanificador;
@@ -327,17 +334,8 @@ int main(int argc, char **argv)
 //
 // pthread_join(idHiloPlanificador,0);
 
- items = list_create();
-     list_add_all(items,listaPokenest);
 
 
-	//Inicializo la gui --------------------------------
-//   int rows, cols;
-//	nivel_gui_inicializar();
-//	nivel_gui_get_area_nivel(&rows, &cols);
-//	//int c = 1;
-//	//int r = 1;
-//	nivel_gui_dibujar(items,  infoMapa->nombre );
 
 
 
@@ -354,7 +352,9 @@ int main(int argc, char **argv)
     	pthread_join(idHilo,0);
 
 
+    	while(1)
+    		 nivel_gui_dibujar(items, argv );
 
-    	                return 0;
+ return 0;
 
 }
