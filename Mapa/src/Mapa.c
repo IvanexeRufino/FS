@@ -160,8 +160,8 @@ void str_cut(char *str, int begin, int len)
 
 void recibirBienvenidaEntrenador(int newfd,t_registroPersonaje *nuevoPersonaje)
 {
-	char* buffer = malloc(2);
-	recv(newfd, buffer, sizeof(char) * 2, 0);
+	char* buffer = malloc(sizeof(char)*2);
+	recv(newfd,buffer,sizeof(buffer),0);
 	printf("Lo que recibio del cliente %d es esto: %s\n", newfd,buffer);
 
 	char bufferConAccion;
@@ -185,7 +185,7 @@ void envioQueEsTuTurno(newfd)
 void recibirQueHacer(newfd)
 {
 	char* buffer = malloc(sizeof(char)+sizeof(int));
-	recv(newfd, buffer,sizeof(buffer),0);
+	recv(newfd,buffer,sizeof(buffer),0);
 	printf("Lo que recibio para hacer es esto: %s\n",buffer);
 
 	char bufferConAccion;        //Vendria a ser el header

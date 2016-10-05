@@ -156,12 +156,12 @@ void enviarMensajeInicial(int serverSocket){
 	//memcpy(buffer, &identificador , sizeof(char));
 	//memcpy(buffer + sizeof(char), (infoEntrenador->simbolo), sizeof(char));
 
-	char* buffer = malloc(sizeof(int) + sizeof(char) );
+	char* buffer = malloc(sizeof(char)*2);
 	char* identificador = "0";
 	strcpy(buffer,identificador);
 	strcat(buffer,infoEntrenador->simbolo);
-	send(serverSocket, buffer, sizeof(buffer), 0);
-	puts("Se ha enviado: ");
+	send(serverSocket,buffer,sizeof(buffer),0);
+	puts("Se ha enviado:");
 	puts(buffer);
 	free(buffer);
 
@@ -335,7 +335,7 @@ while(1)
 					infoEntrenador->posicionEnY = 0;
 					list_get(mapa->objetivos,k);
 					printf("El objetivo actual es %s \n", mapa->objetivos->head->data);
-					char* buffer = malloc(1);
+					char* buffer = malloc(sizeof(char));
 					recv(socketServidor, buffer, sizeof(buffer), 0);
 					char esMiTurno=buffer[0];
 					printf("Lo que recibio del socket del mapa %d es esto: %c\n", mapa->socketMapa,esMiTurno);
