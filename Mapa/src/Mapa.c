@@ -180,12 +180,12 @@ void recibirBienvenidaEntrenador(int newfd,t_registroPersonaje *nuevoPersonaje)
 void envioQueEsTuTurno(newfd)
 {
 	char* tuTurno = "0";
-	send(newfd,tuTurno,strlen(tuTurno),0);
+	send(newfd,tuTurno,sizeof(tuTurno),0);
 }
 void recibirQueHacer(newfd)
 {
 	char* buffer = malloc(sizeof(char)+sizeof(int));
-	recv(newfd, buffer,(sizeof(char)+sizeof(int)),0);
+	recv(newfd, buffer,sizeof(buffer),0);
 	printf("Lo que recibio para hacer es esto: %s\n",buffer);
 
 	char bufferConAccion;        //Vendria a ser el header

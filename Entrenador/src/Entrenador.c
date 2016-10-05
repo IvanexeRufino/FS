@@ -160,7 +160,7 @@ void enviarMensajeInicial(int serverSocket){
 	char* identificador = "0";
 	strcpy(buffer,identificador);
 	strcat(buffer,infoEntrenador->simbolo);
-	send(serverSocket, buffer, strlen(buffer)+1, 0);
+	send(serverSocket, buffer, sizeof(buffer), 0);
 	puts("Se ha enviado: ");
 	puts(buffer);
 	free(buffer);
@@ -169,7 +169,7 @@ void enviarMensajeInicial(int serverSocket){
 void recibirCoordenadaPokemonEnX(t_nivel *mapa)
 {
 	char* buffer = malloc(sizeof(char) + sizeof(int));
-	recv(mapa->socketMapa, buffer,(sizeof(char) + sizeof(int)), 0);
+	recv(mapa->socketMapa, buffer,sizeof(buffer), 0);
 
 	char* payload = malloc(sizeof(char)+sizeof(int));
 	strcpy(payload, buffer);
@@ -183,7 +183,7 @@ void recibirCoordenadaPokemonEnX(t_nivel *mapa)
 void recibirCoordenadaPokemonEnY(t_nivel *mapa)
 {
 	char* buffer = malloc(sizeof(char) + sizeof(int));
-	recv(mapa->socketMapa, buffer,(sizeof(char) + sizeof(int)), 0);
+	recv(mapa->socketMapa, buffer,sizeof(buffer),0);
 
 	char* payload = malloc(sizeof(char)+sizeof(int));
 		strcpy(payload, buffer);
@@ -194,14 +194,15 @@ void recibirCoordenadaPokemonEnY(t_nivel *mapa)
 		free(payload);
 }
 
-void solicitarPosicion(t_nivel *mapa,int posicionDelMapaEnLaLista,int posicionDelPokemonEnLaLista)
+void solicitarPosicion(t_nivel *mapa)
 {
-	char* buffer = malloc(sizeof(char) + sizeof(int));
-	buffer[0]='1';
-	//strcat(buffer,pokemon(posicionDelPokemonEnLaLista)); -- FALTA IMPLEMENTAR PARA QUE LE ENVIE EL POKEMON
-	send(mapa->socketMapa, buffer, strlen(buffer), 0);
-	recibirCoordenadaPokemonEnX(mapa);
-	recibirCoordenadaPokemonEnY(mapa);
+	char* buffer = malloc(sizeof(char)*2);
+	char* identificador="1";
+	strcpy(buffer,identificador);
+	strcat(buffer,mapa->objetivos->head->data);
+	send(mapa->socketMapa, buffer, sizeof(buffer), 0);
+	//recibirCoordenadaPokemonEnX(mapa);
+	//recibirCoordenadaPokemonEnY(mapa);
 
 	free(buffer);
 }
@@ -210,7 +211,7 @@ void jugarTurno(int socket){
 	int i;
 		i=0;
 	void* buffer = malloc(sizeof(int) + sizeof(char));
-	send(socket, buffer, (2 * sizeof(char)), 0);
+	send(socket,buffer,sizeof(buffer),0);
 	char message[10];
 		while(i == 0){
 		puts("empezo tu turno, Que vas a hacer?\n");
@@ -222,7 +223,7 @@ void jugarTurno(int socket){
 		if(message[0] == '1' || message[0] == '2' || message[0] == '3' ){
 			i++;
 			printf("%d",i);
-			send(socket,buffer,2,0);
+			send(socket,buffer,sizeof(buffer),0);
 		}
 	}
 		if(message[0] == '1' ) puts ("elegiste pedir posicion");
@@ -325,22 +326,29 @@ while(1)
 			mapa->socketMapa = socketServidor;
 			log_info(logger, "Conectado al servidor");							   // Lo reflejo en el log
 			enviarMensajeInicial(mapa->socketMapa);								   //Le envio el simbolo al Mapa - HEADER ID es el 0
-			int k=0;															   //La utilizo para moverme entre objetivos de pokemones
+			int k=0;
+
+			//La utilizo para moverme entre objetivos de pokemones
 			for(k = 0 ; k< list_size(mapa->objetivos); k++)
 					{
 					infoEntrenador->posicionEnX = 0;
 					infoEntrenador->posicionEnY = 0;
 					list_get(mapa->objetivos,k);
+					printf("El objetivo actual es %s \n", mapa->objetivos->head->data);
 					char* buffer = malloc(1);
-					recv(socketServidor, buffer, sizeof(char), 0);
+					recv(socketServidor, buffer, sizeof(buffer), 0);
 					char esMiTurno=buffer[0];
 					printf("Lo que recibio del socket del mapa %d es esto: %c\n", mapa->socketMapa,esMiTurno);
 
+
 					if(esMiTurno == '0')											// Es la señal que me dice que es mi turno
 						{
-						//solicitarPosicion(mapa,j,k);										//Le envio en el header el ID 1
+						printf("Lo que quiere decir que es mi turno \n");
+						solicitarPosicion(mapa);										//Le envio en el header el ID 1
 
-							while(infoEntrenador->posicionEnX != mapa->pokemonActualPosicionEnX && infoEntrenador->posicionEnY != mapa->pokemonActualPosicionEnY)
+							while(infoEntrenador->posicionEnX != mapa->pokemonActualPosicionEnX &&
+									infoEntrenador->posicionEnY != mapa->pokemonActualPosicionEnY &&
+									esMiTurno == '0')
 							{
 								//en Desarrollo
 								//solicitarAvanzar();									//Le envio en el header el ID 2
