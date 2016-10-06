@@ -158,8 +158,19 @@ void str_cut(char *str, int begin, int len)
     return;
 }
 
+t_registroPokenest *get_pokenest_identificador(char identificador) {
+	int _with_identificador(t_registroPokenest *p) {
+		return (p->identificador[0] == identificador);
+	}
+
+	return list_find(entrenadoresActivos, (void*)_with_identificador);
+}
+
 void recibirBienvenidaEntrenador(int newfd,t_registroPersonaje *nuevoPersonaje)
 {
+	nuevoPersonaje->socket=newfd;
+	nuevoPersonaje->x = 0;
+	nuevoPersonaje->y = 0;
 	char* buffer = malloc(sizeof(char)*2);
 	recv(newfd,buffer,sizeof(buffer),0);
 	printf("Lo que recibio del cliente %d es esto: %s\n", newfd,buffer);
@@ -174,6 +185,10 @@ void recibirBienvenidaEntrenador(int newfd,t_registroPersonaje *nuevoPersonaje)
 
 	(nuevoPersonaje->identificador)[0]=bufferConID;
 
+	pthread_mutex_lock(&mutex_EntrenadoresActivos);
+	list_add(entrenadoresActivos, nuevoPersonaje);
+	pthread_mutex_unlock(&mutex_EntrenadoresActivos);
+
 	//memcpy((nuevoPersonaje->identificador), bufferConID,  sizeof(char));
 
 }
@@ -182,7 +197,46 @@ void envioQueEsTuTurno(newfd)
 	char* tuTurno = "0";
 	send(newfd,tuTurno,sizeof(tuTurno),0);
 }
-void recibirQueHacer(newfd)
+
+void cargoDatosPokemonActual(char* payload,t_registroPokenest* pokemonActual)
+{
+int j;
+	for(j = 0 ; j< list_size(listaPokenest); j++)
+	{
+	t_registroPokenest* pokenest = list_get(listaPokenest,j);
+		if (!strcmp(pokenest->identificador,payload))
+		{
+			pokemonActual->identificador=pokenest->identificador;
+			pokemonActual->tipo=pokenest->tipo;
+			pokemonActual->x=pokenest->x;
+			pokemonActual->y=pokenest->y;
+			pokemonActual->cantidadDisp=pokenest->cantidadDisp;
+		}
+	}
+}
+void envioCoordenadaPokemonEnX(t_registroPokenest* pokemonActual,int newfd){
+	char* buffer = malloc(sizeof(char)*3);
+	char* identificador="0";
+	char* posicionEnX;
+	sprintf(posicionEnX,"%d",pokemonActual->x);			//No tocar, warning al dope
+	strcpy(buffer,identificador);
+	strcat(buffer,posicionEnX);
+	send(newfd, buffer, sizeof(buffer), 0);
+	printf("Estoy enviando la coordenada en X que es %d \n",pokemonActual->x);
+}
+
+void envioCoordenadaPokemonEnY(t_registroPokenest* pokemonActual,int newfd){
+	char* buffer = malloc(sizeof(char)*3);
+		char* identificador="0";
+		char* posicionEnY;
+		sprintf(posicionEnY,"%d",pokemonActual->y);		//No tocar, warning al dope
+		strcpy(buffer,identificador);
+		strcat(buffer,posicionEnY);
+		send(newfd, buffer, sizeof(buffer), 0);
+		printf("Estoy enviando la coordenada en Y que es %d \n",pokemonActual->y);
+}
+
+void recibirQueHacer(int newfd)
 {
 	char* buffer = malloc(sizeof(char)+sizeof(int));
 	recv(newfd,buffer,sizeof(buffer),0);
@@ -197,11 +251,15 @@ void recibirQueHacer(newfd)
 	str_cut(payload,0,1);
 	printf("Separo el payload y me queda esto: %s\n",payload);
 
+	t_registroPokenest* pokemonActual;
+	pokemonActual=malloc(sizeof(t_registroPokenest));
+
 	switch(bufferConAccion)
 	{
 	case ('1'):
-		//envioCoordenadaPokemonEnX(payload); 			//En el payload estaria recibiendo el pokemon que necesito atrapar
-		//envioCoordenadaPokemonEnY(payload);			//aca le envio al entrenador la posicion completa
+		cargoDatosPokemonActual(payload,pokemonActual);
+		envioCoordenadaPokemonEnX(pokemonActual,newfd); 	//En el payload estaria recibiendo el pokemon que necesito atrapar
+		envioCoordenadaPokemonEnY(pokemonActual,newfd);	    //aca le envio al entrenador la posicion completa
 		break;
 	case ('2'):
 		//reciboCoordenadaEntrenadorEnX(payload);		//En el payload estaria recibiendo la posicion del entrenador
@@ -233,15 +291,6 @@ t_registroPersonaje *get_personaje_en_socket(int socket) {
 	return list_find(entrenadoresActivos, (void*)_with_socket);
 }
 
-t_registroPokenest *get_pokenest_identificador(char identificador) {
-	int _with_identificador(t_registroPokenest *p) {
-		return (p->identificador[0] == identificador);
-	}
-
-	return list_find(entrenadoresActivos, (void*)_with_identificador);
-}
-
-
 void recibirEntrenador(int newfd){
 	char* buffer = malloc(2);
 	recv(newfd, buffer, sizeof(char) * 2, 0);
@@ -265,7 +314,7 @@ void recibirEntrenador(int newfd){
 	//printf("reciving char: %c\n", nuevoPersonaje->identificador);
 	nuevoPersonaje->x = 1;
 	nuevoPersonaje->y = 1;
-	char id = (nuevoPersonaje->identificador)[0];
+	//char id = (nuevoPersonaje->identificador)[0];
     CrearPersonaje(items, nuevoPersonaje->identificador[0], nuevoPersonaje->x, nuevoPersonaje->y);
     pthread_mutex_lock(&mutex_EntrenadoresActivos);
 
