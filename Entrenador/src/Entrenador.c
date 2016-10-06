@@ -1,7 +1,5 @@
 #include "Entrenador.h"
 
-#define PRESENTACION 1
-
 t_log* logger;
 entrenador_datos* infoEntrenador;
 pid_t pid;
@@ -149,12 +147,24 @@ void str_cut(char *str, int begin, int len)
 
     return;
 }
+int enviarCoordenada(int coordenada,int socketMapa){
+	char* buffer = malloc(sizeof(char)*3);
+	char* identificador="0";
+	char* posicion;
+	sprintf(posicion,"%d",coordenada);			 //No tocar, warning al dope
+	strcpy(buffer,identificador);
+	strcat(buffer,posicion);
+	send(socketMapa, buffer, sizeof(buffer), 0);
+	free(buffer);
+	return coordenada;
+}
 
 void enviarMensajeInicial(int serverSocket){
-	//void* buffer = malloc(sizeof(int) + sizeof(char) );
-	//char identificador = '0';
-	//memcpy(buffer, &identificador , sizeof(char));
-	//memcpy(buffer + sizeof(char), (infoEntrenador->simbolo), sizeof(char));
+
+	int CoordEnX = enviarCoordenada(infoEntrenador->posicionEnX,serverSocket);
+	printf("Estoy enviando la coordenada en X del ENTRENADOR que es %d \n",CoordEnX);
+	int CoordEnY = enviarCoordenada(infoEntrenador->posicionEnY,serverSocket);
+	printf("Estoy enviando la coordenada en Y del ENTRENADOR que es %d \n",CoordEnY);
 
 	char* buffer = malloc(sizeof(char)*2);
 	char* identificador = "0";
@@ -166,33 +176,21 @@ void enviarMensajeInicial(int serverSocket){
 	free(buffer);
 
 }
-void recibirCoordenadaPokemonEnX(t_nivel *mapa)
+void recibirCoordenadaPokemon(int *mapaCoordenadaPokemon, int socketMapa)
 {
 	char* buffer = malloc(sizeof(char)*3);
-	recv(mapa->socketMapa, buffer,sizeof(buffer), 0);
+	recv(socketMapa, buffer,sizeof(buffer), 0);
 
 	char* payload = malloc(sizeof(char)*3);
 	strcpy(payload, buffer);
 	str_cut(payload,0,1);
-	printf("Separo el payload y me queda la Coordenada en X : %s\n",payload);
-	mapa->pokemonActualPosicionEnX=atoi(payload);
+
+	(*mapaCoordenadaPokemon)=atoi(payload);
 	free(buffer);
 	free(payload);
 }
 
-void recibirCoordenadaPokemonEnY(t_nivel *mapa)
-{
-	char* buffer = malloc(sizeof(char)*3);
-	recv(mapa->socketMapa, buffer,sizeof(buffer),0);
 
-	char* payload = malloc(sizeof(char)*3);
-		strcpy(payload, buffer);
-		str_cut(payload,0,1);
-		printf("Separo el payload y me queda la Coordenada en Y : %s\n",payload);
-		mapa->pokemonActualPosicionEnY=atoi(payload);
-		free(buffer);
-		free(payload);
-}
 
 void solicitarPosicion(t_nivel *mapa)
 {
@@ -201,8 +199,12 @@ void solicitarPosicion(t_nivel *mapa)
 	strcpy(buffer,identificador);
 	strcat(buffer,mapa->objetivos->head->data);
 	send(mapa->socketMapa, buffer, sizeof(buffer), 0);
-	recibirCoordenadaPokemonEnX(mapa);
-	recibirCoordenadaPokemonEnY(mapa);
+
+	recibirCoordenadaPokemon(&(mapa->pokemonActualPosicionEnX), mapa->socketMapa);    				//Recibo en X
+	printf("La Coordenada del pokemon que solicite en X fue: %d \n",mapa->pokemonActualPosicionEnX);
+
+	recibirCoordenadaPokemon(&(mapa->pokemonActualPosicionEnY), mapa->socketMapa); 					//Recibo en Y
+	printf("La Coordenada del pokemon que solicite en Y fue: %d \n",mapa->pokemonActualPosicionEnY);
 
 	free(buffer);
 }
@@ -325,16 +327,17 @@ while(1)
 			int socketServidor = conectarConServer(mapa->ipMapa, mapa->puertoMapa); //Me conecto con el Mapa
 			mapa->socketMapa = socketServidor;
 			log_info(logger, "Conectado al servidor");							   // Lo reflejo en el log
+			infoEntrenador->posicionEnX = 0;
+			infoEntrenador->posicionEnY = 0;
 			enviarMensajeInicial(mapa->socketMapa);								   //Le envio el simbolo al Mapa - HEADER ID es el 0
 			int k=0;
 
 			//La utilizo para moverme entre objetivos de pokemones
 			for(k = 0 ; k< list_size(mapa->objetivos); k++)
 					{
-					infoEntrenador->posicionEnX = 0;
-					infoEntrenador->posicionEnY = 0;
+
 					list_get(mapa->objetivos,k);
-					printf("El objetivo actual es %s \n", mapa->objetivos->head->data);
+					printf("El objetivo actual es %s \n", mapa->objetivos->head->data); 	//Es otro warning al dope
 					char* buffer = malloc(sizeof(char));
 					recv(socketServidor, buffer, sizeof(buffer), 0);
 					char esMiTurno=buffer[0];
@@ -350,8 +353,12 @@ while(1)
 									infoEntrenador->posicionEnY != mapa->pokemonActualPosicionEnY &&
 									esMiTurno == '0')
 							{
-								//en Desarrollo
-								//solicitarAvanzar();									//Le envio en el header el ID 2
+								//Estoy Solicitando Avanzar
+
+								//solicitarAvanzar();									//(Le envio en el header el ID 2)
+								//recibirCoordenada(&(nuevoPersonaje->x),newfd);		//Recibo la NUEVA coordenada Entrenador en X
+								//recibirCoordenada(&(nuevoPersonaje->y,newfd));		//Recibo la NUEVA coordenada Entrenador en Y
+
 							}
 						//int atrapado=atraparPokemon();  								//Le envio en el header el ID 3
 						//if (atrapado == 1)

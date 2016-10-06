@@ -29,6 +29,7 @@
 #include <curses.h>
 #include <pthread.h>
 #include <semaphore.h>
+#include <dirent.h>
 /*----------------------- Declaraciones de Estructuras ---------------------------------*/
 
 typedef struct
@@ -76,6 +77,7 @@ typedef struct
 		/* Configuración de SOCKETS */
 
 		#define PORT "10000"  // puerto por el que estamos escuchando
+		#define BACKLOG 10
 
 		/* Configuración de ARCHIVOS DE CONFIGURACION */
 
