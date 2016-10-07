@@ -303,6 +303,33 @@ int crearSocketCliente(char ip[], int puerto) {
 	return socketCliente;
 }
 
+void recibirCoordenadaEntrenador(int* coordenada, int socketMapa)
+{
+	char* buffer = malloc(sizeof(char)*3);
+	recv(socketMapa, buffer,sizeof(buffer), 0);
+
+	char* payload = malloc(sizeof(char)*3);
+	strcpy(payload, buffer);
+	str_cut(payload,0,1);
+
+	(*coordenada)=atoi(payload);
+	free(buffer);
+	free(payload);
+}
+void solicitarAvanzar(t_nivel *mapa){
+	char* buffer = malloc(sizeof(char)*2);
+	char* identificador="2";
+	strcpy(buffer,identificador);
+	strcat(buffer,mapa->objetivos->head->data);
+	send(mapa->socketMapa, buffer, sizeof(buffer), 0);
+	puts("pido avanzar al mapa");
+	recibirCoordenadaEntrenador(&(infoEntrenador->posicionEnX), mapa->socketMapa);    				//Recibo en X
+	printf("Me movi en X a: %d \n",infoEntrenador->posicionEnX);
+	recibirCoordenadaEntrenador(&(infoEntrenador->posicionEnY), mapa->socketMapa); 					//Recibo en Y
+	printf("Me movi en Y a: %d \n",infoEntrenador->posicionEnX);
+	free(buffer);
+}
+
 int main(void) {
 	pid = getpid();
 	printf("El PID del proceso Personaje es %d\n", pid);
@@ -355,7 +382,7 @@ while(1)
 							{
 								//Estoy Solicitando Avanzar
 
-								//solicitarAvanzar();									//(Le envio en el header el ID 2)
+								solicitarAvanzar(mapa);									//(Le envio en el header el ID 2)
 								//recibirCoordenada(&(nuevoPersonaje->x),newfd);		//Recibo la NUEVA coordenada Entrenador en X
 								//recibirCoordenada(&(nuevoPersonaje->y,newfd));		//Recibo la NUEVA coordenada Entrenador en Y
 

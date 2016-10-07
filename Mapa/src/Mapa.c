@@ -9,6 +9,7 @@ t_list* entrenadoresActivos;
 t_list* entrenadoresBloqueados;
 pthread_mutex_t mutex_EntrenadoresActivos = PTHREAD_MUTEX_INITIALIZER;
 
+
 char* charToString(char element) {
 	char* new = malloc(2);
 	*new = element;
@@ -246,6 +247,30 @@ int enviarCoordenada(int coordenada,int socketEntrenador){
 	return coordenada;
 }
 
+void mover (t_registroPersonaje *personaje, int newfd , char* payload){
+
+	t_registroPokenest* pokemonActual;
+	pokemonActual=malloc(sizeof(t_registroPokenest));
+	cargoDatosPokemonActual(payload, pokemonActual);
+
+	if(personaje->ultimoRecurso == 1){  //ultimo movimiento fue en Y => me muevo en X
+		if(personaje->x <= pokemonActual->x)
+			personaje->x +=1;
+		else
+			personaje->x -=1;
+	personaje->ultimoRecurso = 0;
+	}
+	else{
+		if(personaje->y <= pokemonActual->y)
+			personaje->y +=1;
+		else
+			personaje->y -=1;
+	 personaje->ultimoRecurso = 1 ;
+	}
+	enviarCoordenada(personaje->x,newfd);
+	enviarCoordenada(personaje->y,newfd);
+}
+
 void recibirQueHacer(int newfd,t_registroPersonaje *nuevoPersonaje)
 {
 	char* buffer = malloc(sizeof(char)*3);
@@ -263,23 +288,27 @@ void recibirQueHacer(int newfd,t_registroPersonaje *nuevoPersonaje)
 
 	t_registroPokenest* pokemonActual;
 	pokemonActual=malloc(sizeof(t_registroPokenest));
-
+	int coordenadaX,coordenadaY;
 	switch(bufferConAccion)
 	{
 	case ('1'):
+
 		cargoDatosPokemonActual(payload,pokemonActual);
 
-		int coordenadaX = enviarCoordenada(pokemonActual->x,newfd);				//Envio coordenada del pokemon en X
+		coordenadaX = enviarCoordenada(pokemonActual->x,newfd);				//Envio coordenada del pokemon en X
 		printf("Estoy enviando la coordenada en X que es %d \n",coordenadaX);
 
-		int coordenadaY = enviarCoordenada(pokemonActual->y,newfd);				//Envio coordenada del pokemon en Y
+		coordenadaY = enviarCoordenada(pokemonActual->y,newfd);				//Envio coordenada del pokemon en Y
 		printf("Estoy enviando la coordenada en Y que es %d \n",coordenadaY);
 
 		break;
 	case ('2'):
-		//mover();
-		//enviarCoordenada(nuevoPersonaje->x,newfd);			//Envio nueva coordenada Entrenador en X
-		//enviarCoordenada(nuevoPersonaje->y,newfd);			//Envio nueva coordenada Entrenador en Y
+	//	mover(nuevoPersonaje,newfd,payload);
+	//	coordenadaX = enviarCoordenada(nuevoPersonaje->x,newfd);			//Envio nueva coordenada Entrenador en X
+	//	printf("Estoy enviando la coordenada en X que es %d \n",nuevoPersonaje->x);
+	//
+	//	coordenadaY = enviarCoordenada(nuevoPersonaje->y,newfd);			//Envio nueva coordenada Entrenador en Y
+	//	printf("Estoy enviando la coordenada en Y que es %d \n",nuevoPersonaje->x);
 		break;
 	case ('3'):
 		//envioQueSeAtrapoPokemon()
@@ -297,9 +326,10 @@ void funcionDelThread (int newfd)
 	recibirBienvenidaEntrenador(newfd,nuevoPersonaje);
 	//aca deberia haber un while(mientras el planificador le otorgue quantum)
 	envioQueEsTuTurno(newfd);
-	recibirQueHacer(newfd,nuevoPersonaje);
+	while(1){
+		recibirQueHacer(newfd,nuevoPersonaje);
+	}
 }
-
 t_registroPersonaje *get_personaje_en_socket(int socket) {
 	int _with_socket(t_registroPersonaje *p) {
 		return (p->socket == socket);
@@ -328,6 +358,7 @@ void recibirEntrenador(int newfd){
 	nuevoPersonaje->socket=newfd;
 	//printf("reciving char: %c\n", a);
 	//printf("reciving char: %c\n", nuevoPersonaje->identificador);
+	nuevoPersonaje->ultimoRecurso = 0;
 	nuevoPersonaje->x = 1;
 	nuevoPersonaje->y = 1;
 	//char id = (nuevoPersonaje->identificador)[0];
