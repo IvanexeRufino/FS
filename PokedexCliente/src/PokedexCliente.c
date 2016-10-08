@@ -8,17 +8,31 @@
  ============================================================================
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 //#include "Configuracion.c"
 #include "pokedexcliente.h"
 
-int main(void) {
+
+static int getattr_callback(const char *path, struct stat *stbuf){
+		return 0;
+}
+
+static int readdir_callback(const char *path, void *buf, fuse_fill_dir_t filler,
+		off_t offset, struct fuse_file_info *fi) {
+	return 0;
+}
+
+static struct fuse_operations fuse_pokedex_cliente = {
+  .getattr = getattr_callback,
+  .readdir = readdir_callback,
+};
+
+int main(int argc, char *argv[]) {
 
 //	t_log* logger;
 //	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
 //	log_info(logger, PROGRAM_DESCRIPTION);
 
+/*
 	struct addrinfo hints;
 	struct addrinfo *serverInfo;
 
@@ -58,5 +72,9 @@ int main(void) {
 	}
 
 	close(serverSocket);
-	return 0;
+	return 0;*/
+
+
+
+	return fuse_main(argc,argv,&fuse_pokedex_cliente,NULL);
 }
