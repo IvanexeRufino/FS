@@ -29,7 +29,7 @@ void reconocerOSADA(void) {
 
 	int fd;
 	struct stat my_stat;
-	fd = open("/home/utnso/workspace/Pokedex Servidor/PokedexServidor/src/FileSysOSADA/disco.bin",O_RDWR);
+	fd = open("/home/utnso/Descargas/basic.bin",O_RDWR);
 	if(fd == -1) {
 		perror("open");
 		exit(-1);
@@ -49,20 +49,22 @@ void reconocerOSADA(void) {
 	close(fd);
 
 	header = (osada_header*) &puntero[0];
-	tablaDeArchivos = (osada_file*) (1 + (header->bitmap_blocks) * OSADA_BLOCK_SIZE);
+	int inicioTablaDeArchivos = ((1 + header->bitmap_blocks)* OSADA_BLOCK_SIZE);
+	tablaDeArchivos = (osada_file*) &puntero[inicioTablaDeArchivos - 1];
 	bitmap = bitarray_create(&puntero[OSADA_BLOCK_SIZE],((my_stat.st_size / OSADA_BLOCK_SIZE) / 8));
 
 
 
-	log_info(logger, "Identificador (bytes): %s\n",header->magic_number);
-	log_info(logger, "Version: %d\n",header->version);
-	log_info(logger, "Tamaño FS: %d\n",header->fs_blocks);
-	log_info(logger, "Tamaño Bitmap: %d\n",header->bitmap_blocks);
-	log_info(logger, "Inicio tabla asignaciones: %d\n",header->allocations_table_offset);
-	log_info(logger, "Tamaño datos: %d\n",header->data_blocks);
-	log_info(logger, "Relleno: %d\n\n",header->padding);
+//	log_info(logger, "Identificador (bytes): %s\n",header->magic_number);
+//	log_info(logger, "Version: %d\n",header->version);
+//	log_info(logger, "Tamaño FS: %d\n",header->fs_blocks);
+//	log_info(logger, "Tamaño Bitmap: %d\n",header->bitmap_blocks);
+//	log_info(logger, "Inicio tabla asignaciones: %d\n",header->allocations_table_offset);
+//	log_info(logger, "Tamaño datos: %d\n",header->data_blocks);
+//	log_info(logger, "Relleno: %d\n",header->padding);
+	log_info(logger, "Archivos en lista: %s\n\n",tablaDeArchivos[0].fname);
 
-	inicioTablaDeArchivos = (1 + header->bitmap_blocks)*2;
+
 
 }
 
@@ -163,7 +165,6 @@ int borrar_directorio(char* path)
 int main () {
 
 	reconocerOSADA();
-	cargarTablaDeArchivos();
 	obtenerArchivo("/dir1/dir2/algo.jpg");
 	return 0;
 
