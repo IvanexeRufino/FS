@@ -54,18 +54,16 @@ void reconocerOSADA(void) {
 	tablaDeArchivos = (osada_file*)  (disco + (header->allocations_table_offset - 1024)*OSADA_BLOCK_SIZE);
 	bitmap = bitarray_create(&disco[OSADA_BLOCK_SIZE],((my_stat.st_size / OSADA_BLOCK_SIZE) / 8));
 	tablaDeAsignaciones = (int *) &disco[(header->allocations_table_offset)*OSADA_BLOCK_SIZE];
-	log_info(logger, "%s \n", tablaDeArchivos[0].fname);
 
 }
 
 
 int buscarIndiceConPadre(char* nombreABuscar, int padre)
 {
-	uint16_t parent_directory = tablaDeArchivos[1].parent_directory;
 	int i;
 	for(i = 0; i < 2048; i++)
 	{
-		if(strcmp(tablaDeArchivos[i].fname, nombreABuscar) && tablaDeArchivos[i].parent_directory == padre && tablaDeArchivos[i].state != '\2')
+		if(strcmp(tablaDeArchivos[i].fname, nombreABuscar) == 0 && tablaDeArchivos[i].parent_directory == padre && tablaDeArchivos[i].state != DELETED)
 		{
 			return i;
 		}
@@ -78,17 +76,15 @@ int obtenerIndice(char* path) {
 
 	char** arrayPath = string_split(path + 1,"/");
 	int i = 0;
-	int archivo = 0;
+	int archivo = 65535;
 	while(arrayPath[i] != NULL)
 	{
-		log_info(logger, "%s \n", arrayPath[i]);
 		archivo = buscarIndiceConPadre(arrayPath[i], archivo);
 		if (archivo == -1) {
 			return -1;
 		}
 		i ++;
 	}
-	log_info(logger, "%d \n", archivo);
 	return archivo;
 }
 
@@ -111,6 +107,7 @@ int leer_archivo(char* path) {
 	if (archivo == NULL) {
 		return -1;
 	}
+
 
 	return 0;
 }
@@ -151,4 +148,3 @@ int main () {
 	return 0;
 
 }
-
