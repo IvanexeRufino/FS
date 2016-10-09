@@ -194,9 +194,10 @@ void recibirCoordenadaPokemon(int *mapaCoordenadaPokemon, int socketMapa)
 
 void solicitarPosicion(t_nivel *mapa)
 {
-	char* buffer = malloc(sizeof(char)*2);
+	char* buffer = malloc(sizeof(char)*3);
 	char* identificador="1";
 	strcpy(buffer,identificador);
+	strcat(buffer,mapa->objetivos->head->data);
 	strcat(buffer,mapa->objetivos->head->data);
 	send(mapa->socketMapa, buffer, sizeof(buffer), 0);
 
@@ -317,15 +318,16 @@ void recibirCoordenadaEntrenador(int* coordenada, int socketMapa)
 	free(payload);
 }
 void solicitarAvanzar(t_nivel *mapa){
-	char* buffer = malloc(sizeof(char)*2);
+	char* buffer = malloc(sizeof(char)*3);
 	char* identificador="2";
 	strcpy(buffer,identificador);
 	strcat(buffer,mapa->objetivos->head->data);
+	strcat(buffer,mapa->objetivos->head->data);
 	send(mapa->socketMapa, buffer, sizeof(buffer), 0);
 	puts("pido avanzar al mapa");
-	recibirCoordenadaEntrenador(&(infoEntrenador->posicionEnX), mapa->socketMapa);    				//Recibo en X
+	recibirCoordenadaEntrenador(&(infoEntrenador->posicionEnX), mapa->socketMapa);    				//Recibo la NUEVA coordenada Entrenador en X
 	printf("Me movi en X a: %d \n",infoEntrenador->posicionEnX);
-	recibirCoordenadaEntrenador(&(infoEntrenador->posicionEnY), mapa->socketMapa); 					//Recibo en Y
+	recibirCoordenadaEntrenador(&(infoEntrenador->posicionEnY), mapa->socketMapa); 					//Recibo la NUEVA coordenada Entrenador en Y
 	printf("Me movi en Y a: %d \n",infoEntrenador->posicionEnX);
 	free(buffer);
 }
@@ -383,8 +385,6 @@ while(1)
 								//Estoy Solicitando Avanzar
 
 								solicitarAvanzar(mapa);									//(Le envio en el header el ID 2)
-								//recibirCoordenada(&(nuevoPersonaje->x),newfd);		//Recibo la NUEVA coordenada Entrenador en X
-								//recibirCoordenada(&(nuevoPersonaje->y,newfd));		//Recibo la NUEVA coordenada Entrenador en Y
 
 							}
 						//int atrapado=atraparPokemon();  								//Le envio en el header el ID 3
