@@ -1,5 +1,6 @@
 #include "osada.h"
 #include "Global.h"
+#include "string.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -11,6 +12,7 @@
 #include <sys/mman.h>
 #include <string.h>
 #include <commons/collections/list.h>
+#include <inttypes.h>
 
 
 #define LOG_FILE "osada.log"
@@ -27,53 +29,43 @@ void reconocerOSADA(void) {
 	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
 	log_info(logger, PROGRAM_DESCRIPTION);
 
-	int fd;
+	int fd = open("/home/utnso/Descargas/basic.bin",O_RDWR);
 	struct stat my_stat;
-	fd = open("/home/utnso/Descargas/basic.bin",O_RDWR);
+
 	if(fd == -1) {
 		perror("open");
 		exit(-1);
 	}
-	if(fstat(fd, &my_stat) < 0) {
+	if(stat("/home/utnso/Descargas/basic.bin", &my_stat) < 0) {
 		perror("fstat");
 		close(fd);
 		exit(-1);
 	}
-	puntero =  mmap(0,my_stat.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+	disco =  mmap(NULL,my_stat.st_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
 
-	if(puntero == MAP_FAILED) {
+	if(disco == MAP_FAILED) {
 		perror("mmap");
 		close(fd);
 		exit(-1);
 	}
 	close(fd);
 
-	header = (osada_header*) &puntero[0];
-	int inicioTablaDeArchivos = ((1 + header->bitmap_blocks)* OSADA_BLOCK_SIZE);
-	tablaDeArchivos = (osada_file*) &puntero[inicioTablaDeArchivos - 1];
-	bitmap = bitarray_create(&puntero[OSADA_BLOCK_SIZE],((my_stat.st_size / OSADA_BLOCK_SIZE) / 8));
-
-
-
-//	log_info(logger, "Identificador (bytes): %s\n",header->magic_number);
-//	log_info(logger, "Version: %d\n",header->version);
-//	log_info(logger, "Tamaño FS: %d\n",header->fs_blocks);
-//	log_info(logger, "Tamaño Bitmap: %d\n",header->bitmap_blocks);
-//	log_info(logger, "Inicio tabla asignaciones: %d\n",header->allocations_table_offset);
-//	log_info(logger, "Tamaño datos: %d\n",header->data_blocks);
-//	log_info(logger, "Relleno: %d\n",header->padding);
-	log_info(logger, "Archivos en lista: %s\n\n",tablaDeArchivos[0].fname);
-
-
+	header = (osada_header*) &disco[0];
+	tablaDeArchivos = (osada_file*)  (disco + (header->allocations_table_offset - 1024)*OSADA_BLOCK_SIZE);
+	bitmap = bitarray_create(&disco[OSADA_BLOCK_SIZE],((my_stat.st_size / OSADA_BLOCK_SIZE) / 8));
+	tablaDeAsignaciones = (int *) &disco[(header->allocations_table_offset)*OSADA_BLOCK_SIZE];
+	log_info(logger, "%s \n", tablaDeArchivos[0].fname);
 
 }
 
-int buscarIndiceConPadre(char* nombreAbuscar, int padre)
+
+int buscarIndiceConPadre(char* nombreABuscar, int padre)
 {
+	uint16_t parent_directory = tablaDeArchivos[1].parent_directory;
 	int i;
 	for(i = 0; i < 2048; i++)
 	{
-		if(strcmp(tablaDeArchivos[i].fname,nombreAbuscar) == 0 && tablaDeArchivos[i].parent_directory == padre && tablaDeArchivos[i].state != 0)
+		if(strcmp(tablaDeArchivos[i].fname, nombreABuscar) && tablaDeArchivos[i].parent_directory == padre && tablaDeArchivos[i].state != '\2')
 		{
 			return i;
 		}
@@ -83,31 +75,21 @@ int buscarIndiceConPadre(char* nombreAbuscar, int padre)
 }
 
 int obtenerIndice(char* path) {
-	int archivo = 0xFFFF;
-	int i = -1;
-	char* token;
-	char** string;
-	path = strdup(path);
-	if (path != NULL) {
-	  while ((token = strsep(&path, "/")) != NULL)
-	  {
-		if(i == -1){}
-		else {
-		string[i] = token;
-		}
-		i++;
-	  }
-	}
-	i=0;
-	while(string[i] != NULL)
+
+	char** arrayPath = string_split(path + 1,"/");
+	int i = 0;
+	int archivo = 0;
+	while(arrayPath[i] != NULL)
 	{
-			archivo = buscarIndiceConPadre(string[i], archivo);
-			if (archivo == -1) {
-				return -1;
-			}
-			i ++;
+		log_info(logger, "%s \n", arrayPath[i]);
+		archivo = buscarIndiceConPadre(arrayPath[i], archivo);
+		if (archivo == -1) {
+			return -1;
+		}
+		i ++;
 	}
-		return archivo ;
+	log_info(logger, "%d \n", archivo);
+	return archivo;
 }
 
 osada_file* obtenerArchivo(char* path) {
@@ -165,7 +147,8 @@ int borrar_directorio(char* path)
 int main () {
 
 	reconocerOSADA();
-	obtenerArchivo("/dir1/dir2/algo.jpg");
+	int error = leer_archivo("/directorio/archivo.txt");
 	return 0;
 
 }
+

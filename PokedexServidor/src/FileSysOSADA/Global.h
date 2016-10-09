@@ -11,11 +11,11 @@
 #include "osada.h"
 #include <commons/bitarray.h>
 
-char * puntero;
+char * disco;
 osada_header* header;
 t_bitarray* bitmap;
 osada_file* tablaDeArchivos;
-int tablaDeAsignaciones[2048];
+int* tablaDeAsignaciones;
 int bloques;
 
 
