@@ -269,6 +269,8 @@ void mover (t_registroPersonaje *personaje, t_registroPokenest* pokemonActual){
 			personaje->y -=1;
 	 personaje->ultimoRecurso = 1 ;
 	}
+	if(personaje->x == pokemonActual->x) personaje->ultimoRecurso = 0;
+	if(personaje->y == pokemonActual->y) personaje->ultimoRecurso = 1;
 	enviarCoordenada(personaje->x,personaje->socket);
 	printf("Estoy enviando la coordenada en X que es %d \n",personaje->x);
 	enviarCoordenada(personaje->y,personaje->socket);

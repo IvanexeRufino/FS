@@ -326,9 +326,9 @@ void solicitarAvanzar(t_nivel *mapa){
 	send(mapa->socketMapa, buffer, sizeof(buffer), 0);
 	puts("pido avanzar al mapa");
 	recibirCoordenadaEntrenador(&(infoEntrenador->posicionEnX), mapa->socketMapa);    				//Recibo la NUEVA coordenada Entrenador en X
-	printf("Me movi en X a: %d \n",infoEntrenador->posicionEnX);
+//	printf("Me movi en X a: %d \n",infoEntrenador->posicionEnX);
 	recibirCoordenadaEntrenador(&(infoEntrenador->posicionEnY), mapa->socketMapa); 					//Recibo la NUEVA coordenada Entrenador en Y
-	printf("Me movi en Y a: %d \n",infoEntrenador->posicionEnX);
+	printf("Mi nueva posicion es X: %d Y: %d \n",infoEntrenador->posicionEnX, infoEntrenador->posicionEnY);
 	free(buffer);
 }
 
@@ -378,8 +378,8 @@ while(1)
 						printf("Lo que quiere decir que es mi turno \n");
 						solicitarPosicion(mapa);										//Le envio en el header el ID 1
 
-							while(infoEntrenador->posicionEnX != mapa->pokemonActualPosicionEnX &&
-									infoEntrenador->posicionEnY != mapa->pokemonActualPosicionEnY &&
+							while((infoEntrenador->posicionEnX != mapa->pokemonActualPosicionEnX ||
+									infoEntrenador->posicionEnY != mapa->pokemonActualPosicionEnY) &&
 									esMiTurno == '0')
 							{
 								//Estoy Solicitando Avanzar
