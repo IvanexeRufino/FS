@@ -18,7 +18,7 @@
 #define LOG_FILE "osada.log"
 #define PROGRAM_NAME "Pokedex Servidor"
 #define PROGRAM_DESCRIPTION "Proceso File System"
-#define IS_ACTIVE_CONSOLE false
+#define IS_ACTIVE_CONSOLE true
 #define T_LOG_LEVEL LOG_LEVEL_INFO
 
 
@@ -34,6 +34,8 @@ int divisionMaxima(int numero, int otroNumero) {
 }
 
 void reconocerOSADA(void) {
+	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
+	log_info(logger, PROGRAM_DESCRIPTION);
 
 	int fd = open("/home/utnso/Descargas/basic.bin",O_RDWR);
 	struct stat my_stat;
@@ -135,32 +137,24 @@ int maximoEntre(int unNro, int otroNro)
 	return otroNro;
 }
 
-int prepararLista(t_list* lista, int numero) {
-	list_add(lista,numero);
-	while(tablaDeAsignaciones[numero]!= -1) {
-		list_add(lista,tablaDeAsignaciones[numero]);
-		numero = tablaDeAsignaciones[numero];
-	}
-	return 0;
-}
-
 int copiarInformacion(int tamanioACopiar, int offset,char* buffer, char* inicio ,osada_file* archivo)
 {
-	t_list* listaDeBloques = list_create();
-	prepararLista(listaDeBloques,archivo->first_block);
+	int* numeroDeTabla = malloc(sizeof(int));
+	*numeroDeTabla = tablaDeAsignaciones[archivo->first_block];
 	int i=1;
 	int copiado = 0;
 	int restanteDeMiBloque = OSADA_BLOCK_SIZE - offsetDondeEmpezar(offset);
 	while(copiado < tamanioACopiar)
 	{
-		int tamanioACopiarDentroDelBloque = minimoEntre(tamanioACopiar,restanteDeMiBloque);
+ 		int tamanioACopiarDentroDelBloque = minimoEntre(tamanioACopiar,restanteDeMiBloque);
 		restanteDeMiBloque = OSADA_BLOCK_SIZE;
-		//QUE PASA ACA?
+		if(copiado+64 > tamanioACopiar) {tamanioACopiarDentroDelBloque = tamanioACopiar-copiado;}
 		memcpy(buffer + copiado,inicio,tamanioACopiarDentroDelBloque);
 		copiado = copiado + tamanioACopiarDentroDelBloque;
 		if(copiado < tamanioACopiar)
 		{
-			inicio = list_get(listaDeBloques, i);
+			inicio = (char*)bloquesDeDatos[*numeroDeTabla];
+			*numeroDeTabla = tablaDeAsignaciones[*numeroDeTabla];
 			i++;
 		}
 	}
@@ -215,12 +209,12 @@ int borrar_directorio(char* path)
 }
 
 int main () {
-
 	reconocerOSADA();
-	char* buffer = malloc(tablaDeArchivos[1].file_size);
+	char* buffer = malloc(tablaDeArchivos[3].file_size);
 	int* error = malloc(sizeof(int));
-	leer_archivo("/directorio/archivo.txt", 0, tablaDeArchivos[1].file_size,buffer);
-	printf("%s\n",buffer);
+	leer_archivo("/directorio//subdirectorio/large.txt", 0, tablaDeArchivos[3].file_size,buffer);
+	log_info(logger,"\n%s",buffer);
+	log_info(logger,"\n%s",bloquesDeDatos[1]);
 	return 0;
 
 }
