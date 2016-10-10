@@ -22,7 +22,16 @@
 #define T_LOG_LEVEL LOG_LEVEL_INFO
 
 t_log* logger;
-off_t inicioTablaDeArchivos;
+
+
+int divisionMaxima(int numero, int otroNumero) {
+	if(numero % 64 == 0) {
+		return numero/otroNumero;
+	}
+	else {
+		return numero/otroNumero + 1;
+	}
+}
 
 void reconocerOSADA(void) {
 
@@ -50,13 +59,23 @@ void reconocerOSADA(void) {
 	}
 	close(fd);
 
+
 	header = (osada_header*) &disco[0];
 	tablaDeArchivos = (osada_file*)  (disco + (header->allocations_table_offset - 1024)*OSADA_BLOCK_SIZE);
-	bitmap = bitarray_create(&disco[OSADA_BLOCK_SIZE],((my_stat.st_size / OSADA_BLOCK_SIZE) / 8));
-	tablaDeAsignaciones = (int *) &disco[(header->allocations_table_offset)*OSADA_BLOCK_SIZE];
-
+	bitmap = bitarray_create(&disco[OSADA_BLOCK_SIZE],(header->bitmap_blocks));
+	tablaDeAsignaciones = (osada_block_pointer*) (disco + (header->allocations_table_offset) * OSADA_BLOCK_SIZE);
+	bloquesDeDatos = (osada_block*) (disco + (header->fs_blocks - header->data_blocks)*OSADA_BLOCK_SIZE);
 }
 
+int dondeEmpezarLectura(int offset) {
+	int resultado = offset / OSADA_BLOCK_SIZE;
+	return resultado;
+}
+
+int offsetDondeEmpezar(int offset) {
+	int resultado = offset % OSADA_BLOCK_SIZE;
+	return resultado;
+}
 
 int buscarIndiceConPadre(char* nombreABuscar, int padre)
 {
@@ -71,6 +90,7 @@ int buscarIndiceConPadre(char* nombreABuscar, int padre)
 
 	return -1;
 }
+
 
 int obtenerIndice(char* path) {
 
@@ -100,16 +120,75 @@ osada_file* obtenerArchivo(char* path) {
 
 }
 
+int minimoEntre(int unNro, int otroNro)
+{
+	if(unNro<otroNro)
+	{
+		return unNro;
+	}
+	return otroNro;
+}
+
+int maximoEntre(int unNro, int otroNro)
+{
+	if(unNro>otroNro)
+	{
+		return unNro;
+	}
+	return otroNro;
+}
+
+char* obtenerBloque(osada_file* archivo)
+{
+	char* bloqueDato = (char*) bloquesDeDatos[archivo->first_block];
+
+
+	return bloqueDato;
+}
+
+int copiarInformacion(int tamanioACopiar, int offset,char* buffer, char* inicio ,osada_file* archivo)
+{
+
+	int i=1;
+	int copiado = 0;
+	int restanteDeMiBloque = OSADA_BLOCK_SIZE - offsetDondeEmpezar(offset);
+	while(copiado < tamanioACopiar)
+	{
+		int tamanioACopiarDentroDelBloque = minimoEntre(tamanioACopiar,restanteDeMiBloque);
+		restanteDeMiBloque = OSADA_BLOCK_SIZE;
+		memcpy(buffer + copiado,inicio,tamanioACopiarDentroDelBloque);
+		copiado = copiado + tamanioACopiarDentroDelBloque;
+		if(copiado < tamanioACopiar)
+		{
+			inicio = obtenerBloque(archivo);
+			i++;
+		}
+	}
+	return copiado;
+}
+
 //leer archivo incompleto
-int leer_archivo(char* path) {
+int leer_archivo(char* path, int offset, int tamanioALeer, char* buffer) {
 	osada_file* archivo = obtenerArchivo(path);
 
 	if (archivo == NULL) {
 		return -1;
 	}
 
+	log_info(logger, "%d", archivo->first_block);
+	int leido;
+	int tamanioALeerVerdadero = minimoEntre(tamanioALeer,archivo->file_size - offset);
+	//empiezo
+	char* bloqueDeDatos = obtenerBloque(archivo);
+	log_info(logger,"%c",bloqueDeDatos[0]);
+	leido = copiarInformacion(tamanioALeerVerdadero, 0,buffer,bloqueDeDatos,archivo);
 
-	return 0;
+	if(leido != tamanioALeerVerdadero)
+	{
+		return -1;
+	}
+
+	return leido;
 }
 
 //ls
@@ -144,7 +223,8 @@ int borrar_directorio(char* path)
 int main () {
 
 	reconocerOSADA();
-	int error = leer_archivo("/directorio/archivo.txt");
+	char* buffer;
+	int error = leer_archivo("/directorio/archivo.txt", 0, tablaDeArchivos[1].file_size,buffer);
 	return 0;
 
 }

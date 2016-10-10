@@ -15,8 +15,8 @@ char * disco;
 osada_header* header;
 t_bitarray* bitmap;
 osada_file* tablaDeArchivos;
-int* tablaDeAsignaciones;
-int bloques;
+osada_block_pointer* tablaDeAsignaciones;
+osada_block* bloquesDeDatos;
 
 
 
