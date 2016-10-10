@@ -277,6 +277,15 @@ void mover (t_registroPersonaje *personaje, t_registroPokenest* pokemonActual){
 	printf("Estoy enviando la coordenada en Y que es %d \n",personaje->y);
 }
 
+void envioQueSeAtrapoPokemon (t_registroPersonaje *personaje, t_registroPokenest* pokemonActual){
+	if(pokemonActual->cantidadDisp >= 1) {
+		pokemonActual->cantidadDisp --;
+		printf("el Personaje: %s , atrapo al pokemon %s,",personaje->identificador, pokemonActual->identificador);
+		send(personaje->socket, "1", sizeof(int), 0);
+	}
+	else send(personaje->socket, "0", sizeof(int), 0);
+}
+
 void recibirQueHacer(t_registroPersonaje *nuevoPersonaje,t_registroPokenest* pokemonActual)
 {
 	char* buffer = malloc(sizeof(char)*3);
@@ -312,7 +321,7 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje,t_registroPokenest* pok
 
 		break;
 	case ('3'):
-		//envioQueSeAtrapoPokemon()
+		envioQueSeAtrapoPokemon(nuevoPersonaje,pokemonActual);
 		break;
 	}
 

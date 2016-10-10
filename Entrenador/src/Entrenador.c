@@ -210,30 +210,6 @@ void solicitarPosicion(t_nivel *mapa)
 	free(buffer);
 }
 
-void jugarTurno(int socket){
-	int i;
-		i=0;
-	void* buffer = malloc(sizeof(int) + sizeof(char));
-	send(socket,buffer,sizeof(buffer),0);
-	char message[10];
-		while(i == 0){
-		puts("empezo tu turno, Que vas a hacer?\n");
-		puts("1-Solicitar posicion Pokenest\n");
-		puts("2-Mover\n");
-		puts("3-Atrapar Pokemon\n");
-		fgets(message,1,0);
-		memcpy(buffer ,message, sizeof(char));
-		if(message[0] == '1' || message[0] == '2' || message[0] == '3' ){
-			i++;
-			printf("%d",i);
-			send(socket,buffer,sizeof(buffer),0);
-		}
-	}
-		if(message[0] == '1' ) puts ("elegiste pedir posicion");
-		if(message[0] == '2' ) puts ("elegiste moverte");
-		if(message[0] == '3' ) puts ("elegiste atrapar Pokemon");
-}
-
 void sendObjetivosMapa(int serverSocket)
 {
 	char *vector;
@@ -326,10 +302,26 @@ void solicitarAvanzar(t_nivel *mapa){
 	send(mapa->socketMapa, buffer, sizeof(buffer), 0);
 	puts("pido avanzar al mapa");
 	recibirCoordenadaEntrenador(&(infoEntrenador->posicionEnX), mapa->socketMapa);    				//Recibo la NUEVA coordenada Entrenador en X
-//	printf("Me movi en X a: %d \n",infoEntrenador->posicionEnX);
 	recibirCoordenadaEntrenador(&(infoEntrenador->posicionEnY), mapa->socketMapa); 					//Recibo la NUEVA coordenada Entrenador en Y
 	printf("Mi nueva posicion es X: %d Y: %d \n",infoEntrenador->posicionEnX, infoEntrenador->posicionEnY);
 	free(buffer);
+}
+
+int atraparPokemon(t_nivel *mapa){
+	char* buffer = malloc(sizeof(char)*3);
+	char* capturado = malloc(sizeof(char)*3);
+	char* identificador="3";
+	strcpy(buffer,identificador);
+	strcat(buffer,mapa->objetivos->head->data);
+	strcat(buffer,mapa->objetivos->head->data);
+	send(mapa->socketMapa, buffer, sizeof(buffer), 0);
+	recv(mapa->socketMapa, buffer, sizeof(buffer),0);
+	strcpy(capturado, buffer);
+	free(buffer);
+	if(!strcmp(capturado,"1")){
+		return 1;
+		}
+	else return 0;
 }
 
 int main(void) {
@@ -379,19 +371,18 @@ while(1)
 						solicitarPosicion(mapa);										//Le envio en el header el ID 1
 
 							while((infoEntrenador->posicionEnX != mapa->pokemonActualPosicionEnX ||
-									infoEntrenador->posicionEnY != mapa->pokemonActualPosicionEnY) &&
-									esMiTurno == '0')
+									infoEntrenador->posicionEnY != mapa->pokemonActualPosicionEnY))
 							{
-								//Estoy Solicitando Avanzar
-
 								solicitarAvanzar(mapa);									//(Le envio en el header el ID 2)
-
 							}
-						//int atrapado=atraparPokemon();  								//Le envio en el header el ID 3
-						//if (atrapado == 1)
-						//	{
-						//	printf("Felicitaciones, capturaste el pokemon nro %d \n",k);
-						//	}
+
+						if(infoEntrenador->posicionEnX == mapa->pokemonActualPosicionEnX && infoEntrenador->posicionEnY == mapa->pokemonActualPosicionEnY){
+							int atrapado = atraparPokemon(mapa);  								//Le envio en el header el ID 3
+							if (atrapado == 1)
+								{
+								printf("Felicitaciones, capturaste el pokemon nro %d \n",k);
+								}
+							}
 						}
 					}
 			printf("Felicitaciones, terminaste de capturar todos los pokemons del mapa nro %d \n",j);
