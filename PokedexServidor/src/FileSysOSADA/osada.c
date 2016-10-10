@@ -18,11 +18,11 @@
 #define LOG_FILE "osada.log"
 #define PROGRAM_NAME "Pokedex Servidor"
 #define PROGRAM_DESCRIPTION "Proceso File System"
-#define IS_ACTIVE_CONSOLE true
+#define IS_ACTIVE_CONSOLE false
 #define T_LOG_LEVEL LOG_LEVEL_INFO
 
-t_log* logger;
 
+t_log* logger;
 
 int divisionMaxima(int numero, int otroNumero) {
 	if(numero % 64 == 0) {
@@ -34,9 +34,6 @@ int divisionMaxima(int numero, int otroNumero) {
 }
 
 void reconocerOSADA(void) {
-
-	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
-	log_info(logger, PROGRAM_DESCRIPTION);
 
 	int fd = open("/home/utnso/Descargas/basic.bin",O_RDWR);
 	struct stat my_stat;
@@ -138,17 +135,19 @@ int maximoEntre(int unNro, int otroNro)
 	return otroNro;
 }
 
-char* obtenerBloque(osada_file* archivo)
-{
-	char* bloqueDato = (char*) bloquesDeDatos[archivo->first_block];
-
-
-	return bloqueDato;
+int prepararLista(t_list* lista, int numero) {
+	list_add(lista,numero);
+	while(tablaDeAsignaciones[numero]!= -1) {
+		list_add(lista,tablaDeAsignaciones[numero]);
+		numero = tablaDeAsignaciones[numero];
+	}
+	return 0;
 }
 
 int copiarInformacion(int tamanioACopiar, int offset,char* buffer, char* inicio ,osada_file* archivo)
 {
-
+	t_list* listaDeBloques = list_create();
+	prepararLista(listaDeBloques,archivo->first_block);
 	int i=1;
 	int copiado = 0;
 	int restanteDeMiBloque = OSADA_BLOCK_SIZE - offsetDondeEmpezar(offset);
@@ -156,11 +155,12 @@ int copiarInformacion(int tamanioACopiar, int offset,char* buffer, char* inicio 
 	{
 		int tamanioACopiarDentroDelBloque = minimoEntre(tamanioACopiar,restanteDeMiBloque);
 		restanteDeMiBloque = OSADA_BLOCK_SIZE;
+		//QUE PASA ACA?
 		memcpy(buffer + copiado,inicio,tamanioACopiarDentroDelBloque);
 		copiado = copiado + tamanioACopiarDentroDelBloque;
 		if(copiado < tamanioACopiar)
 		{
-			inicio = obtenerBloque(archivo);
+			inicio = list_get(listaDeBloques, i);
 			i++;
 		}
 	}
@@ -170,24 +170,18 @@ int copiarInformacion(int tamanioACopiar, int offset,char* buffer, char* inicio 
 //leer archivo incompleto
 int leer_archivo(char* path, int offset, int tamanioALeer, char* buffer) {
 	osada_file* archivo = obtenerArchivo(path);
-
 	if (archivo == NULL) {
 		return -1;
 	}
-
-	log_info(logger, "%d", archivo->first_block);
-	int leido;
+	int* leido = malloc(sizeof(int));
 	int tamanioALeerVerdadero = minimoEntre(tamanioALeer,archivo->file_size - offset);
 	//empiezo
-	char* bloqueDeDatos = obtenerBloque(archivo);
-	log_info(logger,"%c",bloqueDeDatos[0]);
-	leido = copiarInformacion(tamanioALeerVerdadero, 0,buffer,bloqueDeDatos,archivo);
-
-	if(leido != tamanioALeerVerdadero)
+	char* bloqueDeDatos = (char*) bloquesDeDatos[archivo->first_block];
+	*leido = copiarInformacion(tamanioALeerVerdadero, 0,buffer,bloqueDeDatos,archivo);
+	if(*leido != tamanioALeerVerdadero)
 	{
 		return -1;
 	}
-
 	return leido;
 }
 
@@ -223,8 +217,10 @@ int borrar_directorio(char* path)
 int main () {
 
 	reconocerOSADA();
-	char* buffer;
-	int error = leer_archivo("/directorio/archivo.txt", 0, tablaDeArchivos[1].file_size,buffer);
+	char* buffer = malloc(tablaDeArchivos[1].file_size);
+	int* error = malloc(sizeof(int));
+	leer_archivo("/directorio/archivo.txt", 0, tablaDeArchivos[1].file_size,buffer);
+	printf("%s\n",buffer);
 	return 0;
 
 }
