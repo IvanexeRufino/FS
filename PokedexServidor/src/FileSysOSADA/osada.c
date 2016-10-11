@@ -99,7 +99,8 @@ int obtenerIndice(char* path) {
 	char** arrayPath = string_split(path + 1,"/");
 	int i = 0;
 	int archivo = 65535;
-	while(arrayPath[i] != NULL) {
+	while(arrayPath[i] != NULL)
+	{
 		archivo = buscarIndiceConPadre(arrayPath[i], archivo);
 		if (archivo == -1) {
 			return -1;
@@ -112,6 +113,7 @@ int obtenerIndice(char* path) {
 osada_file* obtenerArchivo(char* path) {
 
 	int indice = obtenerIndice(path);
+
 	if (indice == -1) {
 		return NULL;
 	}else {
@@ -121,16 +123,16 @@ osada_file* obtenerArchivo(char* path) {
 }
 
 int minimoEntre(int unNro, int otroNro) {
-
-	if(unNro<otroNro) {
+	if(unNro<otroNro)
+	{
 		return unNro;
 	}
 	return otroNro;
 }
 
 int maximoEntre(int unNro, int otroNro) {
-
-	if(unNro>otroNro) {
+	if(unNro>otroNro)
+	{
 		return unNro;
 	}
 	return otroNro;
@@ -175,8 +177,8 @@ t_list* listaDeHijosDelArchivo(int indiceDelPadre) {
 	return listaDeHijos;
 }
 
+//borrar directorio vacio
 int borrar_directorio_vacio(char* path) {
-
 	osada_file* archivo = obtenerArchivo(path);
 	int indiceArchivo = obtenerIndice(path);
 	t_list* listaDeHijos = listaDeHijosDelArchivo(indiceArchivo);
@@ -240,6 +242,12 @@ uint32_t buscarArchivoDelPadre(char* path)
 	return indice;
 }
 
+void borrarDelBitmap(int punteroAEliminar) {
+
+	int j = inicioDeBloqueDeDatos;
+	bitarray_clean_bit(bitmap,j + punteroAEliminar);
+}
+
 int buscarBloqueVacio() {
 	int i = 0;
 	int j = inicioDeBloqueDeDatos;
@@ -279,6 +287,33 @@ int crear_archivo(char* path, int direcOArch)
 	}
 
 	pthread_mutex_unlock(&semaforoTablaDeNodos);
+	return 0;
+}
+
+void liberarBloquesDeBitmap(osada_file* archivo) {
+	int size = archivo->file_size;
+	int puntero = archivo->first_block;
+	int tamanioLeido = 0;
+	while(tamanioLeido<size) {
+		tamanioLeido = OSADA_BLOCK_SIZE;
+		if(tamanioLeido + OSADA_BLOCK_SIZE > size) {tamanioLeido = size;}
+		borrarDelBitmap(puntero);
+		puntero = tablaDeAsignaciones[puntero];
+	}
+}
+
+int borrar_archivo(char* path) {
+
+	osada_file* archivo = obtenerArchivo(path);
+
+	if(archivo->state == 0 || archivo == NULL) {
+		//archivo ya borrado o no encontrado en la tabla(ya superpuesto)
+		return -1;
+	}
+
+	liberarBloquesDeBitmap(archivo);
+	archivo->state = 0;
+
 	return 0;
 }
 
