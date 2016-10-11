@@ -17,7 +17,7 @@ t_bitarray* bitmap;
 osada_file* tablaDeArchivos;
 osada_block_pointer* tablaDeAsignaciones;
 osada_block* bloquesDeDatos;
-
+int cantidadDeBloques;
 
 
 

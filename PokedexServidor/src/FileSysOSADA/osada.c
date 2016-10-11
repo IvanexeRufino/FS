@@ -12,7 +12,7 @@
 #include <sys/mman.h>
 #include <string.h>
 #include <commons/collections/list.h>
-#include <inttypes.h>
+#include <pthread.h>
 
 
 #define LOG_FILE "osada.log"
@@ -23,6 +23,7 @@
 
 
 t_log* logger;
+pthread_mutex_t semaforoBitmap, semaforoTablaDeNodos;
 
 int divisionMaxima(int numero, int otroNumero) {
 	if(numero % 64 == 0) {
@@ -64,6 +65,9 @@ void reconocerOSADA(void) {
 	bitmap = bitarray_create(&disco[OSADA_BLOCK_SIZE],(header->bitmap_blocks));
 	tablaDeAsignaciones = (osada_block_pointer*) (disco + (header->allocations_table_offset) * OSADA_BLOCK_SIZE);
 	bloquesDeDatos = (osada_block*) (disco + (header->fs_blocks - header->data_blocks)*OSADA_BLOCK_SIZE);
+	cantidadDeBloques = header->fs_blocks;
+	pthread_mutex_init (&semaforoBitmap,NULL);
+	pthread_mutex_init (&semaforoTablaDeNodos,NULL);
 }
 
 int dondeEmpezarLectura(int offset) {
@@ -76,8 +80,7 @@ int offsetDondeEmpezar(int offset) {
 	return resultado;
 }
 
-int buscarIndiceConPadre(char* nombreABuscar, int padre)
-{
+int buscarIndiceConPadre(char* nombreABuscar, int padre) {
 	int i;
 	for(i = 0; i < 2048; i++)
 	{
@@ -92,7 +95,6 @@ int buscarIndiceConPadre(char* nombreABuscar, int padre)
 
 
 int obtenerIndice(char* path) {
-
 	char** arrayPath = string_split(path + 1,"/");
 	int i = 0;
 	int archivo = 65535;
@@ -119,8 +121,7 @@ osada_file* obtenerArchivo(char* path) {
 
 }
 
-int minimoEntre(int unNro, int otroNro)
-{
+int minimoEntre(int unNro, int otroNro) {
 	if(unNro<otroNro)
 	{
 		return unNro;
@@ -128,8 +129,7 @@ int minimoEntre(int unNro, int otroNro)
 	return otroNro;
 }
 
-int maximoEntre(int unNro, int otroNro)
-{
+int maximoEntre(int unNro, int otroNro) {
 	if(unNro>otroNro)
 	{
 		return unNro;
@@ -137,8 +137,7 @@ int maximoEntre(int unNro, int otroNro)
 	return otroNro;
 }
 
-int copiarInformacion(int tamanioACopiar, int offset,char* buffer, char* inicio ,osada_file* archivo)
-{
+int copiarInformacion(int tamanioACopiar, int offset,char* buffer, char* inicio ,osada_file* archivo) {
 	int* numeroDeTabla = malloc(sizeof(int));
 	*numeroDeTabla = tablaDeAsignaciones[archivo->first_block];
 	int i=1;
@@ -158,30 +157,12 @@ int copiarInformacion(int tamanioACopiar, int offset,char* buffer, char* inicio 
 			i++;
 		}
 	}
+	free(numeroDeTabla);
 	return copiado;
 }
 
-//leer archivo incompleto
-int leer_archivo(char* path, int offset, int tamanioALeer, char* buffer) {
-	osada_file* archivo = obtenerArchivo(path);
-	if (archivo == NULL) {
-		return -1;
-	}
-	int* leido = malloc(sizeof(int));
-	int tamanioALeerVerdadero = minimoEntre(tamanioALeer,archivo->file_size - offset);
-	//empiezo
-	char* bloqueDeDatos = (char*) bloquesDeDatos[archivo->first_block];
-	*leido = copiarInformacion(tamanioALeerVerdadero, 0,buffer,bloqueDeDatos,archivo);
-	if(*leido != tamanioALeerVerdadero)
-	{
-		return -1;
-	}
-	return leido;
-}
-
 //ls
-t_list* listaDeHijosDelArchivo(int indiceDelPadre)
-{
+t_list* listaDeHijosDelArchivo(int indiceDelPadre) {
 	t_list* listaDeHijos = list_create();
 	int i;
 	for(i=0; i < 2048; i++)
@@ -196,8 +177,7 @@ t_list* listaDeHijosDelArchivo(int indiceDelPadre)
 }
 
 //borrar directorio vacio
-int borrar_directorio(char* path)
-{
+int borrar_directorio(char* path) {
 	osada_file* archivo = obtenerArchivo(path);
 	int indiceArchivo = obtenerIndice(path);
 	t_list* listaDeHijos = listaDeHijosDelArchivo(indiceArchivo);
@@ -206,15 +186,119 @@ int borrar_directorio(char* path)
 		//empezar a remover del fileSystem
 
 	}
+	return 0;
 }
 
+int leer_archivo(char* path, int offset, int tamanioALeer, char* buffer) {
+	osada_file* archivo = obtenerArchivo(path);
+	if (archivo == NULL) {
+		return -1;
+	}
+	int* leido = malloc(sizeof(int));
+	int tamanioALeerVerdadero = minimoEntre(tamanioALeer,archivo->file_size - offset);
+	pthread_mutex_lock(&semaforoTablaDeNodos);
+	char* bloqueDeDatos = (char*) bloquesDeDatos[archivo->first_block];
+	*leido = copiarInformacion(tamanioALeerVerdadero, 0,buffer,bloqueDeDatos,archivo);
+	pthread_mutex_unlock(&semaforoTablaDeNodos);
+	if(*leido != tamanioALeerVerdadero)
+	{
+		return -1;
+	}
+	return *leido;
+}
+
+osada_file* buscarArchivoVacio() {
+	int i = 0;
+	while(i < 2048) {
+		if (tablaDeArchivos[i].state == DELETED) {
+			 return &tablaDeArchivos[i];
+		}
+		i++;
+	}
+	return NULL;
+}
+
+char* adquirirNombreAnterior(char* path)
+{
+	char* hijo = strrchr(path, '/');
+	return string_substring_until(path, abs(path - hijo));
+}
+
+char* adquirirNombre(char* path)
+{
+	char** arrayPath = string_split(path + 1, "/");
+	int i=0;
+	while(arrayPath[i]!= NULL)
+	{
+		i++;
+	}
+	return string_duplicate(arrayPath[i - 1]);
+}
+
+uint32_t buscarArchivoDelPadre(char* path)
+{
+	char* nombreABuscar = adquirirNombreAnterior(path);
+	int indice = obtenerIndice(nombreABuscar);
+	free(nombreABuscar);
+	return indice;
+}
+
+int buscarBloqueVacio() {
+	int i = 0;
+	while(i < cantidadDeBloques) {
+		 if(bitarray_test_bit(bitmap,i) == false) {
+				bitarray_set_bit(bitmap,i);
+				return i;
+		 }
+		i++;
+	}
+	//no hay bits vacios
+	return -1;
+}
+
+int crear_archivo(char* path, int direcOArch)
+{
+	pthread_mutex_lock(&semaforoTablaDeNodos);
+	osada_file* archivoNuevo = buscarArchivoVacio();
+	if(archivoNuevo == NULL)
+	{
+		pthread_mutex_unlock(&semaforoTablaDeNodos);
+		//tabla de archivos lleno
+		return -1;
+	}
+	strcpy(archivoNuevo->fname,adquirirNombre(path));
+	archivoNuevo->parent_directory = buscarArchivoDelPadre(path);
+	archivoNuevo->file_size = 0;
+	archivoNuevo->lastmod = 0000000;
+
+	if(direcOArch == 1) {
+		archivoNuevo->state = REGULAR;
+		archivoNuevo->first_block = buscarBloqueVacio();
+	}
+	else {
+		archivoNuevo->state = DIRECTORY;
+	}
+
+	pthread_mutex_unlock(&semaforoTablaDeNodos);
+	return 0;
+}
+
+/////////////////////////////////////escribir archivo /////////////////////////////////////
+
+int escribir_archivo(char* path, int offset, char* bufferConDatos, int tamanioAEscribir) {
+
+}
+
+
+//tener cuidado con manejo de errores
 int main () {
 	reconocerOSADA();
 	char* buffer = malloc(tablaDeArchivos[3].file_size);
-	int* error = malloc(sizeof(int));
-	leer_archivo("/directorio//subdirectorio/large.txt", 0, tablaDeArchivos[3].file_size,buffer);
+	leer_archivo("/directorio/subdirectorio/large.txt", 0, tablaDeArchivos[3].file_size,buffer);
 	log_info(logger,"\n%s",buffer);
 	log_info(logger,"\n%s",bloquesDeDatos[1]);
+	log_info(logger,"\n%s",tablaDeArchivos[8].fname);
+	log_info(logger,"\n%d",tablaDeArchivos[8].first_block);
 	return 0;
 
 }
