@@ -194,10 +194,9 @@ void recibirCoordenadaPokemon(int *mapaCoordenadaPokemon, int socketMapa)
 
 void solicitarPosicion(t_nivel *mapa)
 {
-	char* buffer = malloc(sizeof(char)*3);
+	char* buffer = malloc(sizeof(char)*2);
 	char* identificador="1";
 	strcpy(buffer,identificador);
-	strcat(buffer,mapa->objetivos->head->data);
 	strcat(buffer,mapa->objetivos->head->data);
 	send(mapa->socketMapa, buffer, sizeof(buffer), 0);
 
@@ -294,10 +293,9 @@ void recibirCoordenadaEntrenador(int* coordenada, int socketMapa)
 	free(payload);
 }
 void solicitarAvanzar(t_nivel *mapa){
-	char* buffer = malloc(sizeof(char)*3);
+	char* buffer = malloc(sizeof(char)*2);
 	char* identificador="2";
 	strcpy(buffer,identificador);
-	strcat(buffer,mapa->objetivos->head->data);
 	strcat(buffer,mapa->objetivos->head->data);
 	send(mapa->socketMapa, buffer, sizeof(buffer), 0);
 	puts("pido avanzar al mapa");
@@ -307,21 +305,27 @@ void solicitarAvanzar(t_nivel *mapa){
 	free(buffer);
 }
 
-int atraparPokemon(t_nivel *mapa){
-	char* buffer = malloc(sizeof(char)*3);
-	char* capturado = malloc(sizeof(char)*3);
+int atraparPokemon(t_nivel *mapa)
+{
+	char* buffer = malloc(sizeof(char)*2);
+
 	char* identificador="3";
 	strcpy(buffer,identificador);
 	strcat(buffer,mapa->objetivos->head->data);
-	strcat(buffer,mapa->objetivos->head->data);
+
 	send(mapa->socketMapa, buffer, sizeof(buffer), 0);
 	recv(mapa->socketMapa, buffer, sizeof(buffer),0);
-	strcpy(capturado, buffer);
-	free(buffer);
-	if(!strcmp(capturado,"1")){
+
+	if(!strcmp(buffer,"1"))
+		{
+		free(buffer);
 		return 1;
 		}
-	else return 0;
+	else
+	{
+		free(buffer);
+		return 0;
+	}
 }
 
 int main(void) {
@@ -347,28 +351,19 @@ while(1)
 			leerConfiguracionMapa(mapa);				      					   //Busco en los archivos de config la ip y el socket
 			int socketServidor = conectarConServer(mapa->ipMapa, mapa->puertoMapa); //Me conecto con el Mapa
 			mapa->socketMapa = socketServidor;
-			log_info(logger, "Conectado al servidor");							   // Lo reflejo en el log
-			infoEntrenador->posicionEnX = 0;
+			log_info(logger, "Conectado al servidor");							// Lo reflejo en el log
+			infoEntrenador->posicionEnX = 0;									//Estaria en la posicion 0 en el nuevo mapa
 			infoEntrenador->posicionEnY = 0;
-			enviarMensajeInicial(mapa->socketMapa);								   //Le envio el simbolo al Mapa - HEADER ID es el 0
+			enviarMensajeInicial(mapa->socketMapa);								//Le envio el simbolo al Mapa - HEADER ID es el 0
 			int k=0;
 
 			//La utilizo para moverme entre objetivos de pokemones
 			for(k = 0 ; k< list_size(mapa->objetivos); k++)
 					{
-
 					list_get(mapa->objetivos,k);
-					printf("El objetivo actual es %s \n", mapa->objetivos->head->data); 	//Es otro warning al dope
-					char* buffer = malloc(sizeof(char));
-					recv(socketServidor, buffer, sizeof(buffer), 0);
-					char esMiTurno=buffer[0];
-					printf("Lo que recibio del socket del mapa %d es esto: %c\n", mapa->socketMapa,esMiTurno);
+					printf("El objetivo actual es %s \n", mapa->objetivos->head->data);    //Es otro warning al dope
 
-
-					if(esMiTurno == '0')											// Es la señal que me dice que es mi turno
-						{
-						printf("Lo que quiere decir que es mi turno \n");
-						solicitarPosicion(mapa);										//Le envio en el header el ID 1
+					solicitarPosicion(mapa);										   //Le envio en el header el ID 1
 
 							while((infoEntrenador->posicionEnX != mapa->pokemonActualPosicionEnX ||
 									infoEntrenador->posicionEnY != mapa->pokemonActualPosicionEnY))
@@ -376,14 +371,14 @@ while(1)
 								solicitarAvanzar(mapa);									//(Le envio en el header el ID 2)
 							}
 
-						if(infoEntrenador->posicionEnX == mapa->pokemonActualPosicionEnX && infoEntrenador->posicionEnY == mapa->pokemonActualPosicionEnY){
+						if(infoEntrenador->posicionEnX == mapa->pokemonActualPosicionEnX && infoEntrenador->posicionEnY == mapa->pokemonActualPosicionEnY)
+							{
 							int atrapado = atraparPokemon(mapa);  								//Le envio en el header el ID 3
 							if (atrapado == 1)
 								{
 								printf("Felicitaciones, capturaste el pokemon nro %d \n",k);
 								}
 							}
-						}
 					}
 			printf("Felicitaciones, terminaste de capturar todos los pokemons del mapa nro %d \n",j);
 		}
