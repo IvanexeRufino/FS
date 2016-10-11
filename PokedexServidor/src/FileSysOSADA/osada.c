@@ -86,14 +86,11 @@ int offsetDondeEmpezar(int offset) {
 
 int buscarIndiceConPadre(char* nombreABuscar, int padre) {
 	int i;
-	for(i = 0; i < 2048; i++)
-	{
-		if(strcmp(tablaDeArchivos[i].fname, nombreABuscar) == 0 && tablaDeArchivos[i].parent_directory == padre && tablaDeArchivos[i].state != DELETED)
-		{
+	for(i = 0; i < 2048; i++) {
+		if(strcmp(tablaDeArchivos[i].fname, nombreABuscar) == 0 && tablaDeArchivos[i].parent_directory == padre && tablaDeArchivos[i].state != DELETED) {
 			return i;
 		}
 	}
-
 	return -1;
 }
 
@@ -102,8 +99,7 @@ int obtenerIndice(char* path) {
 	char** arrayPath = string_split(path + 1,"/");
 	int i = 0;
 	int archivo = 65535;
-	while(arrayPath[i] != NULL)
-	{
+	while(arrayPath[i] != NULL) {
 		archivo = buscarIndiceConPadre(arrayPath[i], archivo);
 		if (archivo == -1) {
 			return -1;
@@ -116,7 +112,6 @@ int obtenerIndice(char* path) {
 osada_file* obtenerArchivo(char* path) {
 
 	int indice = obtenerIndice(path);
-
 	if (indice == -1) {
 		return NULL;
 	}else {
@@ -126,16 +121,16 @@ osada_file* obtenerArchivo(char* path) {
 }
 
 int minimoEntre(int unNro, int otroNro) {
-	if(unNro<otroNro)
-	{
+
+	if(unNro<otroNro) {
 		return unNro;
 	}
 	return otroNro;
 }
 
 int maximoEntre(int unNro, int otroNro) {
-	if(unNro>otroNro)
-	{
+
+	if(unNro>otroNro) {
 		return unNro;
 	}
 	return otroNro;
@@ -180,15 +175,13 @@ t_list* listaDeHijosDelArchivo(int indiceDelPadre) {
 	return listaDeHijos;
 }
 
-//borrar directorio vacio
-int borrar_directorio(char* path) {
+int borrar_directorio_vacio(char* path) {
+
 	osada_file* archivo = obtenerArchivo(path);
 	int indiceArchivo = obtenerIndice(path);
 	t_list* listaDeHijos = listaDeHijosDelArchivo(indiceArchivo);
-	if(archivo->state == 2 && list_is_empty(listaDeHijos))
-	{
-		//empezar a remover del fileSystem
-
+	if(archivo->state == DIRECTORY && list_is_empty(listaDeHijos)) {
+		archivo->state = DELETED;
 	}
 	return 0;
 }
