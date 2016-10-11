@@ -64,10 +64,14 @@ void reconocerOSADA(void) {
 	tablaDeArchivos = (osada_file*)  (disco + (header->allocations_table_offset - 1024)*OSADA_BLOCK_SIZE);
 	bitmap = bitarray_create(&disco[OSADA_BLOCK_SIZE],(header->bitmap_blocks));
 	tablaDeAsignaciones = (osada_block_pointer*) (disco + (header->allocations_table_offset) * OSADA_BLOCK_SIZE);
-	bloquesDeDatos = (osada_block*) (disco + (header->fs_blocks - header->data_blocks)*OSADA_BLOCK_SIZE);
+	inicioDeBloqueDeDatos = header->fs_blocks - header->data_blocks;
+	bloquesDeDatos = (osada_block*) (disco + inicioDeBloqueDeDatos*OSADA_BLOCK_SIZE);
 	cantidadDeBloques = header->fs_blocks;
 	pthread_mutex_init (&semaforoBitmap,NULL);
 	pthread_mutex_init (&semaforoTablaDeNodos,NULL);
+	log_info(logger,"%d",header->bitmap_blocks);
+	log_info(logger,"%d",header->fs_blocks);
+	log_info(logger,"%d",header->data_blocks);
 }
 
 int dondeEmpezarLectura(int offset) {
@@ -245,11 +249,13 @@ uint32_t buscarArchivoDelPadre(char* path)
 
 int buscarBloqueVacio() {
 	int i = 0;
-	while(i < cantidadDeBloques) {
-		 if(bitarray_test_bit(bitmap,i) == false) {
-				bitarray_set_bit(bitmap,i);
+	int j = inicioDeBloqueDeDatos;
+	while(j < cantidadDeBloques) {
+		 if(bitarray_test_bit(bitmap,j) == false) {
+				bitarray_set_bit(bitmap,j);
 				return i;
 		 }
+		j++;
 		i++;
 	}
 	//no hay bits vacios
@@ -295,10 +301,9 @@ int main () {
 	reconocerOSADA();
 	char* buffer = malloc(tablaDeArchivos[3].file_size);
 	leer_archivo("/directorio/subdirectorio/large.txt", 0, tablaDeArchivos[3].file_size,buffer);
+	crear_archivo("/directorio/algo.txt", 1);
 	log_info(logger,"\n%s",buffer);
 	log_info(logger,"\n%s",bloquesDeDatos[1]);
-	log_info(logger,"\n%s",tablaDeArchivos[8].fname);
-	log_info(logger,"\n%d",tablaDeArchivos[8].first_block);
 	return 0;
 
 }
