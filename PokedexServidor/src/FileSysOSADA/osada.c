@@ -13,6 +13,7 @@
 #include <string.h>
 #include <commons/collections/list.h>
 #include <pthread.h>
+#include <errno.h>
 
 
 #define LOG_FILE "osada.log"
@@ -325,6 +326,34 @@ int renombrar_archivo(char* pathViejo, char* pathNuevo) {
 
 	return 0;
 }
+
+int ejemplo_getattr(const char *path, struct stat *st) {
+	int res=0;
+	memset (st,0,sizeof(st));
+
+	    if(S_ISDIR(st->st_mode)){
+				st->st_mode = S_IFDIR | 0755;
+	    		st->st_uid = getuid();
+	    		st->st_gid = getgid();
+	    		st->st_atime = time(NULL);
+	    		st->st_mtime = time(NULL);
+	    		st->st_nlink = 2;
+	        }
+	    else if(S_ISREG(st->st_mode)){
+	    		st->st_mode = S_IFREG | 0644;
+	    		st->st_uid = getuid();
+	    		st->st_gid = getgid();
+	    		st->st_size = sizeof(st);
+	    		st->st_atime = time(NULL);
+	    		st->st_mtime = time(NULL);
+	        }
+	    else {
+	    	res = -ENOENT;
+	    }
+
+	    return res;
+}
+
 
 /////////////////////////////////////escribir archivo /////////////////////////////////////
 
