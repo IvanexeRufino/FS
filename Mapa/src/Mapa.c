@@ -201,8 +201,8 @@ void recibirBienvenidaEntrenador(int newfd,t_registroPersonaje *nuevoPersonaje)
 	char bufferConID;
 	bufferConID=buffer[1];
 	char* identificador= charToString(bufferConID);
-	strcpy(nuevoPersonaje->identificador,identificador);
-	//(nuevoPersonaje->identificador)=identificador;
+
+	nuevoPersonaje->identificador=identificador;
 	printf("El ID del entrenador es %s\n", nuevoPersonaje->identificador);
 
 	pthread_mutex_lock(&mutex_EntrenadoresActivos);
