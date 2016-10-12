@@ -184,6 +184,7 @@ int borrar_directorio_vacio(char* path) {
 	t_list* listaDeHijos = listaDeHijosDelArchivo(indiceArchivo);
 	if(archivo->state == DIRECTORY && list_is_empty(listaDeHijos)) {
 		archivo->state = DELETED;
+		archivo->lastmod = time(NULL);
 	}
 	return 0;
 }
@@ -312,6 +313,7 @@ int borrar_archivo(char* path) {
 
 	liberarBloquesDeBitmap(archivo);
 	archivo->state = 0;
+	archivo->lastmod = time(NULL);
 
 	return 0;
 }
@@ -320,6 +322,9 @@ int renombrar_archivo(char* pathViejo, char* pathNuevo) {
 	osada_file* archivo = obtenerArchivo(pathViejo);
 	archivo->fname = obtener_nombre(pathNuevo);
 	archivo->parent_directory = adquirirNombreAnterior(pathNuevo);
+	archivo->lastmod = time(NULL);
+
+	return 0;
 }
 
 /////////////////////////////////////escribir archivo /////////////////////////////////////
