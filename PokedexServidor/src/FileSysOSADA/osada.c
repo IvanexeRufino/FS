@@ -280,7 +280,6 @@ int crear_archivo(char* path, int direcOArch)
 
 	if(direcOArch == 1) {
 		archivoNuevo->state = REGULAR;
-		archivoNuevo->first_block = buscarBloqueVacio();
 	}
 	else {
 		archivoNuevo->state = DIRECTORY;
