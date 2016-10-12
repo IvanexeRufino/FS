@@ -276,7 +276,7 @@ int crear_archivo(char* path, int direcOArch)
 	strcpy(archivoNuevo->fname,adquirirNombre(path));
 	archivoNuevo->parent_directory = buscarArchivoDelPadre(path);
 	archivoNuevo->file_size = 0;
-	archivoNuevo->lastmod = 0000000;
+	archivoNuevo->lastmod = time(NULL);
 
 	if(direcOArch == 1) {
 		archivoNuevo->state = REGULAR;
@@ -315,6 +315,10 @@ int borrar_archivo(char* path) {
 	archivo->state = 0;
 
 	return 0;
+}
+
+int renombrar_archivo(char* pathViejo, char* pathNuevo) {
+
 }
 
 /////////////////////////////////////escribir archivo /////////////////////////////////////
