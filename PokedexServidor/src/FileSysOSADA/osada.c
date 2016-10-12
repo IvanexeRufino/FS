@@ -318,6 +318,8 @@ int borrar_archivo(char* path) {
 
 int renombrar_archivo(char* pathViejo, char* pathNuevo) {
 	osada_file* archivo = obtenerArchivo(pathViejo);
+	archivo->fname = obtener_nombre(pathNuevo);
+	archivo->parent_directory = adquirirNombreAnterior(pathNuevo);
 }
 
 /////////////////////////////////////escribir archivo /////////////////////////////////////
