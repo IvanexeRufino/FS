@@ -320,9 +320,8 @@ int borrar_archivo(char* path) {
 
 int renombrar_archivo(char* pathViejo, char* pathNuevo) {
 	osada_file* archivo = obtenerArchivo(pathViejo);
-	archivo->fname = obtener_nombre(pathNuevo);
-	archivo->parent_directory = adquirirNombreAnterior(pathNuevo);
-	archivo->lastmod = time(NULL);
+	strcpy(archivo->fname,adquirirNombre(pathNuevo));
+	archivo->parent_directory = buscarArchivoDelPadre(pathNuevo);
 
 	return 0;
 }
@@ -339,7 +338,6 @@ int main () {
 	reconocerOSADA();
 	char* buffer = malloc(tablaDeArchivos[3].file_size);
 	leer_archivo("/directorio/subdirectorio/large.txt", 0, tablaDeArchivos[3].file_size,buffer);
-	crear_archivo("/directorio/algo.txt", 1);
 	log_info(logger,"\n%s",buffer);
 	log_info(logger,"\n%s",bloquesDeDatos[1]);
 	return 0;
