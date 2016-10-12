@@ -11,7 +11,6 @@
 //#include "Configuracion.c"
 #include "pokedexcliente.h"
 
-
 static int getattr_callback(const char *path, struct stat *stbuf){
 		return 0;
 }
@@ -21,9 +20,26 @@ static int readdir_callback(const char *path, void *buf, fuse_fill_dir_t filler,
 	return 0;
 }
 
+static int open_callback(const char *path, struct fuse_file_info *fi){
+	return 0;
+}
+
+static int read_callback(const char *path, char *buf, size_t size, off_t offset,
+    struct fuse_file_info *fi) {
+	return 0;
+}
+
+static int write_callback(const char* path, char *buf, size_t size, off_t offset, struct fuse_file_info* fi){
+	return 0;
+}
+
 static struct fuse_operations fuse_pokedex_cliente = {
   .getattr = getattr_callback,
   .readdir = readdir_callback,
+  .open = open_callback,
+  .read = read_callback,
+  .write = write_callback,
+
 };
 
 int main(int argc, char *argv[]) {
@@ -73,8 +89,6 @@ int main(int argc, char *argv[]) {
 
 	close(serverSocket);
 	return 0;*/
-
-
 
 	return fuse_main(argc,argv,&fuse_pokedex_cliente,NULL);
 }
