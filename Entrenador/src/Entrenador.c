@@ -5,6 +5,13 @@ entrenador_datos* infoEntrenador;
 pid_t pid;
 t_list* listaDeNiveles;
 
+char* charToString(char element) {
+	char* new = malloc(2);
+	*new = element;
+	*(new + 1) = '\0';
+	return new;
+}
+
 void muerteDefinitivaPorSenial(int aSignal)
 {
 	log_info(logger,"El personaje se desconecto");
@@ -92,7 +99,7 @@ int leerConfiguracionEntrenador(entrenador_datos *datos)
 				//Recorre la hoja de viaje, ciudad por ciudad
 			while (&(*config_get_array_value(config, "hojaDeViaje")[k])!= NULL) {
 				char* palabraAAgregar =config_get_array_value(config, "hojaDeViaje")[k];
-				t_nivel* mapa = malloc(sizeof(int) + sizeof(char) + sizeof(bool) + sizeof (t_list));
+				t_nivel* mapa = malloc(sizeof(t_nivel));
 				mapa->nivel=palabraAAgregar; //Nombre
 				mapa->objetivos = list_create();
 				if(config_has_property(config,objetivosDelMapa(palabraAAgregar))){
@@ -192,12 +199,13 @@ void recibirCoordenadaPokemon(int *mapaCoordenadaPokemon, int socketMapa)
 
 
 
-void solicitarPosicion(t_nivel *mapa)
+void solicitarPosicion(t_nivel *mapa,char objetivo)
 {
 	char* buffer = malloc(sizeof(char)*2);
 	char* identificador="1";
 	strcpy(buffer,identificador);
-	strcat(buffer,mapa->objetivos->head->data);
+	char*obj=charToString(objetivo);
+	strcat(buffer,obj);
 	send(mapa->socketMapa, buffer, sizeof(buffer), 0);
 
 	recibirCoordenadaPokemon(&(mapa->pokemonActualPosicionEnX), mapa->socketMapa);    				//Recibo en X
@@ -207,6 +215,7 @@ void solicitarPosicion(t_nivel *mapa)
 	printf("La Coordenada del pokemon que solicite en Y fue: %d \n",mapa->pokemonActualPosicionEnY);
 
 	free(buffer);
+	free(obj);
 }
 
 void sendObjetivosMapa(int serverSocket)
@@ -342,7 +351,9 @@ int main(void) {
 			else
 				log_error(logger,"Error la leer archivo de configuracion");
 
-while(1)
+			char *vector=malloc(sizeof(char)*10);
+
+	while(1)
 	{
 	int j;
 		for(j = 0 ; j< list_size(listaDeNiveles); j++)
@@ -360,10 +371,15 @@ while(1)
 			//La utilizo para moverme entre objetivos de pokemones
 			for(k = 0 ; k< list_size(mapa->objetivos); k++)
 					{
-					list_get(mapa->objetivos,k);
-					printf("El objetivo actual es %s \n", mapa->objetivos->head->data);    //Es otro warning al dope
 
-					solicitarPosicion(mapa);										   //Le envio en el header el ID 1
+				int i = list_size(mapa->objetivos);
+				char objetivos[i];
+				vector = list_get(mapa->objetivos,k);
+				objetivos[k] = *vector;
+
+				printf("El objetivo actual es %c \n", objetivos[k]);
+
+				solicitarPosicion(mapa,objetivos[k]);										   //Le envio en el header el ID 1
 
 							while((infoEntrenador->posicionEnX != mapa->pokemonActualPosicionEnX ||
 									infoEntrenador->posicionEnY != mapa->pokemonActualPosicionEnY))
