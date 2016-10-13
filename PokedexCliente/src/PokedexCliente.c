@@ -48,47 +48,48 @@ int main(int argc, char *argv[]) {
 //	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
 //	log_info(logger, PROGRAM_DESCRIPTION);
 
-/*
-	struct addrinfo hints;
-	struct addrinfo *serverInfo;
+	int sock;
+	struct sockaddr_in server;
+	char message [1000], server_reply[2000];
 
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_UNSPEC;		// Permite que la maquina se encargue de verificar si usamos IPv4 o IPv6
-	hints.ai_socktype = SOCK_STREAM;	// Indica que usaremos el protocolo TCP
+	sock= socket(AF_INET,SOCK_STREAM,0);
+	if (sock==1){
+		printf("No se pudo creer el socket");
+	}
+	puts("Socket creado");
 
-	getaddrinfo(IP, PUERTO, &hints, &serverInfo);	// Carga en serverInfo los datos de la conexion
+	server.sin_addr.s_addr= inet_addr("127.0.0.1");
+	server.sin_family= AF_INET;
+	server.sin_port= htons(8888);
 
-	int serverSocket;
-	serverSocket = socket(serverInfo->ai_family, serverInfo->ai_socktype, serverInfo->ai_protocol);
+	//conectar al servidor
+	if(connect(sock,(struct sockaddr*)&server,sizeof(server))<0){
+		perror("Fallo la conexion");
+		return 1;
+	}
+	puts("Conectado\n");
 
-	int buf;
-	int i;
-	ssize_t nbytes;
+	//comunicando con el servidor
+	while (1){
+		printf("Escribir mensaje:");
+		scanf("%s",message);
 
-	connect(serverSocket, serverInfo->ai_addr, serverInfo->ai_addrlen);
-	freeaddrinfo(serverInfo);	// No lo necesitamos mas
+		//enviar datos
+		if(send(sock,message,strlen(message),0)<0){
+			puts("Fallo el envio");
+			return 1;
+		}
 
-	int enviar = 1;
-	char message[PACKAGESIZE];
-
-	printf("Conectado al servidor. Bienvenido al sistema, ya puede enviar mensajes. Escriba 'exit' para salir\n");
-//	log_info(logger, "conectado al servidor, puede enviar mensajes. 'exit' para salir");
-
-	while(enviar){
-		fgets(message, PACKAGESIZE, stdin);			// Lee una linea en el stdin (lo que escribimos en la consola) hasta encontrar un \n (y lo incluye) o llegar a PACKAGESIZE.
-		if (!strcmp(message,"exit\n"))
-			{
-			enviar = 0;			// Chequeo que el usuario no quiera salir
-			}
-		if (enviar)
-			{
-			send(serverSocket, message, strlen(message) + 1, 0);
-//			log_info (logger, "enviando mensaje");// Solo envio si el usuario no quiere salir.
-			}
+		//recibir respuesta del servidor
+		if(recv(sock,server_reply,2000,0)<0){
+			puts("Fallo la recepcion");
+			break;
+		}
+		puts("Respuesta del servidor:");
+		puts(server_reply);
 	}
 
-	close(serverSocket);
-	return 0;*/
-
-	return fuse_main(argc,argv,&fuse_pokedex_cliente,NULL);
+	close(sock);
+	return 0;
+	// return fuse_main(argc,argv,&fuse_pokedex_cliente,NULL);
 }
