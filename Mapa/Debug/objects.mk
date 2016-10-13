@@ -4,5 +4,5 @@
 
 USER_OBJS :=
 
-LIBS := -lcommons -lpkmn-battle -lnivel-gui -lpthread -lcurses
+LIBS := -lBibliotecaPayback -lcommons -lpkmn-battle -lnivel-gui -lpthread -lcurses
 

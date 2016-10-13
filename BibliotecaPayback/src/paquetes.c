@@ -4,7 +4,7 @@
  *  Created on: 26/9/2016
  *      Author: utnso
  */
-#include <paquetes.h>
+#include "paquetes.h"
 
 void* memoria(int cantidad)
 {

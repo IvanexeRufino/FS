@@ -1,4 +1,6 @@
 #include "Entrenador.h"
+//#include <BibliotecaPayback/str_cut.h>
+//#include "str_cut.h"
 
 t_log* logger;
 entrenador_datos* infoEntrenador;
@@ -154,6 +156,7 @@ void str_cut(char *str, int begin, int len)
 
     return;
 }
+
 int enviarCoordenada(int coordenada,int socketMapa){
 	char* buffer = malloc(sizeof(char)*3);
 	char* identificador="0";
