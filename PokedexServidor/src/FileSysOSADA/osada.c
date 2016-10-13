@@ -26,6 +26,29 @@
 t_log* logger;
 pthread_mutex_t semaforoBitmap, semaforoTablaDeNodos;
 
+char **string_split(char *text, char *separator) {
+	char **substrings = NULL;
+	int size = 0;
+
+	char *text_to_iterate = string_duplicate(text);
+	char *token = NULL, *next = NULL;
+	token = strtok_r(text_to_iterate, separator, &next);
+
+	while (token != NULL) {
+		size++;
+		substrings = realloc(substrings, sizeof(char*) * size);
+		substrings[size - 1] = string_duplicate(token);
+		token = strtok_r(NULL, separator, &next);
+	}
+
+	size++;
+	substrings = realloc(substrings, sizeof(char*) * size);
+	substrings[size - 1] = NULL;
+
+	free(text_to_iterate);
+	return substrings;
+}
+
 int divisionMaxima(int numero, int otroNumero) {
 	if(numero % 64 == 0) {
 		return numero/otroNumero;
@@ -362,16 +385,16 @@ int escribir_archivo(char* path, int offset, char* bufferConDatos, int tamanioAE
 int main () {
 	reconocerOSADA();
 	char* buffer = malloc(tablaDeArchivos[3].file_size);
-	leer_archivo("/directorio/subdirectorio/large.txt", 0, tablaDeArchivos[3].file_size,buffer);
-	crear_archivo("/directorio/Mapa",2);
-	crear_archivo("/directorio/Mapa/Medalla.jpg",1);
-	crear_archivo("/directorio/Entrenador",2);
+	leer_archivo("/directorio/subdirectorio/large.txt", 1, tablaDeArchivos[3].file_size,buffer);
+//	crear_archivo("/directorio/Mapa",2);
+//	crear_archivo("/directorio/Mapa/Medalla.jpg",1);
+//	crear_archivo("/directorio/Entrenador",2);
 	log_info(logger,"\n%s",buffer);
 	log_info(logger,"\n%s",tablaDeArchivos[5].fname);
-	log_info(logger,"\n%s",tablaDeArchivos[tablaDeArchivos[5].parent_directory].fname);
-	renombrar_archivo("/directorio/Mapa/Medalla.jpg", "/directorio/Entrenador/Medalla.jpg");
-	log_info(logger,"\n%s",tablaDeArchivos[5].fname);
-	log_info(logger,"\n%s",tablaDeArchivos[tablaDeArchivos[5].parent_directory].fname);
+//	log_info(logger,"\n%s",tablaDeArchivos[tablaDeArchivos[5].parent_directory].fname);
+//	renombrar_archivo("/directorio/Mapa/Medalla.jpg", "/directorio/Entrenador/Medalla.jpg");
+//	log_info(logger,"\n%s",tablaDeArchivos[5].fname);
+//	log_info(logger,"\n%s",tablaDeArchivos[tablaDeArchivos[5].parent_directory].fname);
 	return 0;
 
 
