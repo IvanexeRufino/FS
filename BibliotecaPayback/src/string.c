@@ -7,12 +7,6 @@
 
 #include "string.h"
 
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <stdio.h>
-#include <stdarg.h>
-
 char **string_split(char *text, char *separator) {
 	char **substrings = NULL;
 	int size = 0;

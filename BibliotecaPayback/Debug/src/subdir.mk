@@ -4,16 +4,19 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
+../src/enviarCoordenada.c \
 ../src/paquetes.c \
 ../src/recibirCoordenada.c \
 ../src/string.c 
 
 OBJS += \
+./src/enviarCoordenada.o \
 ./src/paquetes.o \
 ./src/recibirCoordenada.o \
 ./src/string.o 
 
 C_DEPS += \
+./src/enviarCoordenada.d \
 ./src/paquetes.d \
 ./src/recibirCoordenada.d \
 ./src/string.d 
