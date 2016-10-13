@@ -70,9 +70,6 @@ void reconocerOSADA(void) {
 	cantidadDeBloques = header->fs_blocks;
 	pthread_mutex_init (&semaforoBitmap,NULL);
 	pthread_mutex_init (&semaforoTablaDeNodos,NULL);
-	log_info(logger,"%d",header->bitmap_blocks);
-	log_info(logger,"%d",header->fs_blocks);
-	log_info(logger,"%d",header->data_blocks);
 }
 
 int dondeEmpezarLectura(int offset) {
@@ -354,7 +351,6 @@ int ejemplo_getattr(const char *path, struct stat *st) {
 	    return res;
 }
 
-
 /////////////////////////////////////escribir archivo /////////////////////////////////////
 
 int escribir_archivo(char* path, int offset, char* bufferConDatos, int tamanioAEscribir) {
@@ -367,8 +363,16 @@ int main () {
 	reconocerOSADA();
 	char* buffer = malloc(tablaDeArchivos[3].file_size);
 	leer_archivo("/directorio/subdirectorio/large.txt", 0, tablaDeArchivos[3].file_size,buffer);
+	crear_archivo("/directorio/Mapa",2);
+	crear_archivo("/directorio/Mapa/Medalla.jpg",1);
+	crear_archivo("/directorio/Entrenador",2);
 	log_info(logger,"\n%s",buffer);
-	log_info(logger,"\n%s",bloquesDeDatos[1]);
+	log_info(logger,"\n%s",tablaDeArchivos[5].fname);
+	log_info(logger,"\n%s",tablaDeArchivos[tablaDeArchivos[5].parent_directory].fname);
+	renombrar_archivo("/directorio/Mapa/Medalla.jpg", "/directorio/Entrenador/Medalla.jpg");
+	log_info(logger,"\n%s",tablaDeArchivos[5].fname);
+	log_info(logger,"\n%s",tablaDeArchivos[tablaDeArchivos[5].parent_directory].fname);
 	return 0;
+
 
 }
