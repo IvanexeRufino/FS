@@ -9,13 +9,6 @@ pthread_mutex_t mutex_EntrenadoresActivos = PTHREAD_MUTEX_INITIALIZER;
 t_registroPokenest *pokemonActual;
 t_registroPersonaje *nuevoPersonaje;
 
-char* charToString(char element) {
-	char* new = malloc(2);
-	*new = element;
-	*(new + 1) = '\0';
-	return new;
-}
-
 void leerConfiguracionPokenest(char* mapa, char* path);
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
@@ -151,25 +144,6 @@ void leerConfiguracionPokenest(char mapa[20], char pokemon[256]){
 
 }
 
-void str_cut(char *str, int begin, int len)
-{
-    int l = strlen(str);
-
-    if (len < 0) len = l - begin;
-    if (begin + len > l) len = l - begin;
-    memmove(str + begin, str + begin + len, l - len + 1);
-
-    return;
-}
-
-t_registroPokenest *get_pokenest_identificador(char identificador) {
-	int _with_identificador(t_registroPokenest *p) {
-		return (p->identificador == identificador);
-	}
-
-	return list_find(entrenadoresActivos, (void*)_with_identificador);
-}
-
 void recibirCoordenada(int *coordenada, int socketEntrenador)
 {
 	char* buffer = malloc(sizeof(char)*3);
@@ -211,38 +185,25 @@ void recibirBienvenidaEntrenador(int newfd,t_registroPersonaje *nuevoPersonaje)
 	pthread_mutex_unlock(&mutex_EntrenadoresActivos);
 
 	free(buffer);
-	//memcpy((nuevoPersonaje->identificador), bufferConID,  sizeof(char));
 
 }
 
 void cargoDatosPokemonActual(char pokemonQueRecibo,t_registroPokenest* pokemonActual)
 {
-int j;
-char pok= pokemonQueRecibo;
-
+	int j;
+	char pok= pokemonQueRecibo;
 	for(j = 0 ; j< list_size(listaPokenest); j++)
-	{
-	t_registroPokenest* pokenest = list_get(listaPokenest,j);
-		if (pokenest->identificador == pok)
 		{
-			pokemonActual->identificador=pokenest->identificador;
-			pokemonActual->tipo=pokenest->tipo;
-			pokemonActual->x=pokenest->x;
-			pokemonActual->y=pokenest->y;
-			pokemonActual->cantidadDisp=pokenest->cantidadDisp;
+			t_registroPokenest* pokenest = list_get(listaPokenest,j);
+			if (pokenest->identificador == pok)
+				{
+					pokemonActual->identificador=pokenest->identificador;
+					pokemonActual->tipo=pokenest->tipo;
+					pokemonActual->x=pokenest->x;
+					pokemonActual->y=pokenest->y;
+					pokemonActual->cantidadDisp=pokenest->cantidadDisp;
+				}
 		}
-	}
-}
-int enviarCoordenada(int coordenada,int socketEntrenador){
-	char* buffer = malloc(sizeof(char)*3);
-	char* identificador="0";
-	char* posicion;
-	sprintf(posicion,"%d",coordenada);			//No tocar, warning al dope
-	strcpy(buffer,identificador);
-	strcat(buffer,posicion);
-	send(socketEntrenador, buffer, sizeof(buffer), 0);
-	free(buffer);
-	return coordenada;
 }
 
 void mover (t_registroPersonaje *personaje, t_registroPokenest* pokemonActual){
@@ -336,17 +297,11 @@ void funcionDelThread (int newfd)
 
 	//Recibo del planificador el quantum que me otorga y lo uso
 	//for (i=0,i<quantum),quantum--);
-	while(1){
+	while(1)
+		{
 		recibirQueHacer(nuevoPersonaje,pokemonActual);
-	}
+		}
 
-}
-t_registroPersonaje *get_personaje_en_socket(int socket) {
-	int _with_socket(t_registroPersonaje *p) {
-		return (p->socket == socket);
-	}
-
-	return list_find(entrenadoresActivos, (void*)_with_socket);
 }
 
 //void recibirEntrenador(int newfd){
@@ -384,80 +339,8 @@ t_registroPersonaje *get_personaje_en_socket(int socket) {
 //
 //}
 
-int crearSocketServidor(char *puerto) {
-	int BACKLOOG = 5;
-	struct addrinfo hints;
-	struct addrinfo* serverInfo;
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_flags = AI_PASSIVE;
-	hints.ai_socktype = SOCK_STREAM;
-	getaddrinfo(NULL, puerto, &hints, &serverInfo);
-	int listenningSocket;
-	listenningSocket = socket(serverInfo->ai_family, serverInfo->ai_socktype,
-			serverInfo->ai_protocol);
-	int yes =1;
-	setsockopt(listenningSocket,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof(int));
-	bind(listenningSocket, serverInfo->ai_addr, serverInfo->ai_addrlen);
-	freeaddrinfo(serverInfo);
-
-	listen(listenningSocket, BACKLOOG);
-	return listenningSocket;
-}
-
-int IniciarSocketServidor(int puertoServer)
-{
-	struct sockaddr_in socketInfo;
-		int socketEscucha;
-		int optval = 1;
-
-		// Crear un socket
-		socketEscucha = socket (AF_INET, SOCK_STREAM, 0);
-		if (socketEscucha == -1)
-		 	return -1;
-
-		setsockopt(socketEscucha, SOL_SOCKET, SO_REUSEADDR, &optval,
-				sizeof(optval));
-		socketInfo.sin_family = AF_INET;
-		socketInfo.sin_port = htons(puertoServer);
-		socketInfo.sin_addr.s_addr = INADDR_ANY;
-		if (bind (socketEscucha,(struct sockaddr *)&socketInfo,sizeof (socketInfo)) != 0)
-		{
-			close (socketEscucha);
-			return -1;
-		}
-
-		/*
-		* Se avisa al sistema que comience a atender llamadas de clientes
-		*/
-		if (listen (socketEscucha, 10) == -1)
-		{
-			close (socketEscucha);
-			return -1;
-		}
-		/*
-		* Se devuelve el descriptor del socket servidor
-		*/
-		return socketEscucha;
-	}
-
-int AceptarConexionCliente(int socketServer)
-{
-	socklen_t longitudCliente;//esta variable tiene inicialmente el tamaño de la estructura cliente que se le pase
-	struct sockaddr cliente;
-	int socketNuevaConexion;//esta variable va a tener la descripcion del nuevo socket que estaria creando
-	longitudCliente = sizeof(cliente);
-	socketNuevaConexion = accept (socketServer, &cliente, &longitudCliente);//acepto la conexion del cliente
-	if (socketNuevaConexion < 0)
-		return -1;
-
-	return socketNuevaConexion;
-
-}
-
 int main(int argc, char **argv)
 {
-
 	int rows;
 	int cols;
 	listaPokenest = malloc(sizeof(t_registroPokenest));
@@ -473,7 +356,6 @@ int main(int argc, char **argv)
 		logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
 //		log_info(logger, PROGRAM_DESCRIPTION);
 
-	//--------
 	  infoMapa = malloc(sizeof(mapa_datos));
 	  if (leerConfiguracionMapa (listaPokenest) == 1)
 		  		  log_info(logger, "Archivo de configuracion leido correctamente");

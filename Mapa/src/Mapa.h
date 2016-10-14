@@ -30,6 +30,13 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <dirent.h>
+#include <Payback/aceptarConexionCliente.c>
+
+#include <Payback/str_cut.h>
+#include <Payback/enviarCoordenada.c>
+#include <Payback/iniciarSocketServidor.c>
+#include <Payback/crearSocketServidor.c>
+
 /*----------------------- Declaraciones de Estructuras ---------------------------------*/
 
 typedef struct

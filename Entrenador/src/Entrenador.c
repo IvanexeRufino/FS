@@ -1,18 +1,9 @@
 #include "Entrenador.h"
-//#include <BibliotecaPayback/str_cut.h>
-//#include "str_cut.h"
 
 t_log* logger;
 entrenador_datos* infoEntrenador;
 pid_t pid;
 t_list* listaDeNiveles;
-
-char* charToString(char element) {
-	char* new = malloc(2);
-	*new = element;
-	*(new + 1) = '\0';
-	return new;
-}
 
 void muerteDefinitivaPorSenial(int aSignal)
 {
@@ -146,29 +137,6 @@ int leerConfiguracionMapa(t_nivel* datos)
 	else		return -1;
 }
 
-void str_cut(char *str, int begin, int len)
-{
-    int l = strlen(str);
-
-    if (len < 0) len = l - begin;
-    if (begin + len > l) len = l - begin;
-    memmove(str + begin, str + begin + len, l - len + 1);
-
-    return;
-}
-
-int enviarCoordenada(int coordenada,int socketMapa){
-	char* buffer = malloc(sizeof(char)*3);
-	char* identificador="0";
-	char* posicion;
-	sprintf(posicion,"%d",coordenada);			 //No tocar, warning al dope
-	strcpy(buffer,identificador);
-	strcat(buffer,posicion);
-	send(socketMapa, buffer, sizeof(buffer), 0);
-	free(buffer);
-	return coordenada;
-}
-
 void enviarMensajeInicial(int serverSocket){
 
 	int CoordEnX = enviarCoordenada(infoEntrenador->posicionEnX,serverSocket);
@@ -199,8 +167,6 @@ void recibirCoordenadaPokemon(int *mapaCoordenadaPokemon, int socketMapa)
 	free(buffer);
 	free(payload);
 }
-
-
 
 void solicitarPosicion(t_nivel *mapa,char objetivo)
 {
@@ -239,56 +205,6 @@ void sendObjetivosMapa(int serverSocket)
 	send(serverSocket,&objetivos,6,0);
 	free(mapa);
 	puts("conectado");
-}
-
-int conectarConServer(char *ipServer, int puertoServer)
-{
-	struct sockaddr_in socket_info;
-	int nuevoSocket;
-	// Se carga informacion del socket
-	socket_info.sin_family = AF_INET;
-	socket_info.sin_addr.s_addr = inet_addr(ipServer);
-	socket_info.sin_port = htons(puertoServer);
-
-	// Crear un socket:
-	// AF_INET, SOCK_STREM, 0
-	nuevoSocket = socket (AF_INET, SOCK_STREAM, 0);
-	if (nuevoSocket < 0)
-		return -1;
-	// Conectar el socket con la direccion 'socketInfo'.
-	int conecto = connect (nuevoSocket,(struct sockaddr *)&socket_info,sizeof (socket_info));
-	int mostrarEsperaAconectar=0;
-	while (conecto != 0){
-		mostrarEsperaAconectar++;
-		if (mostrarEsperaAconectar == 1){
-			printf("Esperando que el mapa se levante\n");
-		}
-		conecto = connect (nuevoSocket,(struct sockaddr *)&socket_info,sizeof (socket_info));
-	}
-
-	return nuevoSocket;
-}
-
-int crearSocketCliente(char ip[], int puerto) {
-	int socketCliente;
-	struct sockaddr_in servaddr;
-
-	if ((socketCliente = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-		perror("Problem creando el Socket.");
-		exit(2);
-	}
-
-	memset(&servaddr, 0, sizeof(servaddr));
-	servaddr.sin_family = AF_INET;
-	servaddr.sin_addr.s_addr = inet_addr(ip);
-	servaddr.sin_port = htons(puerto);
-
-	if (connect(socketCliente, (struct sockaddr *) &servaddr, sizeof(servaddr))
-			< 0) {
-		perror("Problema al intentar la conexión con el Servidor");
-		exit(3);
-	}
-	return socketCliente;
 }
 
 void recibirCoordenadaEntrenador(int* coordenada, int socketMapa)

@@ -24,6 +24,12 @@
 #include <signal.h>
 #include <arpa/inet.h>
 
+#include <Payback/str_cut.h>
+#include <Payback/enviarCoordenada.c>
+#include <Payback/charToString.c>
+#include <Payback/crearSocketCliente.c>
+#include <Payback/conectarConServer.c>
+
 /*----------------------- Declaraciones de Estructuras ---------------------------------*/
 
 typedef struct
@@ -78,5 +84,6 @@ void jugarTurno(int );
 void sendObjetivosMapa(int );
 int conectarConServer(char *, int );
 int crearSocketCliente(char [], int );
+
 
 #endif /* ENTRENADOR_H_ */

@@ -14,10 +14,10 @@ RM := rm -rf
 -include so-commons-library/src/commons/subdir.mk
 -include pkmnUtils/test/subdir.mk
 -include pkmnUtils/src/pkmn/subdir.mk
--include Shared/Debug/subdir.mk
--include Shared/subdir.mk
+-include Shared/src/subdir.mk
+-include Shared/Debug/src/subdir.mk
 -include PokedexServidor/src/FileSysOSADA/subdir.mk
--include PokedexServidor/Debug/src/FileSysOSADA/subdir.mk
+-include PokedexServidor/src/subdir.mk
 -include PokedexCliente/src/subdir.mk
 -include Mapa/src/subdir.mk
 -include Mapa/Debug/src/subdir.mk

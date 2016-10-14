@@ -19,10 +19,10 @@ so-commons-library/src/commons \
 so-commons-library/src/commons/collections \
 pkmnUtils/test \
 pkmnUtils/src/pkmn \
-Shared \
-Shared/Debug \
+Shared/src \
+Shared/Debug/src \
+PokedexServidor/src \
 PokedexServidor/src/FileSysOSADA \
-PokedexServidor/Debug/src/FileSysOSADA \
 PokedexCliente/src \
 Mapa/src \
 Mapa/Debug/src \

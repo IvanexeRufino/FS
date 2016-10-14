@@ -1,10 +1,10 @@
 #include "Configuracion.h"
 #include "str_cut.h"
 
-void recibirCoordenada(int *coordenada, int socketEntrenador)
+void recibirCoordenada(int *coordenada, int socket)  // Le envio como puntero porque hago por referencia
 {
 	char* buffer = malloc(sizeof(char)*3);
-	recv(socketEntrenador, buffer,sizeof(buffer), 0);
+	recv(socket, buffer,sizeof(buffer), 0);
 
 	char* payload = malloc(sizeof(char)*3);
 	strcpy(payload, buffer);
