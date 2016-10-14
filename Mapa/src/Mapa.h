@@ -34,7 +34,7 @@
 
 typedef struct
 {
-	char *identificador;
+	char identificador;
 	int ultimoRecurso;  // 0 = ultimo movimiento fue en X ---- 1 = ultimo movimiento fue en Y
 	int socket;
 	int x;
@@ -46,7 +46,7 @@ typedef struct
 
 typedef struct
 {
-	char *identificador;
+	char identificador;
 	char *tipo;
 	int x;
 	int y;
