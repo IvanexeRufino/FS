@@ -505,10 +505,10 @@ int main(int argc, char **argv)
     	newfd = AceptarConexionCliente(socketServidor);
     	printf("El cliente nuevo se ha conectado por el socket %d\n", newfd);
 
-    	//pthread_t idHilo;
-    	//pthread_create (&idHilo,NULL,(void*)funcionDelThread,newfd);
-    	//pthread_join(idHilo,0);
-    	funcionDelThread(newfd);
+    	pthread_t idHilo;
+    	pthread_create (&idHilo,NULL,(void*)funcionDelThread,(void*)newfd);
+    	pthread_join(idHilo,0);
+    	//funcionDelThread(newfd);
 
     	//while(1)
     		// nivel_gui_dibujar(items, argv );

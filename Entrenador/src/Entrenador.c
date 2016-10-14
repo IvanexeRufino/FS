@@ -304,11 +304,12 @@ void recibirCoordenadaEntrenador(int* coordenada, int socketMapa)
 	free(buffer);
 	free(payload);
 }
-void solicitarAvanzar(t_nivel *mapa){
+void solicitarAvanzar(t_nivel *mapa,char objetivo){
 	char* buffer = malloc(sizeof(char)*2);
 	char* identificador="2";
 	strcpy(buffer,identificador);
-	strcat(buffer,mapa->objetivos->head->data);
+	char*obj=charToString(objetivo);
+	strcat(buffer,obj);
 	send(mapa->socketMapa, buffer, sizeof(buffer), 0);
 	puts("pido avanzar al mapa");
 	recibirCoordenadaEntrenador(&(infoEntrenador->posicionEnX), mapa->socketMapa);    				//Recibo la NUEVA coordenada Entrenador en X
@@ -317,13 +318,14 @@ void solicitarAvanzar(t_nivel *mapa){
 	free(buffer);
 }
 
-int atraparPokemon(t_nivel *mapa)
+int atraparPokemon(t_nivel *mapa,char objetivo)
 {
 	char* buffer = malloc(sizeof(char)*2);
 
 	char* identificador="3";
 	strcpy(buffer,identificador);
-	strcat(buffer,mapa->objetivos->head->data);
+	char*obj=charToString(objetivo);
+	strcat(buffer,obj);
 
 	send(mapa->socketMapa, buffer, sizeof(buffer), 0);
 	recv(mapa->socketMapa, buffer, sizeof(buffer),0);
@@ -387,12 +389,12 @@ int main(void) {
 							while((infoEntrenador->posicionEnX != mapa->pokemonActualPosicionEnX ||
 									infoEntrenador->posicionEnY != mapa->pokemonActualPosicionEnY))
 							{
-								solicitarAvanzar(mapa);									//(Le envio en el header el ID 2)
+								solicitarAvanzar(mapa,objetivos[k]);									//(Le envio en el header el ID 2)
 							}
 
 						if(infoEntrenador->posicionEnX == mapa->pokemonActualPosicionEnX && infoEntrenador->posicionEnY == mapa->pokemonActualPosicionEnY)
 							{
-							int atrapado = atraparPokemon(mapa);  								//Le envio en el header el ID 3
+							int atrapado = atraparPokemon(mapa,objetivos[k]);  								//Le envio en el header el ID 3
 							if (atrapado == 1)
 								{
 								printf("Felicitaciones, capturaste el pokemon nro %d \n",k);
