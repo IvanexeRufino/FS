@@ -112,3 +112,30 @@
 [INFO] 00:12:48:973 ENTRENADOR/(5366:5366): Proceso ENTRENADOR
 [INFO] 00:12:51:640 ENTRENADOR/(5366:5366): Archivo de configuracion leido correctamente
 [INFO] 00:12:57:995 ENTRENADOR/(5366:5366): Conectado al servidor
+[INFO] 22:03:17:536 ENTRENADOR/(2760:2760): Proceso ENTRENADOR
+[INFO] 22:03:20:244 ENTRENADOR/(2760:2760): Archivo de configuracion leido correctamente
+[INFO] 22:08:25:847 ENTRENADOR/(2760:2760): Conectado al servidor
+[INFO] 22:14:06:933 ENTRENADOR/(3231:3231): Proceso ENTRENADOR
+[INFO] 22:14:07:922 ENTRENADOR/(3231:3231): Archivo de configuracion leido correctamente
+[INFO] 22:14:20:738 ENTRENADOR/(3231:3231): Conectado al servidor
+[INFO] 22:15:26:889 ENTRENADOR/(3231:3231): El personaje se desconecto
+[INFO] 22:15:45:954 ENTRENADOR/(3306:3306): Proceso ENTRENADOR
+[INFO] 22:15:46:859 ENTRENADOR/(3306:3306): Archivo de configuracion leido correctamente
+[INFO] 22:15:46:861 ENTRENADOR/(3306:3306): Conectado al servidor
+[INFO] 22:15:56:347 ENTRENADOR/(3306:3306): El personaje se desconecto
+[INFO] 22:15:58:927 ENTRENADOR/(3307:3307): Proceso ENTRENADOR
+[INFO] 22:16:01:718 ENTRENADOR/(3307:3307): Archivo de configuracion leido correctamente
+[INFO] 22:16:01:721 ENTRENADOR/(3307:3307): Conectado al servidor
+[INFO] 22:16:17:217 ENTRENADOR/(3307:3307): El personaje se desconecto
+[INFO] 22:16:55:533 ENTRENADOR/(3309:3309): Proceso ENTRENADOR
+[INFO] 22:16:57:435 ENTRENADOR/(3309:3309): Archivo de configuracion leido correctamente
+[INFO] 22:16:57:437 ENTRENADOR/(3309:3309): Conectado al servidor
+[INFO] 22:24:42:390 ENTRENADOR/(3309:3309): El personaje se desconecto
+[INFO] 22:24:43:662 ENTRENADOR/(3491:3491): Proceso ENTRENADOR
+[INFO] 22:24:44:793 ENTRENADOR/(3491:3491): Archivo de configuracion leido correctamente
+[INFO] 22:24:51:536 ENTRENADOR/(3491:3491): Conectado al servidor
+[INFO] 22:29:33:691 ENTRENADOR/(3491:3491): El personaje se desconecto
+[INFO] 22:29:35:509 ENTRENADOR/(3541:3541): Proceso ENTRENADOR
+[INFO] 22:29:36:611 ENTRENADOR/(3541:3541): Archivo de configuracion leido correctamente
+[INFO] 22:29:41:602 ENTRENADOR/(3541:3541): Conectado al servidor
+[INFO] 22:30:02:114 ENTRENADOR/(3541:3541): El personaje se desconecto

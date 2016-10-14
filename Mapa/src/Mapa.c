@@ -6,7 +6,7 @@ mapa_datos* infoMapa;
 t_list* entrenadoresActivos;
 t_list* entrenadoresBloqueados;
 pthread_mutex_t mutex_EntrenadoresActivos = PTHREAD_MUTEX_INITIALIZER;
-t_registroPokenest* pokemonActual;
+t_registroPokenest *pokemonActual;
 t_registroPersonaje *nuevoPersonaje;
 
 char* charToString(char element) {
@@ -133,9 +133,10 @@ void leerConfiguracionPokenest(char mapa[20], char pokemon[256]){
 	if (config_has_property(configNest, "Tipo") && config_has_property(configNest, "Identificador")){
 
 		pokenest->tipo = config_get_string_value(configNest, "Tipo");
-		pokenest->identificador= config_get_string_value(configNest, "Identificador");
+		char* identificadorPokenest= config_get_string_value(configNest, "Identificador");
 		pokenest->x =config_get_int_value(configNest,"X");
 		pokenest->y = config_get_int_value(configNest,"Y");
+		pokenest->identificador=identificadorPokenest[0];
 
 //		printf("\n El Tipo del Nest es: %s\n su posicion es X: %d\n Y es: %d\n "
 //							"su identificador: %s\n Y hay %d Pokemons de ese Tipo\n"
@@ -163,7 +164,7 @@ void str_cut(char *str, int begin, int len)
 
 t_registroPokenest *get_pokenest_identificador(char identificador) {
 	int _with_identificador(t_registroPokenest *p) {
-		return (p->identificador[0] == identificador);
+		return (p->identificador == identificador);
 	}
 
 	return list_find(entrenadoresActivos, (void*)_with_identificador);
@@ -200,16 +201,15 @@ void recibirBienvenidaEntrenador(int newfd,t_registroPersonaje *nuevoPersonaje)
 
 	char bufferConID;
 	bufferConID=buffer[1];
-	char* identificador= charToString(bufferConID);
+	char identificador= bufferConID;
 
 	nuevoPersonaje->identificador=identificador;
-	printf("El ID del entrenador es %s\n", nuevoPersonaje->identificador);
+	printf("El ID del entrenador es %c\n", nuevoPersonaje->identificador);
 
 	pthread_mutex_lock(&mutex_EntrenadoresActivos);
 	list_add(entrenadoresActivos, nuevoPersonaje);
 	pthread_mutex_unlock(&mutex_EntrenadoresActivos);
 
-	free(identificador);
 	free(buffer);
 	//memcpy((nuevoPersonaje->identificador), bufferConID,  sizeof(char));
 
@@ -218,12 +218,12 @@ void recibirBienvenidaEntrenador(int newfd,t_registroPersonaje *nuevoPersonaje)
 void cargoDatosPokemonActual(char pokemonQueRecibo,t_registroPokenest* pokemonActual)
 {
 int j;
-char* pok= charToString(pokemonQueRecibo);
+char pok= pokemonQueRecibo;
 
 	for(j = 0 ; j< list_size(listaPokenest); j++)
 	{
 	t_registroPokenest* pokenest = list_get(listaPokenest,j);
-		if (!strcmp(pokenest->identificador,pok))
+		if (pokenest->identificador == pok)
 		{
 			pokemonActual->identificador=pokenest->identificador;
 			pokemonActual->tipo=pokenest->tipo;
@@ -232,7 +232,6 @@ char* pok= charToString(pokemonQueRecibo);
 			pokemonActual->cantidadDisp=pokenest->cantidadDisp;
 		}
 	}
-	free(pok);
 }
 int enviarCoordenada(int coordenada,int socketEntrenador){
 	char* buffer = malloc(sizeof(char)*3);
@@ -273,7 +272,7 @@ void mover (t_registroPersonaje *personaje, t_registroPokenest* pokemonActual){
 void envioQueSeAtrapoPokemon (t_registroPersonaje *personaje, t_registroPokenest* pokemonActual){
 	if(pokemonActual->cantidadDisp >= 1) {
 		pokemonActual->cantidadDisp --;
-		printf("el Personaje: %s , atrapo al pokemon %s \n",personaje->identificador, pokemonActual->identificador);
+		printf("el Personaje: %c , atrapo al pokemon %c \n",personaje->identificador, pokemonActual->identificador);
 		send(personaje->socket, "1", sizeof(int), 0);
 	}
 	else send(personaje->socket, "0", sizeof(int), 0);
@@ -320,8 +319,6 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje,t_registroPokenest* pok
 	case ('3'):
 		envioQueSeAtrapoPokemon(nuevoPersonaje,pokemonActual);
 
-		free(pokemonActual);
-
 		break;
 	}
 
@@ -352,41 +349,40 @@ t_registroPersonaje *get_personaje_en_socket(int socket) {
 	return list_find(entrenadoresActivos, (void*)_with_socket);
 }
 
-void recibirEntrenador(int newfd){
-	char* buffer = malloc(2);
-	recv(newfd, buffer, sizeof(char) * 2, 0);
-	//int a;
-
-	t_registroPersonaje *nuevoPersonaje;
-	nuevoPersonaje = malloc(sizeof(t_registroPersonaje));
-	//memcpy(&(a), buffer, sizeof(char));
-
-	char* bufferRecortado = malloc(2);
-	strcpy(bufferRecortado, buffer);
-	str_cut(bufferRecortado,0,1);
-	memcpy((nuevoPersonaje->identificador), bufferRecortado,  sizeof(char));
-
-	                    //----RECIBO OBJETIVOS
-	recv(newfd, nuevoPersonaje->objetivos,sizeof(char)*7,0);
-	//puts(nuevoPersonaje->objetivos);
-	nuevoPersonaje->socket=newfd;
-	//printf("reciving char: %c\n", a);
-	//printf("reciving char: %c\n", nuevoPersonaje->identificador);
-	nuevoPersonaje->ultimoRecurso = 0;
-	nuevoPersonaje->x = 1;
-	nuevoPersonaje->y = 1;
-	//char id = (nuevoPersonaje->identificador)[0];
-    CrearPersonaje(items, nuevoPersonaje->identificador[0], nuevoPersonaje->x, nuevoPersonaje->y);
-    pthread_mutex_lock(&mutex_EntrenadoresActivos);
-    list_add(entrenadoresActivos, nuevoPersonaje);
-    pthread_mutex_unlock(&mutex_EntrenadoresActivos);
-    free(buffer);
-//    free(nuevoPersonaje);
-    free(bufferRecortado);
-    //nuevoPersonaje = NULL;
-
-
-}
+//void recibirEntrenador(int newfd){
+//	char* buffer = malloc(2);
+//	recv(newfd, buffer, sizeof(char) * 2, 0);
+//	//int a;
+//
+//	t_registroPersonaje *nuevoPersonaje;
+//	nuevoPersonaje = malloc(sizeof(t_registroPersonaje));
+//	//memcpy(&(a), buffer, sizeof(char));
+//
+//	char* bufferRecortado = malloc(2);
+//	strcpy(bufferRecortado, buffer);
+//	str_cut(bufferRecortado,0,1);
+//	memcpy((nuevoPersonaje->identificador), bufferRecortado,  sizeof(char));
+//
+//	                    //----RECIBO OBJETIVOS
+//	recv(newfd, nuevoPersonaje->objetivos,sizeof(char)*7,0);
+//	//puts(nuevoPersonaje->objetivos);
+//	nuevoPersonaje->socket=newfd;
+//	//printf("reciving char: %c\n", a);
+//	//printf("reciving char: %c\n", nuevoPersonaje->identificador);
+//	nuevoPersonaje->ultimoRecurso = 0;
+//	nuevoPersonaje->x = 1;
+//	nuevoPersonaje->y = 1;
+//	//char id = (nuevoPersonaje->identificador)[0];
+//    CrearPersonaje(items, nuevoPersonaje->identificador, nuevoPersonaje->x, nuevoPersonaje->y);
+//    pthread_mutex_lock(&mutex_EntrenadoresActivos);
+//    list_add(entrenadoresActivos, nuevoPersonaje);
+//    pthread_mutex_unlock(&mutex_EntrenadoresActivos);
+//    free(buffer);
+////    free(nuevoPersonaje);
+//    free(bufferRecortado);
+//    //nuevoPersonaje = NULL;
+//
+//}
 
 int crearSocketServidor(char *puerto) {
 	int BACKLOOG = 5;
@@ -478,7 +474,7 @@ int main(int argc, char **argv)
 //		log_info(logger, PROGRAM_DESCRIPTION);
 
 	//--------
-	  infoMapa = malloc((sizeof(char*)*4 + sizeof(int)*4));
+	  infoMapa = malloc(sizeof(mapa_datos));
 	  if (leerConfiguracionMapa (listaPokenest) == 1)
 		  		  log_info(logger, "Archivo de configuracion leido correctamente");
 			  else
@@ -518,5 +514,4 @@ int main(int argc, char **argv)
     		// nivel_gui_dibujar(items, argv );
 
  return 0;
-
 }
