@@ -17,24 +17,16 @@ typedef struct {
 	int size;
 }t_package;
 
-typedef struct {
-	int header;
-	const char *path;
-	void *buf;
-	fuse_fill_dir_t filler;
-	off_t offset;
-	struct fuse_file_info *fi;
-}readdir_struct;
 
 static int getattr_callback(const char *path, struct stat *buffer){
 	memset(buffer,0,sizeof(struct stat));
-	int resultado= pedir_atributos(path,buffer);
+	int resultado= pedir_atributos("1",path,buffer);
 	return resultado;
 }
 
-int pedir_atributos(const char *path, struct stat *buffer){
+int pedir_atributos(char* num, const char *path, struct stat *buffer){
 	t_package *package= malloc(sizeof(package));
-	package->header="1";
+	package->header=num;
 	package->path=path;
 
 	char* buf= malloc(sizeof(package));
@@ -47,18 +39,6 @@ int pedir_atributos(const char *path, struct stat *buffer){
 
 	return 1;
 }
-
-
-int enviar_msg (char *msg){
-
-	int socket = conectarConServer();
-	send(socket,msg,sizeof(msg),0);
-	free(msg);
-	puts("fjdsfjdsb");
-	return 0;
-}
-
-
 
 int conectarConServer()
 {
@@ -90,38 +70,28 @@ int conectarConServer()
 }
 
 
-//static int readdir_callback(const char *path, void *buf, fuse_fill_dir_t filler,
-//		off_t offset, struct fuse_file_info *fi) {
-//
-//		readdir_struct readdir_struct;
-//		readdir_struct.header= 2;
-//		readdir_struct.path= *path;
-//		readdir_struct.buf= *buf;
-//		readdir_struct.filler= filler;
-//		readdir_struct.offset= offset;
-//		readdir_struct.fi= *fi;
-//
-//		return 0;
-//}
+static int readdir_callback(const char *path, void *buf, fuse_fill_dir_t filler,
+		off_t offset, struct fuse_file_info *fi) {
+
+		memset(buf,0,sizeof(buf));
+		int resultado= pedir_atributos("2",path,buf);
+
+		return resultado;
+}
+
 //
 //static int open_callback(const char *path, struct fuse_file_info *fi){
 //	return 0;
 //}
-//
-//static int read_callback(const char *path, char *buf, size_t size, off_t offset,
-//    struct fuse_file_info *fi) {
-//	return 0;
-//}
-//
 //static int write_callback(const char* path, char *buf, size_t size, off_t offset, struct fuse_file_info* fi){
 //	return 0;
 //}
 
 static struct fuse_operations fuse_pokedex_cliente = {
-  .getattr = getattr_callback,
+    .getattr = getattr_callback,
 //  .open = open_callback,
 //  .read = read_callback,
-//  .readdir=readdir_callback,
+  	.readdir=readdir_callback,
 //  .write = write_callback,
 };
 

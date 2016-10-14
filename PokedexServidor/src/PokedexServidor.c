@@ -84,6 +84,10 @@ void getattr(char bufpath){
 
 }
 
+void readdir(char bufpath){
+
+}
+
 int recibirPaquete(int newfd){
 
 	char* buf=malloc(sizeof(char)*2);
@@ -100,7 +104,15 @@ int recibirPaquete(int newfd){
 	printf("%c",bufpath);
 	puts("oka2");
 
-	getattr(bufpath);
+	switch(bufheader){
+	case '1':
+		getattr(bufpath);
+		break;
+	case '2':
+		readdir(bufpath);
+		break;
+	}
+
 
 	free(buf);
 	return 0;
