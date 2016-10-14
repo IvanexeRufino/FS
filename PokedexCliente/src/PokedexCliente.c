@@ -11,36 +11,120 @@
 //#include "Configuracion.c"
 #include "pokedexcliente.h"
 
-static int getattr_callback(const char *path, struct stat *stbuf){
-		return 0;
+typedef struct {
+	char *header;
+	const char *path;
+	int size;
+}t_package;
+
+typedef struct {
+	int header;
+	const char *path;
+	void *buf;
+	fuse_fill_dir_t filler;
+	off_t offset;
+	struct fuse_file_info *fi;
+}readdir_struct;
+
+static int getattr_callback(const char *path, struct stat *buffer){
+	memset(buffer,0,sizeof(struct stat));
+	int resultado= pedir_atributos(path,buffer);
+	return resultado;
 }
 
-static int readdir_callback(const char *path, void *buf, fuse_fill_dir_t filler,
-		off_t offset, struct fuse_file_info *fi) {
+int pedir_atributos(const char *path, struct stat *buffer){
+	t_package *package= malloc(sizeof(package));
+	package->header="1";
+	package->path=path;
+
+	char* buf= malloc(sizeof(package));
+	strcpy(buf,package->header);
+	strcat(buf,package->path);
+
+	int socket = conectarConServer();
+	send(socket,buf,sizeof(buf),0);
+	free(buf);
+
+	return 1;
+}
+
+
+int enviar_msg (char *msg){
+
+	int socket = conectarConServer();
+	send(socket,msg,sizeof(msg),0);
+	free(msg);
+	puts("fjdsfjdsb");
 	return 0;
 }
 
-static int open_callback(const char *path, struct fuse_file_info *fi){
-	return 0;
+
+
+int conectarConServer()
+{
+	struct sockaddr_in socket_info;
+	int nuevoSocket;
+	// Se carga informacion del socket
+	socket_info.sin_family = AF_INET;
+	socket_info.sin_addr.s_addr = inet_addr("127.0.0.1");
+	socket_info.sin_port = htons(9999);
+
+	// Crear un socket:
+	// AF_INET, SOCK_STREM, 0
+	nuevoSocket = socket (AF_INET, SOCK_STREAM, 0);
+	if (nuevoSocket < 0)
+		return -1;
+	// Conectar el socket con la direccion 'socketInfo'.
+	int conecto = connect (nuevoSocket,(struct sockaddr *)&socket_info,sizeof (socket_info));
+	int mostrarEsperaAconectar=0;
+	while (conecto != 0){
+		mostrarEsperaAconectar++;
+		if (mostrarEsperaAconectar == 1){
+			printf("Esperando...\n");
+		}
+		conecto = connect (nuevoSocket,(struct sockaddr *)&socket_info,sizeof (socket_info));
+		printf("Conectado");
+	}
+
+	return nuevoSocket;
 }
 
-static int read_callback(const char *path, char *buf, size_t size, off_t offset,
-    struct fuse_file_info *fi) {
-	return 0;
-}
 
-static int write_callback(const char* path, char *buf, size_t size, off_t offset, struct fuse_file_info* fi){
-	return 0;
-}
+//static int readdir_callback(const char *path, void *buf, fuse_fill_dir_t filler,
+//		off_t offset, struct fuse_file_info *fi) {
+//
+//		readdir_struct readdir_struct;
+//		readdir_struct.header= 2;
+//		readdir_struct.path= *path;
+//		readdir_struct.buf= *buf;
+//		readdir_struct.filler= filler;
+//		readdir_struct.offset= offset;
+//		readdir_struct.fi= *fi;
+//
+//		return 0;
+//}
+//
+//static int open_callback(const char *path, struct fuse_file_info *fi){
+//	return 0;
+//}
+//
+//static int read_callback(const char *path, char *buf, size_t size, off_t offset,
+//    struct fuse_file_info *fi) {
+//	return 0;
+//}
+//
+//static int write_callback(const char* path, char *buf, size_t size, off_t offset, struct fuse_file_info* fi){
+//	return 0;
+//}
 
 static struct fuse_operations fuse_pokedex_cliente = {
   .getattr = getattr_callback,
-  .readdir = readdir_callback,
-  .open = open_callback,
-  .read = read_callback,
-  .write = write_callback,
-
+//  .open = open_callback,
+//  .read = read_callback,
+//  .readdir=readdir_callback,
+//  .write = write_callback,
 };
+
 
 int main(int argc, char *argv[]) {
 
@@ -48,48 +132,9 @@ int main(int argc, char *argv[]) {
 //	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
 //	log_info(logger, PROGRAM_DESCRIPTION);
 
-	int sock;
-	struct sockaddr_in server;
-	char message [1000], server_reply[2000];
 
-	sock= socket(AF_INET,SOCK_STREAM,0);
-	if (sock==1){
-		printf("No se pudo creer el socket");
-	}
-	puts("Socket creado");
 
-	server.sin_addr.s_addr= inet_addr("127.0.0.1");
-	server.sin_family= AF_INET;
-	server.sin_port= htons(8888);
 
-	//conectar al servidor
-	if(connect(sock,(struct sockaddr*)&server,sizeof(server))<0){
-		perror("Fallo la conexion");
-		return 1;
-	}
-	puts("Conectado\n");
 
-	//comunicando con el servidor
-	while (1){
-		printf("Escribir mensaje:");
-		scanf("%s",message);
-
-		//enviar datos
-		if(send(sock,message,strlen(message),0)<0){
-			puts("Fallo el envio");
-			return 1;
-		}
-
-		//recibir respuesta del servidor
-		if(recv(sock,server_reply,2000,0)<0){
-			puts("Fallo la recepcion");
-			break;
-		}
-		puts("Respuesta del servidor:");
-		puts(server_reply);
-	}
-
-	close(sock);
-	return 0;
-	// return fuse_main(argc,argv,&fuse_pokedex_cliente,NULL);
+	return fuse_main(argc,argv,&fuse_pokedex_cliente,NULL);
 }
