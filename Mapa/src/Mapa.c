@@ -124,7 +124,7 @@ void leerConfiguracionPokenest(char mapa[20], char pokemon[256]){
 		  pokenest->cantidadDisp = cantidadPokemon;
 
 	if (config_has_property(configNest, "Tipo") && config_has_property(configNest, "Identificador")){
-
+		pokenest->senuelo="Corrompeme Esta (Variable)";
 		pokenest->tipo = config_get_string_value(configNest, "Tipo");
 		char* identificadorPokenest= config_get_string_value(configNest, "Identificador");
 		pokenest->x =config_get_int_value(configNest,"X");
@@ -233,7 +233,7 @@ void mover (t_registroPersonaje *personaje, t_registroPokenest* pokemonActual){
 void envioQueSeAtrapoPokemon (t_registroPersonaje *personaje, t_registroPokenest* pokemonActual){
 	if(pokemonActual->cantidadDisp >= 1) {
 		pokemonActual->cantidadDisp --;
-		printf("el Personaje: %c , atrapo al pokemon %c \n",personaje->identificador, pokemonActual->identificador);
+		printf("/*-----------------------El Personaje: %c , atrapo al pokemon %c -----------------------*/ \n",personaje->identificador, pokemonActual->identificador);
 		send(personaje->socket, "1", sizeof(int), 0);
 	}
 	else send(personaje->socket, "0", sizeof(int), 0);
@@ -278,6 +278,7 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje,t_registroPokenest* pok
 
 		break;
 	case ('3'):
+
 		envioQueSeAtrapoPokemon(nuevoPersonaje,pokemonActual);
 
 		break;

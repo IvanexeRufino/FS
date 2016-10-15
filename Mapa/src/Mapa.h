@@ -53,6 +53,7 @@ typedef struct
 
 typedef struct
 {
+	char* senuelo;
 	char identificador;
 	char *tipo;
 	int x;
