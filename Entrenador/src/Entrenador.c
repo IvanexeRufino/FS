@@ -84,8 +84,9 @@ int leerConfiguracionEntrenador(entrenador_datos *datos)
 	// Verifico que los parametros tengan sus valores OK
 	if ( config_has_property(config, "nombre") && config_has_property(config, "simbolo")&& config_has_property(config, "vidas"))
 		{
-		datos->nombre= config_get_string_value(config,"nombre");
-		datos->simbolo = config_get_string_value(config,"simbolo");
+		strcpy(datos->nombre,config_get_string_value(config,"nombre"));
+		char* identificadorPokenest = config_get_string_value(config,"simbolo");
+		datos->simbolo=identificadorPokenest[0];
 		datos->vidas = config_get_int_value(config, "vidas");
 		listaDeNiveles = list_create();
 		int k = 0;
@@ -109,7 +110,7 @@ int leerConfiguracionEntrenador(entrenador_datos *datos)
 				list_add(listaDeNiveles, mapa);
 			}
 
-			printf("el nombre del entrenador es: %s\n su simbolo es: %s\n sus vidas son:%d\n"
+			printf("el nombre del entrenador es: %s\n su simbolo es: %c\n sus vidas son:%d\n"
 					,datos->nombre,
 					datos->simbolo,
 					datos->vidas);
@@ -144,13 +145,14 @@ void enviarMensajeInicial(int serverSocket){
 	int CoordEnY = enviarCoordenada(infoEntrenador->posicionEnY,serverSocket);
 	printf("Estoy enviando la coordenada en Y del ENTRENADOR que es %d \n",CoordEnY);
 
-	char* buffer = malloc(sizeof(char)*2);
-	char* identificador = "0";
-	strcpy(buffer,identificador);
-	strcat(buffer,infoEntrenador->simbolo);
+	char* buffer = malloc(sizeof(char)*3);
+	buffer[0]='0';
+	buffer[1]=infoEntrenador->simbolo;
+	buffer[2]='\0';
 	send(serverSocket,buffer,sizeof(buffer),0);
-	puts("Se ha enviado:");
-	puts(buffer);
+	printf("Se ha enviado: %s \n",buffer);
+	//puts("Se ha enviado:");
+	//puts(buffer);
 	free(buffer);
 
 }

@@ -34,8 +34,8 @@
 
 typedef struct
 {
-	char *nombre;
-	char *simbolo;
+	char nombre[20];
+	char simbolo;
 	int vidas;
 	int posicionEnX;
 	int posicionEnY;

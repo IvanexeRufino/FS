@@ -38,7 +38,7 @@ int leerConfiguracionMapa( t_list* listaPokenest)
 	&& config_has_property(config, "retardo") && config_has_property(config, "Batalla")
 	&& config_has_property(config, "TiempoChequeoDeadlock"))
 	{
-		infoMapa->nombre = nombre;
+		strcpy(infoMapa->nombre,nombre);
 		infoMapa->tiempoChequeoDeadlock = config_get_int_value(config, "TiempoChequeoDeadlock");
 		infoMapa->batalla = config_get_int_value(config, "Batalla");
 		infoMapa->algoritmo  = config_get_string_value(config, "algoritmo");
@@ -124,8 +124,7 @@ void leerConfiguracionPokenest(char mapa[20], char pokemon[256]){
 		  pokenest->cantidadDisp = cantidadPokemon;
 
 	if (config_has_property(configNest, "Tipo") && config_has_property(configNest, "Identificador")){
-		pokenest->senuelo="Corrompeme Esta (Variable)";
-		pokenest->tipo = config_get_string_value(configNest, "Tipo");
+		strcpy(pokenest->tipo,(config_get_string_value(configNest, "Tipo")));
 		char* identificadorPokenest= config_get_string_value(configNest, "Identificador");
 		pokenest->x =config_get_int_value(configNest,"X");
 		pokenest->y = config_get_int_value(configNest,"Y");
@@ -165,7 +164,7 @@ void recibirBienvenidaEntrenador(int newfd,t_registroPersonaje *nuevoPersonaje)
 	recibirCoordenada(&(nuevoPersonaje->y),newfd);		//Recibo coordenada Entrenador en Y
 	printf("La coordenada INICIAL en Y del ENTRENADOR es %d \n", nuevoPersonaje->y);
 
-	char* buffer = malloc(sizeof(char)*2);
+	char* buffer = malloc(sizeof(char)*3);
 	recv(newfd,buffer,sizeof(buffer),0);
 	printf("Lo que recibio del cliente %d es esto: %s\n", newfd,buffer);
 
@@ -198,7 +197,8 @@ void cargoDatosPokemonActual(char pokemonQueRecibo,t_registroPokenest* pokemonAc
 			if (pokenest->identificador == pok)
 				{
 					pokemonActual->identificador=pokenest->identificador;
-					pokemonActual->tipo=pokenest->tipo;
+					//pokemonActual->tipo=pokenest->tipo;
+					strcpy(pokemonActual->tipo,pokenest->tipo);
 					pokemonActual->x=pokenest->x;
 					pokemonActual->y=pokenest->y;
 					pokemonActual->cantidadDisp=pokenest->cantidadDisp;
@@ -233,7 +233,7 @@ void mover (t_registroPersonaje *personaje, t_registroPokenest* pokemonActual){
 void envioQueSeAtrapoPokemon (t_registroPersonaje *personaje, t_registroPokenest* pokemonActual){
 	if(pokemonActual->cantidadDisp >= 1) {
 		pokemonActual->cantidadDisp --;
-		printf("/*-----------------------El Personaje: %c , atrapo al pokemon %c -----------------------*/ \n",personaje->identificador, pokemonActual->identificador);
+		printf("/*--------------------El Personaje: %c , atrapo al pokemon %c --------------------*/ \n",personaje->identificador, pokemonActual->identificador);
 		send(personaje->socket, "1", sizeof(int), 0);
 	}
 	else send(personaje->socket, "0", sizeof(int), 0);
@@ -388,10 +388,10 @@ int main(int argc, char **argv)
     	newfd = AceptarConexionCliente(socketServidor);
     	printf("El cliente nuevo se ha conectado por el socket %d\n", newfd);
 
-    	pthread_t idHilo;
-    	pthread_create (&idHilo,NULL,(void*)funcionDelThread,(void*)newfd);
-    	pthread_join(idHilo,0);
-    	//funcionDelThread(newfd);
+//    	pthread_t idHilo;
+//    	pthread_create (&idHilo,NULL,(void*)funcionDelThread,(void*)newfd);
+//    	pthread_join(idHilo,0);
+    	funcionDelThread(newfd);
 
     	//while(1)
     		// nivel_gui_dibujar(items, argv );

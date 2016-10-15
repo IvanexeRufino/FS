@@ -46,7 +46,6 @@ typedef struct
 	int socket;
 	int x;
 	int y;
-	char objetivos[5];
 	int distanciaARecurso;
 	bool posicionPedida;
 }t_registroPersonaje;
@@ -55,7 +54,7 @@ typedef struct
 {
 	char* senuelo;
 	char identificador;
-	char *tipo;
+	char tipo[15];
 	int x;
 	int y;
 	int cantidadDisp;
@@ -63,7 +62,7 @@ typedef struct
 
 typedef struct
 {
-	char* nombre;
+	char nombre[20];
 	char *ipEscucha;
 	char *puertoEscucha;
 	int quantum;
@@ -99,32 +98,5 @@ typedef struct
 		Recibe   : puntero a una estructura sockaddr
 		Devuelve : Devuelve una estructura sockaddr_in o sockaddr_in6
 		*/
-		int leerConfiguracionCpu(mapa_datos *datos);
-		/*
-		Objetivo : llenar la estructura de los datos del mapa
-		Recibe   : una estructura mapa_datos
-		Devuelve : la estructura completa con el archivo de configuracion, si se validan todos los campos
-		*/
-
-
-	void enviarMensajePaquetizado(char *mensaje)
-		{
-/*
-			switch (mensaje)
-			{
-				//ResponderUbicacionPokenest
-				case mensaje[0]==0:
-
-					break;
-				//ResponderUbicacionActualEntrenador
-				case mensaje[0]==1:
-
-					break;
-				//ResponderCapturaExitosaPokemon
-				case mensaje[0]==2:
-
-					break;
-			}*/
-	}
 
 #endif /* MAPA_H_ */
