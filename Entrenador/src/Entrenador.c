@@ -158,10 +158,10 @@ void enviarMensajeInicial(int serverSocket){
 }
 void recibirCoordenadaPokemon(int *mapaCoordenadaPokemon, int socketMapa)
 {
-	char* buffer = malloc(sizeof(char)*3);
+	char* buffer = malloc(sizeof(char)*4);
 	recv(socketMapa, buffer,sizeof(buffer), 0);
 
-	char* payload = malloc(sizeof(char)*3);
+	char* payload = malloc(sizeof(char)*4);
 	strcpy(payload, buffer);
 	str_cut(payload,0,1);
 
@@ -172,7 +172,7 @@ void recibirCoordenadaPokemon(int *mapaCoordenadaPokemon, int socketMapa)
 
 void solicitarPosicion(t_nivel *mapa,char objetivo)
 {
-	char* buffer = malloc(sizeof(char)*2);
+	char* buffer = malloc(sizeof(char)*3);
 	char* identificador="1";
 	strcpy(buffer,identificador);
 	char*obj=charToString(objetivo);
@@ -211,10 +211,10 @@ void sendObjetivosMapa(int serverSocket)
 
 void recibirCoordenadaEntrenador(int* coordenada, int socketMapa)
 {
-	char* buffer = malloc(sizeof(char)*3);
+	char* buffer = malloc(sizeof(char)*4);
 	recv(socketMapa, buffer,sizeof(buffer), 0);
 
-	char* payload = malloc(sizeof(char)*3);
+	char* payload = malloc(sizeof(char)*4);
 	strcpy(payload, buffer);
 	str_cut(payload,0,1);
 
@@ -223,7 +223,7 @@ void recibirCoordenadaEntrenador(int* coordenada, int socketMapa)
 	free(payload);
 }
 void solicitarAvanzar(t_nivel *mapa,char objetivo){
-	char* buffer = malloc(sizeof(char)*2);
+	char* buffer = malloc(sizeof(char)*3);
 	char* identificador="2";
 	strcpy(buffer,identificador);
 	char*obj=charToString(objetivo);
@@ -238,7 +238,7 @@ void solicitarAvanzar(t_nivel *mapa,char objetivo){
 
 int atraparPokemon(t_nivel *mapa,char objetivo)
 {
-	char* buffer = malloc(sizeof(char)*2);
+	char* buffer = malloc(sizeof(char)*3);
 
 	char* identificador="3";
 	strcpy(buffer,identificador);
@@ -246,21 +246,33 @@ int atraparPokemon(t_nivel *mapa,char objetivo)
 	strcat(buffer,obj);
 
 	send(mapa->socketMapa, buffer, sizeof(buffer), 0);
-	recv(mapa->socketMapa, buffer, sizeof(buffer),0);
+	char* recibo=malloc(sizeof(char)*2);
+	recv(mapa->socketMapa, recibo, sizeof(recibo),0);
 
 	if(!strcmp(buffer,"1"))
 		{
 		free(buffer);
+		free(recibo);
 		return 1;
 		}
 	else
 	{
 		free(buffer);
+		free(recibo);
 		return 0;
 	}
 }
 
 int main(void) {
+	//int num = 321;
+	//char snum[5];
+
+	// convert 123 to string [buf]
+	//const char* asd= my_itoa(num);
+
+	// print our string
+	//printf("%s\n", asd);
+
 	pid = getpid();
 	printf("El PID del proceso Personaje es %d\n", pid);
 	signal(SIGINT, muerteDefinitivaPorSenial);//la de ctrl+c

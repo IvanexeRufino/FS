@@ -36,6 +36,7 @@
 #include <Payback/enviarCoordenada.c>
 #include <Payback/iniciarSocketServidor.c>
 #include <Payback/crearSocketServidor.c>
+#include <Payback/charToString.c>
 
 /*----------------------- Declaraciones de Estructuras ---------------------------------*/
 

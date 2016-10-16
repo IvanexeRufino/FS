@@ -29,6 +29,7 @@
 #include <Payback/charToString.c>
 #include <Payback/crearSocketCliente.c>
 #include <Payback/conectarConServer.c>
+#include <Payback/convertirStreamAString.c>
 
 /*----------------------- Declaraciones de Estructuras ---------------------------------*/
 

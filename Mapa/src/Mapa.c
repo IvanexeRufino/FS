@@ -145,10 +145,10 @@ void leerConfiguracionPokenest(char mapa[20], char pokemon[256]){
 
 void recibirCoordenada(int *coordenada, int socketEntrenador)
 {
-	char* buffer = malloc(sizeof(char)*3);
+	char* buffer = malloc(sizeof(char)*4);
 	recv(socketEntrenador, buffer,sizeof(buffer), 0);
 
-	char* payload = malloc(sizeof(char)*3);
+	char* payload = malloc(sizeof(char)*4);
 	strcpy(payload, buffer);
 	str_cut(payload,0,1);
 
@@ -234,14 +234,21 @@ void envioQueSeAtrapoPokemon (t_registroPersonaje *personaje, t_registroPokenest
 	if(pokemonActual->cantidadDisp >= 1) {
 		pokemonActual->cantidadDisp --;
 		printf("/*--------------------El Personaje: %c , atrapo al pokemon %c --------------------*/ \n",personaje->identificador, pokemonActual->identificador);
-		send(personaje->socket, "1", sizeof(int), 0);
+		char idAtrapado='1';
+		char* idStringAtrapado=charToString(idAtrapado);
+		send(personaje->socket,idStringAtrapado, sizeof(idStringAtrapado), 0);
 	}
-	else send(personaje->socket, "0", sizeof(int), 0);
+	else
+	{
+		char idAtrapado='0';
+		char* idStringAtrapado=charToString(idAtrapado);
+		send(personaje->socket,idStringAtrapado, sizeof(idStringAtrapado), 0);
+	}
 }
 
 void recibirQueHacer(t_registroPersonaje *nuevoPersonaje,t_registroPokenest* pokemonActual)
 {
-	char* buffer = malloc(sizeof(char)*2);
+	char* buffer = malloc(sizeof(char)*3);
 	recv(nuevoPersonaje->socket,buffer,sizeof(buffer),0);
 	printf("Lo que recibio para hacer es esto: %s\n",buffer);
 
@@ -249,7 +256,7 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje,t_registroPokenest* pok
 	bufferConAccion=buffer[0];
 	printf("Separo el header y me queda: %c\n",bufferConAccion);
 
-	char* payload = malloc(sizeof(char)*2);
+	char* payload = malloc(sizeof(char)*3);
 
 	strcpy(payload, buffer);
 	str_cut(payload,0,1);
@@ -342,8 +349,8 @@ void funcionDelThread (int newfd)
 
 int main(int argc, char **argv)
 {
-	int rows;
-	int cols;
+	//int rows;
+	//int cols;
 	listaPokenest = malloc(sizeof(t_registroPokenest));
 	listaPokenest = list_create();
 	items = list_create();
