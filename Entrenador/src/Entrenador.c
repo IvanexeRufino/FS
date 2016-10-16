@@ -64,6 +64,8 @@ char* objetivosDelMapa(char* mapaParaAgregar) {
 	strcat(new,objetoYparentesisIzquierdo);
 	strcat(new,mapaParaAgregar);
 	strcat(new,parentesisDerecho);
+	int tamanio=strlen(new);
+	new[tamanio]='\0';
 	return new;
 }
 
@@ -264,14 +266,6 @@ int atraparPokemon(t_nivel *mapa,char objetivo)
 }
 
 int main(void) {
-	//int num = 321;
-	//char snum[5];
-
-	// convert 123 to string [buf]
-	//const char* asd= my_itoa(num);
-
-	// print our string
-	//printf("%s\n", asd);
 
 	pid = getpid();
 	printf("El PID del proceso Personaje es %d\n", pid);

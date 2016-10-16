@@ -197,7 +197,6 @@ void cargoDatosPokemonActual(char pokemonQueRecibo,t_registroPokenest* pokemonAc
 			if (pokenest->identificador == pok)
 				{
 					pokemonActual->identificador=pokenest->identificador;
-					//pokemonActual->tipo=pokenest->tipo;
 					strcpy(pokemonActual->tipo,pokenest->tipo);
 					pokemonActual->x=pokenest->x;
 					pokemonActual->y=pokenest->y;
