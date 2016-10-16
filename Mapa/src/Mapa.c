@@ -9,6 +9,29 @@ pthread_mutex_t mutex_EntrenadoresActivos = PTHREAD_MUTEX_INITIALIZER;
 t_registroPokenest *pokemonActual;
 t_registroPersonaje *nuevoPersonaje;
 
+char **string_split(char *text, char *separator) {
+	char **substrings = NULL;
+	int size = 0;
+
+	char *text_to_iterate = string_duplicate(text);
+	char *token = NULL, *next = NULL;
+	token = strtok_r(text_to_iterate, separator, &next);
+
+	while (token != NULL) {
+		size++;
+		substrings = realloc(substrings, sizeof(char*) * size);
+		substrings[size - 1] = string_duplicate(token);
+		token = strtok_r(NULL, separator, &next);
+	}
+
+	size++;
+	substrings = realloc(substrings, sizeof(char*) * size);
+	substrings[size - 1] = NULL;
+
+	free(text_to_iterate);
+	return substrings;
+}
+
 void leerConfiguracionPokenest(char* mapa, char* path);
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
@@ -126,13 +149,16 @@ void leerConfiguracionPokenest(char mapa[20], char pokemon[256]){
 	if (config_has_property(configNest, "Tipo") && config_has_property(configNest, "Identificador")){
 		strcpy(pokenest->tipo,(config_get_string_value(configNest, "Tipo")));
 		char* identificadorPokenest= config_get_string_value(configNest, "Identificador");
-		pokenest->x =config_get_int_value(configNest,"X");
-		pokenest->y = config_get_int_value(configNest,"Y");
+		char* array= config_get_string_value(configNest, "Posicion");
+		char** pos = string_split(array, ";");
+		pokenest->x = atoi(pos[0]);
+		pokenest->y = atoi(pos[1]);
 		pokenest->identificador=identificadorPokenest[0];
 
-//		printf("\n El Tipo del Nest es: %s\n su posicion es X: %d\n Y es: %d\n "
-//							"su identificador: %s\n Y hay %d Pokemons de ese Tipo\n"
-//											,pokenest->tipo,pokenest->x, pokenest->y, pokenest->identificador, pokenest->cantidadDisp);
+
+		printf("\n El Tipo del Nest es: %s\n su posicion es X: %d\n Y es: %d\n "
+							"su identificador: %c\n Y hay %d Pokemons de ese Tipo\n"
+											,pokenest->tipo,pokenest->x, pokenest->y, pokenest->identificador, pokenest->cantidadDisp);
 
 	CrearCaja(items, config_get_string_value(configNest, "Identificador")[0] , pokenest->x , pokenest->y ,pokenest->cantidadDisp);
 
