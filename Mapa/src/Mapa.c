@@ -415,10 +415,25 @@ int main(int argc, char **argv)
     	newfd = AceptarConexionCliente(socketServidor);
     	printf("El cliente nuevo se ha conectado por el socket %d\n", newfd);
 
+    	//Creacion de hilos bajo demanda
+
+//    	pthread_attr_t attr;
 //    	pthread_t idHilo;
-//    	pthread_create (&idHilo,NULL,(void*)funcionDelThread,(void*)newfd);
-//    	pthread_join(idHilo,0);
-    	funcionDelThread(newfd);
+//
+//		pthread_attr_init(&attr);
+//		pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+//
+//    	pthread_create (&idHilo,&attr,(void*)funcionDelThread,(void*)newfd);
+//
+//		pthread_attr_destroy(&attr);
+
+		//Creacion de pool de hilos
+
+    	pthread_t idHilo;
+    	pthread_create (&idHilo,NULL,(void*)funcionDelThread,(void*)newfd);
+    	pthread_join(idHilo,0);
+
+//    	funcionDelThread(newfd);
 
     	//while(1)
     		// nivel_gui_dibujar(items, argv );
