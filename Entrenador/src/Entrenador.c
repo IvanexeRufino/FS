@@ -272,6 +272,31 @@ int atraparPokemon(t_nivel *mapa,char objetivo)
 	}
 }
 
+void copiarMedalla(char entrenador[20],char* nombre){
+
+	char source[120];
+	char dest[120];
+	char str[300];
+
+		strcpy(source,"/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Mapa/Mapas/");
+		strcat(source, nombre);
+		strcat(source, "/medalla-");
+		strcat(source, nombre);
+		strcat(source,".jpg");
+		strcpy(dest,"/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Entrenador/Entrenadores/");
+		strcat(dest,entrenador);
+		strcat(dest,"/medallas/");
+
+		strcpy(str,"cp -r ");
+		strcat(str, source);
+		strcat(str," ");
+		strcat(str, dest);
+		puts(str);
+		system(str);
+
+		return;
+}
+
 int main(void) {
 
 	pid = getpid();
@@ -331,6 +356,7 @@ int main(void) {
 								}
 							}
 					}
+			copiarMedalla(infoEntrenador->nombre, mapa->nivel);
 			printf("Felicitaciones, terminaste de capturar todos los pokemons del mapa nro %d \n",j);
 		}
 		clock_t fin=clock();
