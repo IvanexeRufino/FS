@@ -4,7 +4,7 @@
  *  Created on: 9/10/2016
  *      Author: utnso
  */
-
+#include "Configuracion.h"
 #include "string.h"
 
 char **string_split(char *text, char *separator) {

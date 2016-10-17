@@ -23,6 +23,7 @@
 #include <stdbool.h>
 #include <signal.h>
 #include <arpa/inet.h>
+#include <time.h>
 
 #include <Payback/str_cut.h>
 #include <Payback/enviarCoordenada.c>
@@ -72,14 +73,12 @@ typedef struct {
 /*----------------------- Declaraciones de Prototipos ---------------------------------*/
 
 char* objetivosDelMapa(char* );
-int leerConfiguracionEntrenador(entrenador_datos *);
 void muerteDefinitivaPorSenial(int );
 void gameOver();
 void muertePorSenial(int );
 void sumarVida(int );
 char* objetivosDelMapa(char* );
 void imprimirClaveYValor(char* , void* );
-int leerConfiguracionMapa(t_nivel* );
 void enviarMensajeInicial(int );
 void jugarTurno(int );
 void sendObjetivosMapa(int );

@@ -30,14 +30,15 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <dirent.h>
-#include <Payback/aceptarConexionCliente.c>
+#include <time.h>
 
+#include <Payback/aceptarConexionCliente.c>
 #include <Payback/str_cut.h>
 #include <Payback/enviarCoordenada.c>
 #include <Payback/iniciarSocketServidor.c>
 #include <Payback/crearSocketServidor.c>
 #include <Payback/charToString.c>
-
+#include <Payback/string.c>
 /*----------------------- Declaraciones de Estructuras ---------------------------------*/
 
 typedef struct
@@ -98,5 +99,6 @@ typedef struct
 		Recibe   : puntero a una estructura sockaddr
 		Devuelve : Devuelve una estructura sockaddr_in o sockaddr_in6
 		*/
+		void leerConfiguracionPokenest(char* mapa, char* path);
 
 #endif /* MAPA_H_ */

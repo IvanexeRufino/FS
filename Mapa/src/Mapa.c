@@ -9,30 +9,6 @@ pthread_mutex_t mutex_EntrenadoresActivos = PTHREAD_MUTEX_INITIALIZER;
 t_registroPokenest *pokemonActual;
 t_registroPersonaje *nuevoPersonaje;
 
-char **string_split(char *text, char *separator) {
-	char **substrings = NULL;
-	int size = 0;
-
-	char *text_to_iterate = string_duplicate(text);
-	char *token = NULL, *next = NULL;
-	token = strtok_r(text_to_iterate, separator, &next);
-
-	while (token != NULL) {
-		size++;
-		substrings = realloc(substrings, sizeof(char*) * size);
-		substrings[size - 1] = string_duplicate(token);
-		token = strtok_r(NULL, separator, &next);
-	}
-
-	size++;
-	substrings = realloc(substrings, sizeof(char*) * size);
-	substrings[size - 1] = NULL;
-
-	free(text_to_iterate);
-	return substrings;
-}
-
-void leerConfiguracionPokenest(char* mapa, char* path);
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
 {
@@ -289,7 +265,7 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje,t_registroPokenest* pok
 
 	int coordenadaX,coordenadaY;
 
-	//free(buffer);
+	free(buffer);
 
 	switch(bufferConAccion)
 	{
@@ -302,15 +278,18 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje,t_registroPokenest* pok
 
 		coordenadaY = enviarCoordenada(pokemonActual->y,nuevoPersonaje->socket);				//Envio coordenada del pokemon en Y
 		printf("Estoy enviando la coordenada en Y que es %d \n",coordenadaY);
+		free(payload);
 
 		break;
 	case ('2'):
 
+		free(payload);
 		mover(nuevoPersonaje,pokemonActual);
 
 		break;
 	case ('3'):
 
+		free(payload);
 		envioQueSeAtrapoPokemon(nuevoPersonaje,pokemonActual);
 
 		break;
@@ -420,10 +399,10 @@ int main(int argc, char **argv)
     	newfd = AceptarConexionCliente(socketServidor);
     	printf("El cliente nuevo se ha conectado por el socket %d\n", newfd);
 
-//    	pthread_t idHilo;
-//    	pthread_create (&idHilo,NULL,(void*)funcionDelThread,(void*)newfd);
-//    	pthread_join(idHilo,0);
-    	funcionDelThread(newfd);
+    	pthread_t idHilo;
+    	pthread_create (&idHilo,NULL,(void*)funcionDelThread,(void*)newfd);
+    	pthread_join(idHilo,0);
+    	//funcionDelThread(newfd);
 
     	//while(1)
     		// nivel_gui_dibujar(items, argv );

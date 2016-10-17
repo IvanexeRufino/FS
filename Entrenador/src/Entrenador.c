@@ -4,6 +4,7 @@ t_log* logger;
 entrenador_datos* infoEntrenador;
 pid_t pid;
 t_list* listaDeNiveles;
+t_nivel* mapa;
 
 void muerteDefinitivaPorSenial(int aSignal)
 {
@@ -74,7 +75,7 @@ void imprimirClaveYValor(char* key, void* data) {
 		printf("Variable: %s  Valor: %s \n", key, pokemon);
 		}
 
-int leerConfiguracionEntrenador(entrenador_datos *datos)
+int leerConfiguracionEntrenador()
 {
 	char nombre[10];
 	printf("%s", "Nombre del Entrenador?\n");
@@ -86,16 +87,17 @@ int leerConfiguracionEntrenador(entrenador_datos *datos)
 	// Verifico que los parametros tengan sus valores OK
 	if ( config_has_property(config, "nombre") && config_has_property(config, "simbolo")&& config_has_property(config, "vidas"))
 		{
-		strcpy(datos->nombre,config_get_string_value(config,"nombre"));
+		strcpy(infoEntrenador->nombre,config_get_string_value(config,"nombre"));
 		char* identificadorPokenest = config_get_string_value(config,"simbolo");
-		datos->simbolo=identificadorPokenest[0];
-		datos->vidas = config_get_int_value(config, "vidas");
+		infoEntrenador->simbolo=identificadorPokenest[0];
+		infoEntrenador->vidas = config_get_int_value(config, "vidas");
 		listaDeNiveles = list_create();
 		int k = 0;
 				//Recorre la hoja de viaje, ciudad por ciudad
 			while (&(*config_get_array_value(config, "hojaDeViaje")[k])!= NULL) {
 				char* palabraAAgregar =config_get_array_value(config, "hojaDeViaje")[k];
-				t_nivel* mapa = malloc(sizeof(t_nivel));
+				//t_nivel* mapa = malloc(sizeof(t_nivel));
+				mapa = malloc(sizeof(t_nivel));
 				mapa->nivel=palabraAAgregar; //Nombre
 				mapa->objetivos = list_create();
 				if(config_has_property(config,objetivosDelMapa(palabraAAgregar))){
@@ -113,9 +115,9 @@ int leerConfiguracionEntrenador(entrenador_datos *datos)
 			}
 
 			printf("el nombre del entrenador es: %s\n su simbolo es: %c\n sus vidas son:%d\n"
-					,datos->nombre,
-					datos->simbolo,
-					datos->vidas);
+					,infoEntrenador->nombre,
+					infoEntrenador->simbolo,
+					infoEntrenador->vidas);
 		return 1;
 		}
 		else
@@ -153,8 +155,7 @@ void enviarMensajeInicial(int serverSocket){
 	buffer[2]='\0';
 	send(serverSocket,buffer,sizeof(buffer),0);
 	printf("Se ha enviado: %s \n",buffer);
-	//puts("Se ha enviado:");
-	//puts(buffer);
+
 	free(buffer);
 
 }
@@ -191,25 +192,25 @@ void solicitarPosicion(t_nivel *mapa,char objetivo)
 	free(obj);
 }
 
-void sendObjetivosMapa(int serverSocket)
-{
-	char *vector;
-	int l= 0;
-	t_nivel* mapa = malloc(sizeof(200));
-	mapa = list_get(listaDeNiveles, 0);
-	int i = list_size(mapa->objetivos);
-	char objetivos[i];
-	objetivos[i]='\0';
-			while(l!=list_size(mapa->objetivos)){
-				vector = list_get(mapa->objetivos,l);
-				objetivos[l] = *vector;
-				l++;
-			}
-			// ------------ Envio Objetivos
-	send(serverSocket,&objetivos,6,0);
-	free(mapa);
-	puts("conectado");
-}
+//void sendObjetivosMapa(int serverSocket)
+//{
+//	char *vector;
+//	int l= 0;
+//	t_nivel* mapa = malloc(sizeof(200));
+//	mapa = list_get(listaDeNiveles, 0);
+//	int i = list_size(mapa->objetivos);
+//	char objetivos[i];
+//	objetivos[i]='\0';
+//			while(l!=list_size(mapa->objetivos)){
+//				vector = list_get(mapa->objetivos,l);
+//				objetivos[l] = *vector;
+//				l++;
+//			}
+//			// ------------ Envio Objetivos
+//	send(serverSocket,&objetivos,6,0);
+//	free(mapa);
+//	puts("conectado");
+//}
 
 void recibirCoordenadaEntrenador(int* coordenada, int socketMapa)
 {
@@ -275,16 +276,15 @@ int main(void) {
 	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
 	log_info(logger, PROGRAM_DESCRIPTION);
 	infoEntrenador = malloc(sizeof(entrenador_datos));
-			if ( leerConfiguracionEntrenador(infoEntrenador) == 1 )
+			if ( leerConfiguracionEntrenador() == 1 )
 				log_info(logger, "Archivo de configuracion leido correctamente");
 			else
 				log_error(logger,"Error la leer archivo de configuracion");
 
 			char *vector=malloc(sizeof(char)*10);
+			clock_t inicio=clock();
+			int j;
 
-	while(1)
-	{
-	int j;
 		for(j = 0 ; j< list_size(listaDeNiveles); j++)
 		{
 			t_nivel* mapa = list_get(listaDeNiveles,j);
@@ -327,6 +327,14 @@ int main(void) {
 					}
 			printf("Felicitaciones, terminaste de capturar todos los pokemons del mapa nro %d \n",j);
 		}
-	}
+		clock_t fin=clock();
+
+		printf("------TE CONVERTISTE EN MAESTRO POKEMON------ \n");
+		printf("El tiempo total que tardo la aventura fue: %f segundos \n", (fin-inicio)/(double)CLOCKS_PER_SEC);
+
+		free(vector);
+		free(infoEntrenador);
+		free(mapa);
+
 	return EXIT_SUCCESS;
 }
