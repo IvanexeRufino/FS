@@ -73,6 +73,9 @@ typedef struct
 	int tiempoChequeoDeadlock;
 } mapa_datos;
 
+/*----------------------- Declaraciones de Variables Globales ---------------------------*/
+
+
 /*----------------------- Declaraciones de Constantes ----------------------------------*/
 
 		/* Configuración de LOG */

@@ -66,12 +66,14 @@ int leerConfiguracionMapa( t_list* listaPokenest)
 		dp = opendir (path);
 			if (dp != NULL)
 			{
-			while (ep = readdir (dp)){
+				ep = readdir (dp);
+			while (ep){
 
 				  if(ep->d_name[0]!='.'){
 //					  puts (ep->d_name);
 					  leerConfiguracionPokenest(nombre,ep->d_name);
 				  }
+				  ep = readdir (dp);
 			}
 				  (void) closedir (dp);
 
@@ -109,12 +111,13 @@ void leerConfiguracionPokenest(char mapa[20], char pokemon[256]){
 
 		  if (dp != NULL)
 		  {
-		    while (ep = readdir (dp)){
+			  ep = readdir (dp);
+		    while (ep){
 		    	 if(ep->d_name[0]!='.' && ep->d_name[0]!='m' ){
 		    		 cantidadPokemon ++;
 //				      puts (ep->d_name);
 		    	 }
-
+		    	 ep = readdir (dp);
 		    }
 
 		    (void) closedir (dp);
@@ -156,9 +159,6 @@ void leerConfiguracionPokenest(char mapa[20], char pokemon[256]){
 			exit(1);
 		}
 
-
-
-
 	CrearCaja(items, config_get_string_value(configNest, "Identificador")[0] , pokenest->x , pokenest->y ,pokenest->cantidadDisp);
 	list_add(listaPokenest,pokenest);
 
@@ -169,16 +169,15 @@ void leerConfiguracionPokenest(char mapa[20], char pokemon[256]){
 
 void recibirCoordenada(int *coordenada, int socketEntrenador)
 {
-	char* buffer = malloc(sizeof(char)*4);
+	char* buffer = string_new();
 	recv(socketEntrenador, buffer,sizeof(buffer), 0);
-
-	char* payload = malloc(sizeof(char)*4);
-	strcpy(payload, buffer);
+	char* payload = string_new();
+	//strcpy(payload, buffer);
+	payload =string_duplicate(buffer);
 	str_cut(payload,0,1);
 
 	(*coordenada)=atoi(payload);
-	free(buffer);
-	free(payload);
+
 }
 
 void recibirBienvenidaEntrenador(int newfd,t_registroPersonaje *nuevoPersonaje)
@@ -188,7 +187,7 @@ void recibirBienvenidaEntrenador(int newfd,t_registroPersonaje *nuevoPersonaje)
 	recibirCoordenada(&(nuevoPersonaje->y),newfd);		//Recibo coordenada Entrenador en Y
 	printf("La coordenada INICIAL en Y del ENTRENADOR es %d \n", nuevoPersonaje->y);
 
-	char* buffer = malloc(sizeof(char)*3);
+	char* buffer = string_new();
 	recv(newfd,buffer,sizeof(buffer),0);
 	printf("Lo que recibio del cliente %d es esto: %s\n", newfd,buffer);
 
@@ -206,8 +205,6 @@ void recibirBienvenidaEntrenador(int newfd,t_registroPersonaje *nuevoPersonaje)
 	pthread_mutex_lock(&mutex_EntrenadoresActivos);
 	list_add(entrenadoresActivos, nuevoPersonaje);
 	pthread_mutex_unlock(&mutex_EntrenadoresActivos);
-
-	free(buffer);
 
 }
 
@@ -257,21 +254,22 @@ void envioQueSeAtrapoPokemon (t_registroPersonaje *personaje, t_registroPokenest
 	if(pokemonActual->cantidadDisp >= 1) {
 		pokemonActual->cantidadDisp --;
 		printf("/*--------------------El Personaje: %c , atrapo al pokemon %c --------------------*/ \n",personaje->identificador, pokemonActual->identificador);
-		char idAtrapado='1';
-		char* idStringAtrapado=charToString(idAtrapado);
-		send(personaje->socket,idStringAtrapado, sizeof(idStringAtrapado), 0);
+
+		char* buffer = string_new();
+		string_append(&buffer,string_itoa(1));
+		send(personaje->socket,buffer, sizeof(buffer), 0);
 	}
 	else
 	{
-		char idAtrapado='0';
-		char* idStringAtrapado=charToString(idAtrapado);
-		send(personaje->socket,idStringAtrapado, sizeof(idStringAtrapado), 0);
+		char* buffer = string_new();
+		string_append(&buffer,string_itoa(0));
+		send(personaje->socket,buffer, sizeof(buffer), 0);
 	}
 }
 
 void recibirQueHacer(t_registroPersonaje *nuevoPersonaje,t_registroPokenest* pokemonActual)
 {
-	char* buffer = malloc(sizeof(char)*3);
+	char* buffer = string_new();
 	recv(nuevoPersonaje->socket,buffer,sizeof(buffer),0);
 	printf("Lo que recibio para hacer es esto: %s\n",buffer);
 
@@ -279,15 +277,13 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje,t_registroPokenest* pok
 	bufferConAccion=buffer[0];
 	printf("Separo el header y me queda: %c\n",bufferConAccion);
 
-	char* payload = malloc(sizeof(char)*3);
-
-	strcpy(payload, buffer);
+	char* payload = string_new();
+	payload =string_duplicate(buffer);
+	//strcpy(payload, buffer);
 	str_cut(payload,0,1);
 	printf("Separo el payload y me queda esto: %s\n",payload);
 
 	int coordenadaX,coordenadaY;
-
-	free(buffer);
 
 	switch(bufferConAccion)
 	{
@@ -300,18 +296,17 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje,t_registroPokenest* pok
 
 		coordenadaY = enviarCoordenada(pokemonActual->y,nuevoPersonaje->socket);				//Envio coordenada del pokemon en Y
 		printf("Estoy enviando la coordenada en Y que es %d \n",coordenadaY);
-		free(payload);
 
 		break;
+
 	case ('2'):
 
-		free(payload);
 		mover(nuevoPersonaje,pokemonActual);
 
 		break;
+
 	case ('3'):
 
-		free(payload);
 		envioQueSeAtrapoPokemon(nuevoPersonaje,pokemonActual);
 
 		break;
@@ -420,10 +415,10 @@ int main(int argc, char **argv)
     	newfd = AceptarConexionCliente(socketServidor);
     	printf("El cliente nuevo se ha conectado por el socket %d\n", newfd);
 
-    	pthread_t idHilo;
-    	pthread_create (&idHilo,NULL,(void*)funcionDelThread,(void*)newfd);
-    	pthread_join(idHilo,0);
-    	//funcionDelThread(newfd);
+//    	pthread_t idHilo;
+//    	pthread_create (&idHilo,NULL,(void*)funcionDelThread,(void*)newfd);
+//    	pthread_join(idHilo,0);
+    	funcionDelThread(newfd);
 
     	//while(1)
     		// nivel_gui_dibujar(items, argv );

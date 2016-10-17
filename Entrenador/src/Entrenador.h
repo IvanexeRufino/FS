@@ -69,6 +69,13 @@ typedef struct {
 	#define IS_ACTIVE_CONSOLE true
 	#define T_LOG_LEVEL LOG_LEVEL_INFO
 
+	/* Configuración de Protocolo */
+
+	#define BIENVENIDA 0
+	#define SOLICITARPOSICION 1
+	#define SOLICITARAVANZAR 2
+	#define ATRAPARPOKEMON 3
+
 /*----------------------- Declaraciones de Prototipos ---------------------------------*/
 
 char* objetivosDelMapa(char* );

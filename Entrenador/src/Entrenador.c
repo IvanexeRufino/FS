@@ -155,37 +155,35 @@ void enviarMensajeInicial(int serverSocket){
 	int CoordEnY = enviarCoordenada(infoEntrenador->posicionEnY,serverSocket);
 	printf("Estoy enviando la coordenada en Y del ENTRENADOR que es %d \n",CoordEnY);
 
-	char* buffer = malloc(sizeof(char)*3);
-	buffer[0]='0';
-	buffer[1]=infoEntrenador->simbolo;
-	buffer[2]='\0';
+	char* buffer = string_new();
+	string_append(&buffer,string_itoa(BIENVENIDA));
+	string_append(&buffer,charToString(infoEntrenador->simbolo));
+
 	send(serverSocket,buffer,sizeof(buffer),0);
 	printf("Se ha enviado: %s \n",buffer);
 
-	free(buffer);
 
 }
 void recibirCoordenadaPokemon(int *mapaCoordenadaPokemon, int socketMapa)
 {
-	char* buffer = malloc(sizeof(char)*4);
+	char* buffer = string_new();
 	recv(socketMapa, buffer,sizeof(buffer), 0);
 
-	char* payload = malloc(sizeof(char)*4);
-	strcpy(payload, buffer);
+	char* payload = string_new();
+	payload =string_duplicate(buffer);
+	//strcpy(payload, buffer);
 	str_cut(payload,0,1);
 
 	(*mapaCoordenadaPokemon)=atoi(payload);
-	free(buffer);
-	free(payload);
+
 }
 
 void solicitarPosicion(t_nivel *mapa,char objetivo)
 {
-	char* buffer = malloc(sizeof(char)*3);
-	char* identificador="1";
-	strcpy(buffer,identificador);
-	char*obj=charToString(objetivo);
-	strcat(buffer,obj);
+	char* buffer = string_new();
+	string_append(&buffer,string_itoa(SOLICITARPOSICION));
+	string_append(&buffer,charToString(objetivo));
+
 	send(mapa->socketMapa, buffer, sizeof(buffer), 0);
 
 	recibirCoordenadaPokemon(&(mapa->pokemonActualPosicionEnX), mapa->socketMapa);    				//Recibo en X
@@ -194,8 +192,6 @@ void solicitarPosicion(t_nivel *mapa,char objetivo)
 	recibirCoordenadaPokemon(&(mapa->pokemonActualPosicionEnY), mapa->socketMapa); 					//Recibo en Y
 	printf("La Coordenada del pokemon que solicite en Y fue: %d \n",mapa->pokemonActualPosicionEnY);
 
-	free(buffer);
-	free(obj);
 }
 
 //void sendObjetivosMapa(int serverSocket)
@@ -220,54 +216,45 @@ void solicitarPosicion(t_nivel *mapa,char objetivo)
 
 void recibirCoordenadaEntrenador(int* coordenada, int socketMapa)
 {
-	char* buffer = malloc(sizeof(char)*4);
+	char* buffer = string_new();
 	recv(socketMapa, buffer,sizeof(buffer), 0);
-
-	char* payload = malloc(sizeof(char)*4);
-	strcpy(payload, buffer);
+	char* payload = string_new();
+	payload =string_duplicate(buffer);
+	//strcpy(payload, buffer);
 	str_cut(payload,0,1);
 
 	(*coordenada)=atoi(payload);
-	free(buffer);
-	free(payload);
+
 }
 void solicitarAvanzar(t_nivel *mapa,char objetivo){
-	char* buffer = malloc(sizeof(char)*3);
-	char* identificador="2";
-	strcpy(buffer,identificador);
-	char*obj=charToString(objetivo);
-	strcat(buffer,obj);
+	char* buffer = string_new();
+	string_append(&buffer,string_itoa(SOLICITARAVANZAR));
+	string_append(&buffer,charToString(objetivo));
+
 	send(mapa->socketMapa, buffer, sizeof(buffer), 0);
 	puts("pido avanzar al mapa");
 	recibirCoordenadaEntrenador(&(infoEntrenador->posicionEnX), mapa->socketMapa);    				//Recibo la NUEVA coordenada Entrenador en X
 	recibirCoordenadaEntrenador(&(infoEntrenador->posicionEnY), mapa->socketMapa); 					//Recibo la NUEVA coordenada Entrenador en Y
 	printf("Mi nueva posicion es X: %d Y: %d \n",infoEntrenador->posicionEnX, infoEntrenador->posicionEnY);
-	free(buffer);
+
 }
 
 int atraparPokemon(t_nivel *mapa,char objetivo)
 {
-	char* buffer = malloc(sizeof(char)*3);
-
-	char* identificador="3";
-	strcpy(buffer,identificador);
-	char*obj=charToString(objetivo);
-	strcat(buffer,obj);
+	char* buffer = string_new();
+	string_append(&buffer,string_itoa(ATRAPARPOKEMON));
+	string_append(&buffer,charToString(objetivo));
 
 	send(mapa->socketMapa, buffer, sizeof(buffer), 0);
-	char* recibo=malloc(sizeof(char)*2);
+	char* recibo = string_new();
 	recv(mapa->socketMapa, recibo, sizeof(recibo),0);
 
 	if(!strcmp(buffer,"1"))
 		{
-		free(buffer);
-		free(recibo);
 		return 1;
 		}
 	else
 	{
-		free(buffer);
-		free(recibo);
 		return 0;
 	}
 }
