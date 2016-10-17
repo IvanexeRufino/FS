@@ -36,7 +36,7 @@
 
 typedef struct
 {
-	char nombre[20];
+	char nombre[40];
 	char simbolo;
 	int vidas;
 	int posicionEnX;
