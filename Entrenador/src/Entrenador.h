@@ -75,6 +75,7 @@ typedef struct {
 	#define SOLICITARPOSICION 1
 	#define SOLICITARAVANZAR 2
 	#define ATRAPARPOKEMON 3
+	#define	FINALIZACION 4
 
 /*----------------------- Declaraciones de Prototipos ---------------------------------*/
 

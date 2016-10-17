@@ -226,6 +226,14 @@ void recibirCoordenadaEntrenador(int* coordenada, int socketMapa)
 	(*coordenada)=atoi(payload);
 
 }
+void informarFinalizacion(t_nivel *mapa)
+{
+	char* buffer = string_new();
+	string_append(&buffer,string_itoa(FINALIZACION));
+	send(mapa->socketMapa, buffer, sizeof(buffer), 0);
+	puts("Le informo al Mapa que finalice mi mision aqui");
+}
+
 void solicitarAvanzar(t_nivel *mapa,char objetivo){
 	char* buffer = string_new();
 	string_append(&buffer,string_itoa(SOLICITARAVANZAR));
@@ -345,12 +353,15 @@ int main(void) {
 					}
 			copiarMedalla(infoEntrenador->nombre, mapa->nivel);
 			printf("Felicitaciones, terminaste de capturar todos los pokemons del mapa nro %d \n",j);
+			informarFinalizacion(mapa);
 		}
 		clock_t fin=clock();
 
 		printf("------TE CONVERTISTE EN MAESTRO POKEMON------ \n");
 		printf("El tiempo total que tardo la aventura fue: %f segundos \n", (fin-inicio)/(double)CLOCKS_PER_SEC);
 
+		list_destroy(listaDeNiveles);
+		list_destroy(mapa->objetivos);
 		free(vector);
 		free(infoEntrenador);
 		free(mapa);

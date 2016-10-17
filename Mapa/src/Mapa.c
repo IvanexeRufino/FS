@@ -2,14 +2,15 @@
 
 t_list* listaPokenest;
 t_list* items;
-mapa_datos* infoMapa;
 t_list* entrenadoresActivos;
 t_list* entrenadoresBloqueados;
 pthread_mutex_t mutex_EntrenadoresActivos = PTHREAD_MUTEX_INITIALIZER;
 t_registroPokenest *pokemonActual;
 t_registroPersonaje *nuevoPersonaje;
+mapa_datos* infoMapa;
 int filas, columnas;
 t_log* logger;
+
 
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
@@ -172,7 +173,6 @@ void recibirCoordenada(int *coordenada, int socketEntrenador)
 	char* buffer = string_new();
 	recv(socketEntrenador, buffer,sizeof(buffer), 0);
 	char* payload = string_new();
-	//strcpy(payload, buffer);
 	payload =string_duplicate(buffer);
 	str_cut(payload,0,1);
 
@@ -267,7 +267,7 @@ void envioQueSeAtrapoPokemon (t_registroPersonaje *personaje, t_registroPokenest
 	}
 }
 
-void recibirQueHacer(t_registroPersonaje *nuevoPersonaje,t_registroPokenest* pokemonActual)
+void recibirQueHacer(t_registroPersonaje *nuevoPersonaje,t_registroPokenest* pokemonActual,int *finalizoElMapa)
 {
 	char* buffer = string_new();
 	recv(nuevoPersonaje->socket,buffer,sizeof(buffer),0);
@@ -279,7 +279,6 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje,t_registroPokenest* pok
 
 	char* payload = string_new();
 	payload =string_duplicate(buffer);
-	//strcpy(payload, buffer);
 	str_cut(payload,0,1);
 	printf("Separo el payload y me queda esto: %s\n",payload);
 
@@ -310,6 +309,12 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje,t_registroPokenest* pok
 		envioQueSeAtrapoPokemon(nuevoPersonaje,pokemonActual);
 
 		break;
+
+	case ('4'):
+
+		(*finalizoElMapa)=1;
+
+		break;
 	}
 
 }
@@ -323,13 +328,13 @@ void funcionDelThread (int newfd)
 	pokemonActual=malloc(sizeof(t_registroPokenest));
 
 	recibirBienvenidaEntrenador(newfd,nuevoPersonaje);
-
+	int finalizoElMapa=0;
 	//Recibo del planificador el quantum que me otorga y lo uso
 	//for (i=0,i<quantum),quantum--);
-	while(1)
-		{
-		recibirQueHacer(nuevoPersonaje,pokemonActual);
-		}
+	while(finalizoElMapa == 0)
+	{
+		recibirQueHacer(nuevoPersonaje,pokemonActual,&finalizoElMapa);
+	}
 
 }
 
@@ -438,5 +443,15 @@ int main(int argc, char **argv)
     	//while(1)
     		// nivel_gui_dibujar(items, argv );
 
+list_destroy(listaPokenest);
+list_destroy(items);
+list_destroy(entrenadoresActivos);
+list_destroy(entrenadoresBloqueados);
+free(pokemonActual);
+free(infoMapa);
+free(nuevoPersonaje);
+
+puts("Se finalizaron las operaciones con todos los entrenadores que estaban conectados");
+puts("-----El proceso mapa se cerrara, gracias por jugar-----");
  return 0;
 }
