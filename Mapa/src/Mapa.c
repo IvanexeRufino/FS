@@ -8,6 +8,8 @@ t_list* entrenadoresBloqueados;
 pthread_mutex_t mutex_EntrenadoresActivos = PTHREAD_MUTEX_INITIALIZER;
 t_registroPokenest *pokemonActual;
 t_registroPersonaje *nuevoPersonaje;
+int filas, columnas;
+t_log* logger;
 
 char **string_split(char *text, char *separator) {
 	char **substrings = NULL;
@@ -160,8 +162,28 @@ void leerConfiguracionPokenest(char mapa[20], char pokemon[256]){
 							"su identificador: %c\n Y hay %d Pokemons de ese Tipo\n"
 											,pokenest->tipo,pokenest->x, pokenest->y, pokenest->identificador, pokenest->cantidadDisp);
 
-	CrearCaja(items, config_get_string_value(configNest, "Identificador")[0] , pokenest->x , pokenest->y ,pokenest->cantidadDisp);
 
+		if(pokenest->x> columnas || pokenest->y > filas)
+		{
+			log_error(logger, "La Pokenest %c supera los limites de filas/columnas del nivel. \n", pokenest->identificador);
+			exit(1);
+		}
+
+		bool distanciaEntreCajas (t_registroPokenest* unaNest)
+		{
+			return (abs(unaNest->x - pokenest->x) + abs(unaNest->y - pokenest->y) <= 4);
+		}
+
+		if(list_any_satisfy(listaPokenest, (void*) distanciaEntreCajas))
+		{
+			log_error(logger, "La Pokenest %c no respeta las distancias con otra Pokenest. \n", pokenest->identificador);
+			exit(1);
+		}
+
+
+
+
+	CrearCaja(items, config_get_string_value(configNest, "Identificador")[0] , pokenest->x , pokenest->y ,pokenest->cantidadDisp);
 	list_add(listaPokenest,pokenest);
 
 
@@ -374,18 +396,17 @@ void funcionDelThread (int newfd)
 
 int main(int argc, char **argv)
 {
-	//int rows;
-	//int cols;
+	filas = 30;
+	columnas = 30;
 	listaPokenest = malloc(sizeof(t_registroPokenest));
 	listaPokenest = list_create();
 	items = list_create();
 	//nivel_gui_inicializar();
-	//nivel_gui_get_area_nivel(&rows, &cols);
+	//nivel_gui_get_area_nivel(&filas, &columnas);
 	entrenadoresActivos = malloc(sizeof(t_list));
 	entrenadoresBloqueados = malloc (sizeof(t_list));
 
 		/* Inicializacion y registro inicial de ejecucion */
-		t_log* logger;
 		logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
 //		log_info(logger, PROGRAM_DESCRIPTION);
 
