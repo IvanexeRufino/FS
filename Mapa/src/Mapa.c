@@ -377,15 +377,16 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje,t_registroPokenest* pok
 
 }
 
-void funcionDelThread (int newfd)
+void funcionDelThread (parametros_entrenador* param)
 {
 
 	nuevoPersonaje = malloc(sizeof(t_registroPersonaje));
-	nuevoPersonaje->socket=newfd;
+	nuevoPersonaje->socket=param->newfd;
+	nuevoPersonaje->threadId = param->idHilo;
 
 	pokemonActual=malloc(sizeof(t_registroPokenest));
 
-	recibirBienvenidaEntrenador(newfd,nuevoPersonaje);
+	recibirBienvenidaEntrenador(param->newfd,nuevoPersonaje);
 	int finalizoElMapa=0;
 	//Recibo del planificador el quantum que me otorga y lo uso
 	//for (i=0,i<quantum),quantum--);
@@ -474,10 +475,15 @@ int main(int argc, char **argv)
 // pthread_join(idHiloPlanificador,0);
 
     // bucle principal
-     	 int socketServidor;
-     	 int newfd;
-    	socketServidor = crearSocketServidor(infoMapa->puertoEscucha);
-    	IniciarSocketServidor(atoi(infoMapa->puertoEscucha));
+	  int socketServidor;
+	  int newfd;
+	      socketServidor = crearSocketServidor(infoMapa->puertoEscucha);
+	      IniciarSocketServidor(atoi(infoMapa->puertoEscucha));
+	  while(1)
+	  {
+
+
+		sleep(4);
     	newfd = AceptarConexionCliente(socketServidor);
     	printf("El cliente nuevo se ha conectado por el socket %d\n", newfd);
 
@@ -496,9 +502,13 @@ int main(int argc, char **argv)
 		//Creacion de pool de hilos
 
     	pthread_t idHilo;
-    	pthread_create (&idHilo,NULL,(void*)funcionDelThread,(void*)newfd);
-    	pthread_join(idHilo,0);
-
+    	parametros_entrenador* param = malloc(sizeof(parametros_entrenador));
+    	param->idHilo = idHilo;
+    	param->newfd = newfd;
+    	pthread_create (&idHilo,NULL,(void*)funcionDelThread,param);
+    	//pthread_join(idHilo,0);
+    	free(param);
+	  }
 //    	funcionDelThread(newfd);
 
     	//while(1)

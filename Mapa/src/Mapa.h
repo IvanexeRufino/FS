@@ -51,6 +51,7 @@ typedef struct
 	int y;
 	int distanciaARecurso;
 	bool posicionPedida;
+	int threadId;
 }t_registroPersonaje;
 
 typedef struct
@@ -74,6 +75,13 @@ typedef struct
 	int batalla;
 	int tiempoChequeoDeadlock;
 } mapa_datos;
+
+typedef struct
+{
+	int newfd;
+	int idHilo;
+
+} parametros_entrenador;
 
 /*----------------------- Declaraciones de Variables Globales ---------------------------*/
 
