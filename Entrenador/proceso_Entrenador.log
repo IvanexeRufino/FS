@@ -4,7 +4,16 @@
 [INFO] 18:46:33:950 ENTRENADOR/(4816:4816): Conectado al servidor
 [INFO] 18:47:03:588 ENTRENADOR/(4816:4816): Conectado al servidor
 [INFO] 18:47:07:714 ENTRENADOR/(4816:4816): Conectado al servidor
+<<<<<<< HEAD
 [INFO] 21:09:46:182 ENTRENADOR/(6089:6089): Proceso ENTRENADOR
 [INFO] 21:09:54:880 ENTRENADOR/(6089:6089): Archivo de configuracion leido correctamente
 [INFO] 21:11:50:536 ENTRENADOR/(6191:6191): Proceso ENTRENADOR
 [INFO] 21:11:56:115 ENTRENADOR/(6191:6191): Archivo de configuracion leido correctamente
+=======
+[INFO] 21:58:27:469 ENTRENADOR/(5671:5671): Proceso ENTRENADOR
+[INFO] 21:58:30:362 ENTRENADOR/(5671:5671): Archivo de configuracion leido correctamente
+[INFO] 21:59:07:591 ENTRENADOR/(5720:5720): Proceso ENTRENADOR
+[INFO] 21:59:09:985 ENTRENADOR/(5720:5720): Archivo de configuracion leido correctamente
+[INFO] 21:59:16:678 ENTRENADOR/(5720:5720): El personaje Red perdio una vida por señal y actualmente tiene 4 vidas.
+
+>>>>>>> a7e12e624031c41901fd4f4783b8bd891d45ed17

@@ -41,6 +41,7 @@ typedef struct
 	int vidas;
 	int posicionEnX;
 	int posicionEnY;
+	int reintentos;
 } entrenador_datos;
 
 typedef struct {

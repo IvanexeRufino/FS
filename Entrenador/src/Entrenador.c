@@ -30,6 +30,7 @@ void gameOver()
 	}
 	else if (respuesta == 'S')
 	{
+		infoEntrenador->reintentos ++;
 		printf("Gracias por continuar jugando! Se le han otorgado 3 vidas mas!\n");
 	return;
 	}
@@ -85,12 +86,15 @@ int leerConfiguracionEntrenador()
 	strcat(pathconfigMetadata,"/metadata");
 	t_config* config = config_create(pathconfigMetadata);
 	// Verifico que los parametros tengan sus valores OK
-	if ( config_has_property(config, "nombre") && config_has_property(config, "simbolo")&& config_has_property(config, "vidas"))
+	if ( config_has_property(config, "nombre") && config_has_property(config, "simbolo")&& config_has_property(config, "vidas") && config_has_property(config,"reintentos"))
 		{
 		strcpy(infoEntrenador->nombre,config_get_string_value(config,"nombre"));
 		char* identificadorPokenest = config_get_string_value(config,"simbolo");
+
 		infoEntrenador->simbolo=identificadorPokenest[0];
 		infoEntrenador->vidas = config_get_int_value(config, "vidas");
+		infoEntrenador->reintentos = config_get_int_value(config, "reintentos");
+
 		listaDeNiveles = list_create();
 		int k = 0;
 				//Recorre la hoja de viaje, ciudad por ciudad
@@ -114,10 +118,12 @@ int leerConfiguracionEntrenador()
 				list_add(listaDeNiveles, mapa);
 			}
 
-			printf("el nombre del entrenador es: %s\n su simbolo es: %c\n sus vidas son:%d\n"
+			printf("el nombre del entrenador es: %s\n su simbolo es: %c\n sus vidas son:%d y reintento: %d \n"
 					,infoEntrenador->nombre,
 					infoEntrenador->simbolo,
-					infoEntrenador->vidas);
+					infoEntrenador->vidas,
+					infoEntrenador->reintentos);
+
 		return 1;
 		}
 		else
