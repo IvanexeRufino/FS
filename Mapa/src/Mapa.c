@@ -11,6 +11,50 @@ t_registroPersonaje *nuevoPersonaje;
 int filas, columnas;
 t_log* logger;
 
+
+void copiarPokemonAEntrenador(t_registroPersonaje *personaje, t_registroPokenest* pokenest){
+	char origen[300];
+	char destino[300];
+	char comando[500];
+	strcpy(origen, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Mapa/Mapas/");
+	strcat(origen, infoMapa->nombre);
+	strcat(origen, "/PokeNests/");
+	strcat(origen, pokenest->nombre);
+
+	strcpy(destino,"/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Entrenador/Entrenadores/");
+	strcat(destino,personaje->nombre);
+	strcat(destino,"/DirdeBill/");
+
+
+	DIR *dp;
+	struct dirent *ep;
+	dp = opendir (origen);
+	if (dp != NULL)
+	  {
+			while (ep = readdir (dp)){
+			    if(ep->d_name[0]!='.' && ep->d_name[0]!='m' ){
+//   puts(ep->d_name);
+			    	break;
+			    }
+			}
+	strcat(origen,"/");
+	strcat(origen, ep->d_name);
+	(void) closedir (dp);
+	  }
+		else
+			perror ("Couldn't open the directory");
+
+		strcpy(comando, "cp -r ");
+		strcat(comando,origen);
+		strcat(comando, " ");
+		strcat(comando, destino);
+		system(comando);
+
+		strcpy(comando, "rm ");
+		strcat(comando, origen);
+		system(comando);
+}
+
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
 {
@@ -90,7 +134,7 @@ int leerConfiguracionMapa( t_list* listaPokenest)
 	return 1 ;
 }
 
-void leerConfiguracionPokenest(char mapa[20], char pokemon[256]){
+void leerConfiguracionPokenest(char mapa[20], char pokemon[50]){
 	int cantidadPokemon = 0;
 	char pathpokenestMetadata[256] = "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Mapa/Mapas/";
 	strcat(pathpokenestMetadata, mapa);
@@ -135,7 +179,7 @@ void leerConfiguracionPokenest(char mapa[20], char pokemon[256]){
 		pokenest->x = atoi(pos[0]);
 		pokenest->y = atoi(pos[1]);
 		pokenest->identificador=identificadorPokenest[0];
-
+		strcpy(pokenest->nombre , pokemon);
 
 		printf("\n El Tipo del Nest es: %s\n su posicion es X: %d\n Y es: %d\n "
 							"su identificador: %c\n Y hay %d Pokemons de ese Tipo\n"
@@ -159,9 +203,9 @@ void leerConfiguracionPokenest(char mapa[20], char pokemon[256]){
 			exit(1);
 		}
 
+
 	CrearCaja(items, config_get_string_value(configNest, "Identificador")[0] , pokenest->x , pokenest->y ,pokenest->cantidadDisp);
 	list_add(listaPokenest,pokenest);
-
 
 	}
 
@@ -186,6 +230,13 @@ void recibirBienvenidaEntrenador(int newfd,t_registroPersonaje *nuevoPersonaje)
 	printf("La coordenada INICIAL en X del ENTRENADOR es %d \n", nuevoPersonaje->x);
 	recibirCoordenada(&(nuevoPersonaje->y),newfd);		//Recibo coordenada Entrenador en Y
 	printf("La coordenada INICIAL en Y del ENTRENADOR es %d \n", nuevoPersonaje->y);
+
+
+
+	char nombre[40];
+	recv(newfd,nombre,sizeof(nombre),0);
+	printf("Lo que recibio del cliente %d es su nombre: %s\n", newfd, nombre);
+	strcpy(nuevoPersonaje->nombre, nombre);
 
 	char* buffer = string_new();
 	recv(newfd,buffer,sizeof(buffer),0);
@@ -217,6 +268,7 @@ void cargoDatosPokemonActual(char pokemonQueRecibo,t_registroPokenest* pokemonAc
 			t_registroPokenest* pokenest = list_get(listaPokenest,j);
 			if (pokenest->identificador == pok)
 				{
+					strcpy(pokemonActual->nombre, pokenest->nombre);
 					pokemonActual->identificador=pokenest->identificador;
 					strcpy(pokemonActual->tipo,pokenest->tipo);
 					pokemonActual->x=pokenest->x;
@@ -255,9 +307,13 @@ void envioQueSeAtrapoPokemon (t_registroPersonaje *personaje, t_registroPokenest
 		pokemonActual->cantidadDisp --;
 		printf("/*--------------------El Personaje: %c , atrapo al pokemon %c --------------------*/ \n",personaje->identificador, pokemonActual->identificador);
 
+		copiarPokemonAEntrenador(personaje,pokemonActual);
+
+
 		char* buffer = string_new();
 		string_append(&buffer,string_itoa(1));
 		send(personaje->socket,buffer, sizeof(buffer), 0);
+
 	}
 	else
 	{
@@ -393,11 +449,14 @@ int main(int argc, char **argv)
 	//  nivel_gui_inicializar();
 	  	//	nivel_gui_get_area_nivel(&rows, &cols);
 	  	//	nivel_gui_dibujar(items,&argv);
+
+// ------------------- Descomentar para probar si cargaron bien las nests -------------------------//
+//	  t_registroPokenest* pokenestPrueba = malloc(sizeof(t_registroPokenest));
 //	  int ii = 0;
 //	  while(ii!= list_size(listaPokenest)){
 //		  pokenestPrueba = list_get(listaPokenest,ii);
 //		   printf("%d",pokenestPrueba->cantidadDisp);
-//		   puts(pokenestPrueba->identificador);
+//		   puts(pokenestPrueba->nombre);
 //		  ii++;
 //	  }
 

@@ -6,6 +6,33 @@ pid_t pid;
 t_list* listaDeNiveles;
 t_nivel* mapa;
 
+
+void devolverMedallas(){
+	char ruta[300];
+	char comando[300];
+	strcpy(ruta,"/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Entrenador/Entrenadores/");
+	strcat(ruta,infoEntrenador->nombre);
+	strcat(ruta,"/medallas/");
+
+	DIR *dp;
+	struct dirent *ep;
+	dp = opendir (ruta);
+		if (dp != NULL)
+		{
+		while (ep = readdir (dp)){
+			if(ep->d_name[0]!='.'){
+					  strcpy(comando, "rm ");
+					  strcat(comando,ruta);
+			    	   strcat(comando,ep->d_name);
+			    	   system(comando);
+			}
+		}
+		(void) closedir (dp);
+			}
+			else
+				perror ("Couldn't open the directory");
+}
+
 void muerteDefinitivaPorSenial(int aSignal)
 {
 	log_info(logger,"El personaje se desconecto");
@@ -154,6 +181,10 @@ void enviarMensajeInicial(int serverSocket){
 	printf("Estoy enviando la coordenada en X del ENTRENADOR que es %d \n",CoordEnX);
 	int CoordEnY = enviarCoordenada(infoEntrenador->posicionEnY,serverSocket);
 	printf("Estoy enviando la coordenada en Y del ENTRENADOR que es %d \n",CoordEnY);
+
+
+	send(serverSocket, infoEntrenador->nombre, sizeof(infoEntrenador->nombre), 0);
+	printf("Estoy enviando mi nombre %s\n",infoEntrenador->nombre);
 
 	char* buffer = string_new();
 	string_append(&buffer,string_itoa(BIENVENIDA));
