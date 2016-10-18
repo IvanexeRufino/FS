@@ -432,6 +432,56 @@ void funcionDelThread (parametros_entrenador* param)
 //
 //}
 
+void planificarRoundRobin(t_registroPersonaje* entrenador)
+{
+	return;
+}
+
+void planificarSRDF(t_registroPersonaje* entrenador)
+{
+	return;
+}
+
+void planificarEntrenador(t_registroPersonaje* entrenador)
+	{
+	if (entrenador->estado == 'E')
+			{
+		if(!strcmp(infoMapa->algoritmo, "RR"))
+				{
+					planificarRoundRobin(entrenador);
+				}
+		else
+				{
+					planificarSRDF(entrenador);
+				}
+			}
+	}
+
+
+void planificar(){
+
+if(entrenadoresActivos->elements_count==0)
+	{
+		puts("Cola de Ready vacia");
+	}
+else{
+	int s;
+	for(s=0; s<entrenadoresActivos->elements_count; s++){
+
+		planificarEntrenador(list_get(entrenadoresActivos,s));
+	}
+
+}
+}
+
+void iniciarHiloPlanificador(){
+	pthread_t hiloPlanificador;
+	pthread_create (&hiloPlanificador,NULL,(void*)planificar,NULL);
+
+}
+
+
+
 int main(int argc, char **argv)
 {
 	filas = 30;
@@ -479,6 +529,8 @@ int main(int argc, char **argv)
 	  int newfd;
 	      socketServidor = crearSocketServidor(infoMapa->puertoEscucha);
 	      IniciarSocketServidor(atoi(infoMapa->puertoEscucha));
+	      void iniciarHiloPlanificador();
+
 	  while(1)
 	  {
 
@@ -507,7 +559,7 @@ int main(int argc, char **argv)
     	param->newfd = newfd;
     	pthread_create (&idHilo,NULL,(void*)funcionDelThread,param);
     	//pthread_join(idHilo,0);
-    	free(param);
+
 	  }
 //    	funcionDelThread(newfd);
 
