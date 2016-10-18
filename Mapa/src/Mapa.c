@@ -559,7 +559,6 @@ int main(int argc, char **argv)
     	param->newfd = newfd;
     	pthread_create (&idHilo,NULL,(void*)funcionDelThread,param);
     	//pthread_join(idHilo,0);
-
 	  }
 //    	funcionDelThread(newfd);
 
