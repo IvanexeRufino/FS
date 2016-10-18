@@ -6,6 +6,36 @@ pid_t pid;
 t_list* listaDeNiveles;
 t_nivel* mapa;
 
+
+void devolverMedallas(){
+	char ruta[300];
+	char comando[300];
+	strcpy(ruta,"/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Entrenador/Entrenadores/");
+	strcat(ruta,infoEntrenador->nombre);
+	strcat(ruta,"/medallas/");
+
+	DIR *dp;
+	struct dirent *ep;
+	dp = opendir (ruta);
+		if (dp != NULL)
+		{
+			ep = readdir (dp);
+		while (ep)
+		{
+			if(ep->d_name[0]!='.'){
+					  strcpy(comando, "rm ");
+					  strcat(comando,ruta);
+			    	   strcat(comando,ep->d_name);
+			    	   system(comando);
+			}
+			ep = readdir (dp);
+		}
+		(void) closedir (dp);
+			}
+			else
+				perror ("Couldn't open the directory");
+}
+
 void muerteDefinitivaPorSenial(int aSignal)
 {
 	log_info(logger,"El personaje se desconecto");
@@ -155,37 +185,39 @@ void enviarMensajeInicial(int serverSocket){
 	int CoordEnY = enviarCoordenada(infoEntrenador->posicionEnY,serverSocket);
 	printf("Estoy enviando la coordenada en Y del ENTRENADOR que es %d \n",CoordEnY);
 
-	char* buffer = malloc(sizeof(char)*3);
-	buffer[0]='0';
-	buffer[1]=infoEntrenador->simbolo;
-	buffer[2]='\0';
+
+	send(serverSocket, infoEntrenador->nombre, sizeof(infoEntrenador->nombre), 0);
+	printf("Estoy enviando mi nombre %s\n",infoEntrenador->nombre);
+
+	char* buffer = string_new();
+	string_append(&buffer,string_itoa(BIENVENIDA));
+	string_append(&buffer,charToString(infoEntrenador->simbolo));
+
 	send(serverSocket,buffer,sizeof(buffer),0);
 	printf("Se ha enviado: %s \n",buffer);
 
-	free(buffer);
 
 }
 void recibirCoordenadaPokemon(int *mapaCoordenadaPokemon, int socketMapa)
 {
-	char* buffer = malloc(sizeof(char)*4);
+	char* buffer = string_new();
 	recv(socketMapa, buffer,sizeof(buffer), 0);
 
-	char* payload = malloc(sizeof(char)*4);
-	strcpy(payload, buffer);
+	char* payload = string_new();
+	payload =string_duplicate(buffer);
+	//strcpy(payload, buffer);
 	str_cut(payload,0,1);
 
 	(*mapaCoordenadaPokemon)=atoi(payload);
-	free(buffer);
-	free(payload);
+
 }
 
 void solicitarPosicion(t_nivel *mapa,char objetivo)
 {
-	char* buffer = malloc(sizeof(char)*3);
-	char* identificador="1";
-	strcpy(buffer,identificador);
-	char*obj=charToString(objetivo);
-	strcat(buffer,obj);
+	char* buffer = string_new();
+	string_append(&buffer,string_itoa(SOLICITARPOSICION));
+	string_append(&buffer,charToString(objetivo));
+
 	send(mapa->socketMapa, buffer, sizeof(buffer), 0);
 
 	recibirCoordenadaPokemon(&(mapa->pokemonActualPosicionEnX), mapa->socketMapa);    				//Recibo en X
@@ -194,8 +226,6 @@ void solicitarPosicion(t_nivel *mapa,char objetivo)
 	recibirCoordenadaPokemon(&(mapa->pokemonActualPosicionEnY), mapa->socketMapa); 					//Recibo en Y
 	printf("La Coordenada del pokemon que solicite en Y fue: %d \n",mapa->pokemonActualPosicionEnY);
 
-	free(buffer);
-	free(obj);
 }
 
 //void sendObjetivosMapa(int serverSocket)
@@ -220,56 +250,80 @@ void solicitarPosicion(t_nivel *mapa,char objetivo)
 
 void recibirCoordenadaEntrenador(int* coordenada, int socketMapa)
 {
-	char* buffer = malloc(sizeof(char)*4);
+	char* buffer = string_new();
 	recv(socketMapa, buffer,sizeof(buffer), 0);
-
-	char* payload = malloc(sizeof(char)*4);
-	strcpy(payload, buffer);
+	char* payload = string_new();
+	payload =string_duplicate(buffer);
+	//strcpy(payload, buffer);
 	str_cut(payload,0,1);
 
 	(*coordenada)=atoi(payload);
-	free(buffer);
-	free(payload);
+
 }
+void informarFinalizacion(t_nivel *mapa)
+{
+	char* buffer = string_new();
+	string_append(&buffer,string_itoa(FINALIZACION));
+	send(mapa->socketMapa, buffer, sizeof(buffer), 0);
+	puts("Le informo al Mapa que finalice mi mision aqui");
+}
+
 void solicitarAvanzar(t_nivel *mapa,char objetivo){
-	char* buffer = malloc(sizeof(char)*3);
-	char* identificador="2";
-	strcpy(buffer,identificador);
-	char*obj=charToString(objetivo);
-	strcat(buffer,obj);
+	char* buffer = string_new();
+	string_append(&buffer,string_itoa(SOLICITARAVANZAR));
+	string_append(&buffer,charToString(objetivo));
+
 	send(mapa->socketMapa, buffer, sizeof(buffer), 0);
 	puts("pido avanzar al mapa");
 	recibirCoordenadaEntrenador(&(infoEntrenador->posicionEnX), mapa->socketMapa);    				//Recibo la NUEVA coordenada Entrenador en X
 	recibirCoordenadaEntrenador(&(infoEntrenador->posicionEnY), mapa->socketMapa); 					//Recibo la NUEVA coordenada Entrenador en Y
 	printf("Mi nueva posicion es X: %d Y: %d \n",infoEntrenador->posicionEnX, infoEntrenador->posicionEnY);
-	free(buffer);
+
 }
 
 int atraparPokemon(t_nivel *mapa,char objetivo)
 {
-	char* buffer = malloc(sizeof(char)*3);
-
-	char* identificador="3";
-	strcpy(buffer,identificador);
-	char*obj=charToString(objetivo);
-	strcat(buffer,obj);
+	char* buffer = string_new();
+	string_append(&buffer,string_itoa(ATRAPARPOKEMON));
+	string_append(&buffer,charToString(objetivo));
 
 	send(mapa->socketMapa, buffer, sizeof(buffer), 0);
-	char* recibo=malloc(sizeof(char)*2);
+	char* recibo = string_new();
 	recv(mapa->socketMapa, recibo, sizeof(recibo),0);
 
 	if(!strcmp(buffer,"1"))
 		{
-		free(buffer);
-		free(recibo);
 		return 1;
 		}
 	else
 	{
-		free(buffer);
-		free(recibo);
 		return 0;
 	}
+}
+
+void copiarMedalla(char entrenador[20],char* nombre){
+
+	char source[120];
+	char dest[120];
+	char str[300];
+
+		strcpy(source,"/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Mapa/Mapas/");
+		strcat(source, nombre);
+		strcat(source, "/medalla-");
+		strcat(source, nombre);
+		strcat(source,".jpg");
+		strcpy(dest,"/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Entrenador/Entrenadores/");
+		strcat(dest,entrenador);
+		strcat(dest,"/medallas/");
+
+		strcpy(str,"cp -r ");
+		strcat(str, source);
+		strcat(str," ");
+		strcat(str, dest);
+		puts(str);
+		system(str);
+
+		return;
 }
 
 int main(void) {
@@ -331,13 +385,17 @@ int main(void) {
 								}
 							}
 					}
+			copiarMedalla(infoEntrenador->nombre, mapa->nivel);
 			printf("Felicitaciones, terminaste de capturar todos los pokemons del mapa nro %d \n",j);
+			informarFinalizacion(mapa);
 		}
 		clock_t fin=clock();
 
 		printf("------TE CONVERTISTE EN MAESTRO POKEMON------ \n");
 		printf("El tiempo total que tardo la aventura fue: %f segundos \n", (fin-inicio)/(double)CLOCKS_PER_SEC);
 
+		list_destroy(listaDeNiveles);
+		list_destroy(mapa->objetivos);
 		free(vector);
 		free(infoEntrenador);
 		free(mapa);

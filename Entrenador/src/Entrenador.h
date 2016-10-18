@@ -36,7 +36,7 @@
 
 typedef struct
 {
-	char nombre[20];
+	char nombre[40];
 	char simbolo;
 	int vidas;
 	int posicionEnX;
@@ -59,8 +59,6 @@ typedef struct {
 /*----------------------- Declaraciones de Constantes ----------------------------------*/
 	/* Configuración de SOCKETS */
 
-	#define IP "127.0.0.1"
-	#define PUERTO "10000"
 	#define PACKAGESIZE 1024	// Define cual va a ser el size maximo del paquete a enviar
 
 	/* Configuración de LOG */
@@ -70,6 +68,14 @@ typedef struct {
 	#define PROGRAM_DESCRIPTION "Proceso ENTRENADOR"
 	#define IS_ACTIVE_CONSOLE true
 	#define T_LOG_LEVEL LOG_LEVEL_INFO
+
+	/* Configuración de Protocolo */
+
+	#define BIENVENIDA 0
+	#define SOLICITARPOSICION 1
+	#define SOLICITARAVANZAR 2
+	#define ATRAPARPOKEMON 3
+	#define	FINALIZACION 4
 
 /*----------------------- Declaraciones de Prototipos ---------------------------------*/
 

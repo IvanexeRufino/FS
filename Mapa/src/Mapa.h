@@ -43,6 +43,7 @@
 
 typedef struct
 {
+	char nombre[40];
 	char identificador;
 	int ultimoRecurso;  // 0 = ultimo movimiento fue en X ---- 1 = ultimo movimiento fue en Y
 	int socket;
@@ -50,10 +51,12 @@ typedef struct
 	int y;
 	int distanciaARecurso;
 	bool posicionPedida;
+	int threadId;
 }t_registroPersonaje;
 
 typedef struct
 {
+	char nombre[50];
 	char identificador;
 	char tipo[15];
 	int x;
@@ -63,7 +66,7 @@ typedef struct
 
 typedef struct
 {
-	char nombre[20];
+	char nombre[30];
 	char *ipEscucha;
 	char *puertoEscucha;
 	int quantum;
@@ -72,6 +75,16 @@ typedef struct
 	int batalla;
 	int tiempoChequeoDeadlock;
 } mapa_datos;
+
+typedef struct
+{
+	int newfd;
+	int idHilo;
+
+} parametros_entrenador;
+
+/*----------------------- Declaraciones de Variables Globales ---------------------------*/
+
 
 /*----------------------- Declaraciones de Constantes ----------------------------------*/
 
