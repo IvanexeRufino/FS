@@ -137,8 +137,7 @@ int maximoEntre(int unNro, int otroNro) {
 }
 
 int copiarInformacion(int tamanioACopiar, int offset,char* buffer, char* inicio ,osada_file* archivo) {
-	int* numeroDeTabla = malloc(sizeof(int));
-	*numeroDeTabla = tablaDeAsignaciones[archivo->first_block];
+	int numeroDeTabla = archivo->first_block;
 	int i=1;
 	int copiado = 0;
 	int restanteDeMiBloque = OSADA_BLOCK_SIZE - offsetDondeEmpezar(offset);
@@ -151,12 +150,11 @@ int copiarInformacion(int tamanioACopiar, int offset,char* buffer, char* inicio 
 		copiado = copiado + tamanioACopiarDentroDelBloque;
 		if(copiado < tamanioACopiar)
 		{
-			inicio = (char*)bloquesDeDatos[*numeroDeTabla];
-			*numeroDeTabla = tablaDeAsignaciones[*numeroDeTabla];
+			inicio = (char*)bloquesDeDatos[numeroDeTabla];
+			numeroDeTabla = tablaDeAsignaciones[numeroDeTabla];
 			i++;
 		}
 	}
-	free(numeroDeTabla);
 	return copiado;
 }
 
@@ -191,18 +189,18 @@ int leer_archivo(char* path, int offset, int tamanioALeer, char* buffer) {
 	if (archivo == NULL) {
 		return -1;
 	}
-	int* leido = malloc(sizeof(int));
 	int tamanioALeerVerdadero = minimoEntre(tamanioALeer,archivo->file_size - offset);
 	pthread_mutex_lock(&semaforoTablaDeNodos);
 	//este bloque de datos tiene que ser el del offset(deuda)
-	char* bloqueDeDatos = (char*) bloquesDeDatos[archivo->first_block];
-	*leido = copiarInformacion(tamanioALeerVerdadero, offset,buffer,bloqueDeDatos,archivo);
+	char* bloqueDeDatos = (char*) bloquesDeDatos[archivo->first_block] + offsetDondeEmpezar(offset);;
+	int leido = 0;
+	leido = copiarInformacion(tamanioALeerVerdadero, offset,buffer,bloqueDeDatos,archivo);
 	pthread_mutex_unlock(&semaforoTablaDeNodos);
-	if(*leido != tamanioALeerVerdadero)
+	if(leido != tamanioALeerVerdadero)
 	{
 		return -1;
 	}
-	return *leido;
+	return leido;
 }
 
 int buscarArchivoVacio() {
@@ -284,8 +282,9 @@ int crear_archivo(char* path, int direcOArch)
 	else {
 		archivoNuevo->state = DIRECTORY;
 	}
-	archivoNuevo->first_block = NULL;
+	archivoNuevo->first_block = buscarBloqueVacio();
 	pthread_mutex_unlock(&semaforoTablaDeNodos);
+
 	return posicionEnLaTabla;
 }
 
@@ -361,23 +360,9 @@ int ejemplo_getattr(const char *path, struct stat *st) {
 
 /////////////////////////////////////escribir archivo /////////////////////////////////////
 
-int buscarLibresYOcuparEnbitmap() {
-	int i=0;
-	while(i < cantidadDeBloques) {
-		if(bitarray_test_bit(bitmap,i)==false ) {
-			bitarray_set_bit(bitmap,i);
-			return i;
-		}
-		i++;
-	}
-	//no hay espacio libre
-	return -1;
-}
-
 int agregarTablaDeAsignaciones(uint32_t bloqueNuevo, osada_file* archivo) {
 	char* bloqueDeDatos = (char*) bloquesDeDatos[archivo->first_block];
-	int* numeroDeTabla = malloc(sizeof(int));
-	*numeroDeTabla = tablaDeAsignaciones[archivo->first_block];
+	int numeroDeTabla = tablaDeAsignaciones[archivo->first_block];
 	int i=1;
 	int leido = 0;
 	int tamanioACopiarDentroDelBloque = OSADA_BLOCK_SIZE;
@@ -387,14 +372,13 @@ int agregarTablaDeAsignaciones(uint32_t bloqueNuevo, osada_file* archivo) {
 		leido = leido + tamanioACopiarDentroDelBloque;
 		if(leido < archivo->file_size)
 		{
-			bloqueDeDatos = (char*)bloquesDeDatos[*numeroDeTabla];
-			*numeroDeTabla = tablaDeAsignaciones[*numeroDeTabla];
+			bloqueDeDatos = (char*)bloquesDeDatos[numeroDeTabla];
+			numeroDeTabla = tablaDeAsignaciones[numeroDeTabla];
 			i++;
 		}
 	}
 	//ya lei toda la tabla de asignaciones
-	tablaDeAsignaciones[*numeroDeTabla] = bloqueNuevo;
-	free(numeroDeTabla);
+	tablaDeAsignaciones[numeroDeTabla] = bloqueNuevo;
 	return 1;
 }
 
@@ -402,7 +386,7 @@ int agregarBloquesDelBitmap(int bloquesAAgregar, osada_file* archivo) {
 	int i;
 	for (i = 0; i < bloquesAAgregar ; i ++)
 	{
-		uint32_t bloqueNuevo = buscarLibresYOcuparEnbitmap();
+		uint32_t bloqueNuevo = buscarBloqueVacio();
 		if(bloqueNuevo == -1)
 		{
 			//no hubo mas espacio en el bitmap se agrega tdo lo qe se puede
@@ -427,8 +411,7 @@ int numeroBloqueDelArchivo(uint32_t numeroDeBloque, osada_file* archivo) {
 }
 
 int agregar_informacion(int tamanioAAgregar, int offset, char* inicioDeAgregado, osada_file* archivo ) {
-	int* numeroDeTabla = malloc(sizeof(int));
-	*numeroDeTabla = tablaDeAsignaciones[archivo->first_block];
+	int numeroDeTabla = tablaDeAsignaciones[archivo->first_block];
 	int agregado = 0;
 	int i=0;
 	int tamanioRestanteAAgregar = tamanioAAgregar;
@@ -440,8 +423,8 @@ int agregar_informacion(int tamanioAAgregar, int offset, char* inicioDeAgregado,
 		agregado += tamanioAAgregarDentroDelBloque;
 		tamanioRestanteAAgregar-= tamanioAAgregarDentroDelBloque;
 		if(agregado < tamanioAAgregar) {
-			inicioDeAgregado = (char*)bloquesDeDatos[*numeroDeTabla];
-			*numeroDeTabla = tablaDeAsignaciones[*numeroDeTabla];
+			inicioDeAgregado = (char*)bloquesDeDatos[numeroDeTabla];
+			numeroDeTabla = tablaDeAsignaciones[numeroDeTabla];
 			i++;
 		}
 	}
@@ -479,12 +462,13 @@ osada_file* truncar_archivo(osada_file* archivo, uint32_t size)
 
 		int bloquesAAgregar = divisionMaxima(size) - divisionMaxima(archivo->file_size);
 		pthread_mutex_lock(&semaforoBitmap);
-		if(agregarBloquesDelBitmap(bloquesAAgregar, archivo) != 0)
-		{
-			pthread_mutex_unlock(&semaforoBitmap);
-			return NULL;
+		if(size + archivo->file_size > 64) {
+			if(agregarBloquesDelBitmap(bloquesAAgregar, archivo) != 0) {
+				pthread_mutex_unlock(&semaforoBitmap);
+				return NULL;
+			}
+			agregarBloques(diferenciaDeTamanios,archivo);
 		}
-		agregarBloques(diferenciaDeTamanios,archivo);
 		pthread_mutex_unlock(&semaforoBitmap);
 
 	}
@@ -504,8 +488,7 @@ osada_file* truncar_archivo(osada_file* archivo, uint32_t size)
 }
 
 int escribir_informacion(int tamanioAEscribir, int offset, char* bufferConDatos, char* inicioDeEscritura, osada_file* archivo ) {
-	int* numeroDeTabla = malloc(sizeof(int));
-	*numeroDeTabla = tablaDeAsignaciones[archivo->first_block];
+	int numeroDeTabla =  archivo->first_block;
 	int escrito = 0;
 	int i=0;
 	int tamanioRestanteAEscribir = tamanioAEscribir;
@@ -517,8 +500,8 @@ int escribir_informacion(int tamanioAEscribir, int offset, char* bufferConDatos,
 		escrito = escrito + tamanioAEScribirDentroDelBloque;
 		tamanioRestanteAEscribir -= tamanioAEScribirDentroDelBloque;
 		if(escrito < tamanioAEscribir) {
-			inicioDeEscritura = (char*)bloquesDeDatos[*numeroDeTabla];
-			*numeroDeTabla = tablaDeAsignaciones[*numeroDeTabla];
+			inicioDeEscritura = (char*)bloquesDeDatos[numeroDeTabla];
+			numeroDeTabla = tablaDeAsignaciones[numeroDeTabla];
 			i++;
 		}
 	}
@@ -545,26 +528,28 @@ int escribir_archivo(char* path, int offset, int tamanioAEscribir, char* bufferC
 	}
 
 	pthread_mutex_lock(&semaforoTablaDeNodos);
-	char* inicioDeEscritura = (char*) bloquesDeDatos[archivo->first_block] + offsetDondeEmpezar(offset);
-	escribir_informacion(tamanioAEscribir, offset, bufferConDatos, inicioDeEscritura,archivo);
+	char* inicioDeEscritura =  (char*) bloquesDeDatos[archivo->first_block];
+	escrito = escribir_informacion(tamanioAEscribir, offset, bufferConDatos, inicioDeEscritura, archivo);
 	pthread_mutex_unlock(&semaforoTablaDeNodos);
 
-	return 0;
+	return escrito;
 }
 
 //tener cuidado con manejo de errores
 int main () {
 	reconocerOSADA();
-	char* bufferConDatos = malloc(1);
-	memcpy(bufferConDatos,"hola",4);
-	escribir_archivo("/directorio/ultima2.txt",0, 4, bufferConDatos);
+	crear_archivo("/directorio/finalmente.txt",1);
+	char* bufferConDatos = malloc(4);
+	strcpy(bufferConDatos, "hola");
+	escribir_archivo("/directorio/finalmente.txt",0, 4, bufferConDatos);
+	free(bufferConDatos);
 	char* buffer = malloc(tablaDeArchivos[4].file_size);
-	leer_archivo("/directorio/ultima2.txt", 0, tablaDeArchivos[4].file_size,buffer);
-//	crear_archivo("/directorio/ultima2.txt",1);
+	leer_archivo("/directorio/finalmente.txt", 0, tablaDeArchivos[4].file_size,buffer);
 	log_info(logger,"\n%s",buffer);
-	log_info(logger,"\n%s",tablaDeArchivos[4].fname);
-	log_info(logger,"\n%d",tablaDeArchivos[4].file_size);
-	log_info(logger,"\n%d",tablaDeArchivos[4].first_block);
+	free(buffer);
+//	log_info(logger,"\n%s",tablaDeArchivos[8].fname);
+//	log_info(logger,"\n%d",tablaDeArchivos[8].file_size);
+//	log_info(logger,"\n%d",tablaDeArchivos[8].first_block);
 	return 0;
 
 
