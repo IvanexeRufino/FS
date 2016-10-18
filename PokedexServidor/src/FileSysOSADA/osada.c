@@ -22,7 +22,6 @@
 #define IS_ACTIVE_CONSOLE true
 #define T_LOG_LEVEL LOG_LEVEL_INFO
 
-
 t_log* logger;
 pthread_mutex_t semaforoBitmap, semaforoTablaDeNodos;
 
@@ -545,7 +544,7 @@ int escribir_archivo(char* path, int offset, int tamanioAEscribir, char* bufferC
 //tener cuidado con manejo de errores
 int main () {
 	reconocerOSADA();
-//	crear_archivo("/directorio/finalmente6.txt",1);
+	crear_archivo("/directorio/finalmente6.txt",1);
 	log_info(logger,"\n%s",tablaDeArchivos[4].fname);
 	log_info(logger,"\n%d",tablaDeArchivos[4].file_size);
 	log_info(logger,"\n%d",tablaDeArchivos[4].first_block);
