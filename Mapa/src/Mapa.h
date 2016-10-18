@@ -52,6 +52,7 @@ typedef struct
 	int distanciaARecurso;
 	bool posicionPedida;
 	int threadId;
+	char estado; // E= en ejecucion, B= bloqueado, L = listo
 }t_registroPersonaje;
 
 typedef struct
