@@ -22,11 +22,13 @@
 #define IS_ACTIVE_CONSOLE true
 #define T_LOG_LEVEL LOG_LEVEL_INFO
 
-
 t_log* logger;
 pthread_mutex_t semaforoBitmap, semaforoTablaDeNodos;
 
 int divisionMaxima(int numero) {
+	if (numero == 0) {
+		return 1;
+	}
 	if(numero % 64 == 0) {
 		return numero/64;
 	}
@@ -73,6 +75,7 @@ void reconocerOSADA(void) {
 }
 
 int dondeEmpezarLectura(int offset) {
+	if(offset == 0) {return 1;}
 	int resultado = offset / OSADA_BLOCK_SIZE;
 	return resultado;
 }
@@ -402,16 +405,16 @@ int agregarBloquesDelBitmap(int bloquesAAgregar, osada_file* archivo) {
 
 int numeroBloqueDelArchivo(uint32_t numeroDeBloque, osada_file* archivo) {
 	int i = 1;
-	int bloque = bloquesDeDatos[archivo->first_block];
+	int bloque = archivo->first_block;
 	while(i < numeroDeBloque) {
 		bloque = tablaDeAsignaciones[bloque];
 		i++;
 	}
-	return i;
+	return bloque;
 }
 
 int agregar_informacion(int tamanioAAgregar, int offset, char* inicioDeAgregado, osada_file* archivo ) {
-	int numeroDeTabla = tablaDeAsignaciones[archivo->first_block];
+	int numeroDeTabla = archivo->first_block;
 	int agregado = 0;
 	int i=0;
 	int tamanioRestanteAAgregar = tamanioAAgregar;
@@ -432,7 +435,11 @@ int agregar_informacion(int tamanioAAgregar, int offset, char* inicioDeAgregado,
 }
 
 int agregarBloques(osada_file* archivo, int diferenciaDeTamanios) {
-	char* inicioDeAgregado = bloquesDeDatos[numeroBloqueDelArchivo(dondeEmpezarLectura(archivo->file_size),archivo) + offsetDondeEmpezar(archivo->file_size)];
+	int prueba = archivo->file_size;
+	int a = dondeEmpezarLectura(prueba);
+	int i = numeroBloqueDelArchivo(a,archivo);
+	int o =  offsetDondeEmpezar(prueba);
+	char* inicioDeAgregado = bloquesDeDatos[i] + o;
 	int agregado = 0;
 	agregado = agregar_informacion(diferenciaDeTamanios, archivo->file_size, inicioDeAgregado, archivo);
 
@@ -459,15 +466,14 @@ osada_file* truncar_archivo(osada_file* archivo, uint32_t size)
 
 	if(archivo->file_size < size)//Tengo que agregar bloques
 	{
-
-		int bloquesAAgregar = divisionMaxima(size) - divisionMaxima(archivo->file_size);
 		pthread_mutex_lock(&semaforoBitmap);
 		if(size + archivo->file_size > 64) {
+			int bloquesAAgregar = divisionMaxima(size) - divisionMaxima(archivo->file_size);
 			if(agregarBloquesDelBitmap(bloquesAAgregar, archivo) != 0) {
 				pthread_mutex_unlock(&semaforoBitmap);
 				return NULL;
 			}
-			agregarBloques(diferenciaDeTamanios,archivo);
+			agregarBloques(archivo, diferenciaDeTamanios);
 		}
 		pthread_mutex_unlock(&semaforoBitmap);
 
@@ -538,18 +544,18 @@ int escribir_archivo(char* path, int offset, int tamanioAEscribir, char* bufferC
 //tener cuidado con manejo de errores
 int main () {
 	reconocerOSADA();
-	crear_archivo("/directorio/finalmente.txt",1);
-	char* bufferConDatos = malloc(4);
-	strcpy(bufferConDatos, "hola");
-	escribir_archivo("/directorio/finalmente.txt",0, 4, bufferConDatos);
+	crear_archivo("/directorio/finalmente6.txt",1);
+	log_info(logger,"\n%s",tablaDeArchivos[4].fname);
+	log_info(logger,"\n%d",tablaDeArchivos[4].file_size);
+	log_info(logger,"\n%d",tablaDeArchivos[4].first_block);
+	char* bufferConDatos = malloc(65);
+	strcpy(bufferConDatos, "holaholaholaholaholaholaholaholaholaholaholaholaholaholaholaholah");
+	escribir_archivo("/directorio/finalmente6.txt",0, 65, bufferConDatos);
 	free(bufferConDatos);
 	char* buffer = malloc(tablaDeArchivos[4].file_size);
-	leer_archivo("/directorio/finalmente.txt", 0, tablaDeArchivos[4].file_size,buffer);
+	leer_archivo("/directorio/finalmente6.txt", 0, tablaDeArchivos[4].file_size,buffer);
 	log_info(logger,"\n%s",buffer);
 	free(buffer);
-//	log_info(logger,"\n%s",tablaDeArchivos[8].fname);
-//	log_info(logger,"\n%d",tablaDeArchivos[8].file_size);
-//	log_info(logger,"\n%d",tablaDeArchivos[8].first_block);
 	return 0;
 
 
