@@ -7,6 +7,8 @@ t_list* listaDeNiveles;
 t_nivel* mapa;
 
 
+
+
 void devolverMedallas(){
 	char ruta[300];
 	char comando[300];
