@@ -398,8 +398,7 @@ int agregarTablaDeAsignaciones(uint32_t bloqueNuevo, osada_file* archivo) {
 	return 1;
 }
 
-int agregarBloquesDelBitmap(int bloquesAAgregar, osada_file* archivo)
-{
+int agregarBloquesDelBitmap(int bloquesAAgregar, osada_file* archivo) {
 	int i;
 	for (i = 0; i < bloquesAAgregar ; i ++)
 	{
@@ -417,6 +416,60 @@ int agregarBloquesDelBitmap(int bloquesAAgregar, osada_file* archivo)
 
 }
 
+int numeroBloqueDelArchivo(uint32_t numeroDeBloque, osada_file* archivo) {
+	int i = 1;
+	int bloque = bloquesDeDatos[archivo->first_block];
+	while(i < numeroDeBloque) {
+		bloque = tablaDeAsignaciones[bloque];
+		i++;
+	}
+	return i;
+}
+
+int agregar_informacion(int tamanioAAgregar, int offset, char* inicioDeAgregado, osada_file* archivo ) {
+	int* numeroDeTabla = malloc(sizeof(int));
+	*numeroDeTabla = tablaDeAsignaciones[archivo->first_block];
+	int agregado = 0;
+	int i=0;
+	int tamanioRestanteAAgregar = tamanioAAgregar;
+	int restanteDeMiBloque = OSADA_BLOCK_SIZE - offsetDondeEmpezar(offset);
+	while(agregado < tamanioAAgregar) {
+		int tamanioAAgregarDentroDelBloque = minimoEntre(tamanioRestanteAAgregar,restanteDeMiBloque);
+		memset(inicioDeAgregado,'\0',tamanioAAgregarDentroDelBloque);
+		restanteDeMiBloque = OSADA_BLOCK_SIZE;
+		agregado += tamanioAAgregarDentroDelBloque;
+		tamanioRestanteAAgregar-= tamanioAAgregarDentroDelBloque;
+		if(agregado < tamanioAAgregar) {
+			inicioDeAgregado = (char*)bloquesDeDatos[*numeroDeTabla];
+			*numeroDeTabla = tablaDeAsignaciones[*numeroDeTabla];
+			i++;
+		}
+	}
+	return agregado;
+}
+
+int agregarBloques(osada_file* archivo, int diferenciaDeTamanios) {
+	char* inicioDeAgregado = bloquesDeDatos[numeroBloqueDelArchivo(dondeEmpezarLectura(archivo->file_size),archivo) + offsetDondeEmpezar(archivo->file_size)];
+	int agregado = 0;
+	agregado = agregar_informacion(diferenciaDeTamanios, archivo->file_size, inicioDeAgregado, archivo);
+
+	if(agregado != diferenciaDeTamanios) {
+		return -ENOENT;
+	}
+	return 0;
+}
+
+int quitarBloquesDelBitmap(int bloquesAQuitar, osada_file* archivo) {
+	int cant_bloques = divisionMaxima(archivo->file_size);
+	int ultimoBloqueADejar = cant_bloques - bloquesAQuitar;
+	int i;
+	for(i = ultimoBloqueADejar; i < cant_bloques; i++) {
+		int bloqueABorrar = numeroBloqueDelArchivo(i, archivo);
+		bitarray_clean_bit(bitmap,bloqueABorrar);
+	}
+	return 0;
+}
+
 osada_file* truncar_archivo(osada_file* archivo, uint32_t size)
 {
 	int diferenciaDeTamanios = abs(size - archivo->file_size);//Lo que tengo que agregar o quitar
@@ -424,14 +477,14 @@ osada_file* truncar_archivo(osada_file* archivo, uint32_t size)
 	if(archivo->file_size < size)//Tengo que agregar bloques
 	{
 
-		int bloquesAAgregar = divisionMaxima(size) - divisionMaxima(archivo);
+		int bloquesAAgregar = divisionMaxima(size) - divisionMaxima(archivo->file_size);
 		pthread_mutex_lock(&semaforoBitmap);
 		if(agregarBloquesDelBitmap(bloquesAAgregar, archivo) != 0)
 		{
 			pthread_mutex_unlock(&semaforoBitmap);
 			return NULL;
 		}
-		agregarBloquesDelBitmap(diferenciaDeTamanios,archivo);
+		agregarBloques(diferenciaDeTamanios,archivo);
 		pthread_mutex_unlock(&semaforoBitmap);
 
 	}
@@ -441,8 +494,7 @@ osada_file* truncar_archivo(osada_file* archivo, uint32_t size)
 		{
 			int bloquesARestar = divisionMaxima(archivo->file_size) - divisionMaxima(size);
 			pthread_mutex_lock(&semaforoBitmap);
-			//TERMINAR CON EL BORRADO DE BITMAP ES LO ULTIMO TODO
-			quitarBloquesDelBitmap(bloquesARestar, archivo, size);
+			quitarBloquesDelBitmap(bloquesARestar, archivo);
 			pthread_mutex_unlock(&semaforoBitmap);
 		}//Si el tamaño ocupado es mayor a lo que quiero quitar, no hace falta sacar bloques
 	}
@@ -450,7 +502,6 @@ osada_file* truncar_archivo(osada_file* archivo, uint32_t size)
 	archivo->file_size = size;
 	return archivo;
 }
-
 
 int escribir_informacion(int tamanioAEscribir, int offset, char* bufferConDatos, char* inicioDeEscritura, osada_file* archivo ) {
 	int* numeroDeTabla = malloc(sizeof(int));
@@ -480,14 +531,13 @@ int escribir_informacion(int tamanioAEscribir, int offset, char* bufferConDatos,
 }
 
 
-int escribir_archivo(char* path, int offset, char* bufferConDatos, int tamanioAEscribir) {
+int escribir_archivo(char* path, int offset, int tamanioAEscribir, char* bufferConDatos) {
 	osada_file* archivo = obtenerArchivo(path);
-	int* escrito = malloc(sizeof(int));
+	int escrito = 0;
 
 	if(archivo == NULL) {
 			return -ENOENT;
 		}
-
 	archivo = truncar_archivo(archivo,maximoEntre(offset+tamanioAEscribir,archivo->file_size));
 
 	if(archivo==NULL) {
@@ -495,33 +545,26 @@ int escribir_archivo(char* path, int offset, char* bufferConDatos, int tamanioAE
 	}
 
 	pthread_mutex_lock(&semaforoTablaDeNodos);
-	char* inicioDeEscritura = (char*) bloquesDeDatos[archivo->first_block];
-	*escrito = escribir_informacion(tamanioAEscribir, offset, bufferConDatos, inicioDeEscritura,archivo);
+	char* inicioDeEscritura = (char*) bloquesDeDatos[archivo->first_block] + offsetDondeEmpezar(offset);
+	escribir_informacion(tamanioAEscribir, offset, bufferConDatos, inicioDeEscritura,archivo);
 	pthread_mutex_unlock(&semaforoTablaDeNodos);
 
-	return escrito;
+	return 0;
 }
 
 //tener cuidado con manejo de errores
 int main () {
 	reconocerOSADA();
-	char* buffer = malloc(tablaDeArchivos[3].file_size);
-	leer_archivo("/directorio/subdirectorio/large.txt", 0, tablaDeArchivos[3].file_size,buffer);
-//	crear_archivo("/directorio/Mapa",2);
-//	crear_archivo("/directorio/Mapa/Medalla.jpg",1);
-//	crear_archivo("/directorio/Entrenador",2);
+	char* bufferConDatos = malloc(1);
+	memcpy(bufferConDatos,"hola",4);
+	escribir_archivo("/directorio/ultima2.txt",0, 4, bufferConDatos);
+	char* buffer = malloc(tablaDeArchivos[4].file_size);
+	leer_archivo("/directorio/ultima2.txt", 0, tablaDeArchivos[4].file_size,buffer);
+//	crear_archivo("/directorio/ultima2.txt",1);
 	log_info(logger,"\n%s",buffer);
-	log_info(logger,"\n%s",tablaDeArchivos[3].fname);
-//	log_info(logger,"\n%s",tablaDeArchivos[5].fname);
-//	log_info(logger,"\n%s",tablaDeArchivos[tablaDeArchivos[5].parent_directory].fname);
-//	log_info(logger,"\n%s",tablaDeArchivos[4].fname);
-//	log_info(logger,"\n%s",tablaDeArchivos[6].fname);
-//	renombrar_archivo("/directorio/Mapa/Medalla.jpg", "/directorio/Entrenador/Medalla.jpg");
-//	copiar_archivo("/directorio/Mapa/Medalla.jpg", "/directorio/Entrenador/Medalla.jpg");
-	log_info(logger,"\n%s",tablaDeArchivos[5].fname);
-	log_info(logger,"\n%s",tablaDeArchivos[tablaDeArchivos[5].parent_directory].fname);
-	log_info(logger,"\n%s",tablaDeArchivos[tablaDeArchivos[7].parent_directory].fname);
-	log_info(logger,"\n%s",tablaDeArchivos[7].fname);
+	log_info(logger,"\n%s",tablaDeArchivos[4].fname);
+	log_info(logger,"\n%d",tablaDeArchivos[4].file_size);
+	log_info(logger,"\n%d",tablaDeArchivos[4].first_block);
 	return 0;
 
 
