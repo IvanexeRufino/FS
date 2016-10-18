@@ -48,12 +48,10 @@ void recuperarPokemonDeEntrenador(t_registroPersonaje *personaje){
 			    	strcat(comando, destino);
 			    	strcat(comando, ep->d_name);
 			    	strcat(comando, "/");
-			    	puts(comando);
 			    	system(comando);
 			    	strcpy(comando, "rm ");
 			    	strcat(comando, origen);
 			    	strcat(comando, pokemon);
-			    	puts(comando);
 			   	system(comando);
 			    }
 			    ep = readdir (dp);
@@ -104,11 +102,11 @@ void copiarPokemonAEntrenador(t_registroPersonaje *personaje, t_registroPokenest
 		strcat(comando,origen);
 		strcat(comando, " ");
 		strcat(comando, destino);
-	//	system(comando);
+		system(comando);
 
 		strcpy(comando, "rm ");
 		strcat(comando, origen);
-	//	system(comando);
+		system(comando);
 }
 
 
