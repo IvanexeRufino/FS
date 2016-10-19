@@ -11,6 +11,58 @@ mapa_datos* infoMapa;
 int filas, columnas;
 t_log* logger;
 
+void recuperarPokemonDeEntrenador(t_registroPersonaje *personaje){
+	char origen[300];
+	char destino[300];
+	char comando[500];
+	char pokemon[30];
+
+	strcpy(origen,"/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Entrenador/Entrenadores/");
+	strcat(origen,personaje->nombre);
+	strcat(origen,"/DirdeBill/");
+
+	strcpy(destino, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Mapa/Mapas/");
+	strcat(destino, infoMapa->nombre);
+	strcat(destino, "/PokeNests/");
+//	strcat(destino, pokenest->nombre);
+
+	DIR *dp;
+	struct dirent *ep;
+	dp = opendir (origen);
+	if (dp != NULL)
+	  {
+		ep = readdir (dp);
+			while (ep)
+			{
+			    if(ep->d_name[0]!='.' && ep->d_name[0]!='m' ){
+			    	int i;
+			    	strcpy(pokemon,ep->d_name);
+			    	for( i = strlen(ep->d_name) -7 ; ep->d_name[i] != '\0' ; i++){
+			    		ep->d_name[i] = NULL;
+			    	}
+			    	puts(ep->d_name);
+			    	strcpy(comando,"cp -r ");
+			    	strcat(comando,  origen);
+			    	strcat(comando,  pokemon);
+			    	strcat(comando,  " ");
+			    	strcat(comando, destino);
+			    	strcat(comando, ep->d_name);
+			    	strcat(comando, "/");
+			    	system(comando);
+			    	strcpy(comando, "rm ");
+			    	strcat(comando, origen);
+			    	strcat(comando, pokemon);
+			   	system(comando);
+			    }
+			    ep = readdir (dp);
+			}
+	(void) closedir (dp);
+	  }
+		else
+			perror ("Couldn't open the directory");
+}
+
+
 void copiarPokemonAEntrenador(t_registroPersonaje *personaje, t_registroPokenest* pokenest){
 	char origen[300];
 	char destino[300];
@@ -369,7 +421,7 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje,t_registroPokenest* pok
 		break;
 
 	case ('4'):
-
+		recuperarPokemonDeEntrenador(nuevoPersonaje);
 		(*finalizoElMapa)=1;
 
 		break;
@@ -388,6 +440,7 @@ void funcionDelThread (parametros_entrenador* param)
 
 	recibirBienvenidaEntrenador(param->newfd,nuevoPersonaje);
 	int finalizoElMapa=0;
+	sleep(10);
 	//Recibo del planificador el quantum que me otorga y lo uso
 	//for (i=0,i<quantum),quantum--);
 	while(finalizoElMapa == 0)
