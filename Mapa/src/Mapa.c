@@ -24,7 +24,7 @@ void recuperarPokemonDeEntrenador(t_registroPersonaje *personaje){
 	strcpy(destino, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Mapa/Mapas/");
 	strcat(destino, infoMapa->nombre);
 	strcat(destino, "/PokeNests/");
-//	strcat(destino, pokenest->nombre);
+
 
 	DIR *dp;
 	struct dirent *ep;
@@ -35,11 +35,9 @@ void recuperarPokemonDeEntrenador(t_registroPersonaje *personaje){
 			while (ep)
 			{
 			    if(ep->d_name[0]!='.' && ep->d_name[0]!='m' ){
-			    	int i;
 			    	strcpy(pokemon,ep->d_name);
-			    	for( i = strlen(ep->d_name) -7 ; ep->d_name[i] != '\0' ; i++){
-			    		ep->d_name[i] = NULL;
-			    	}
+			    	int i = strlen(ep->d_name) -7;
+			    	ep->d_name[i] = '\0';
 			    	puts(ep->d_name);
 			    	strcpy(comando,"cp -r ");
 			    	strcat(comando,  origen);
