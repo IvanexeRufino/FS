@@ -12,7 +12,7 @@
 #include "pokedexcliente.h"
 
 typedef struct {
-	char header;
+	char* header;
 	const char *path;
 	int size;
 }t_package;
@@ -37,30 +37,19 @@ int pedir_atributos(char* num, const char *path, struct stat *buffer){
 	send(socket,buf,sizeof(buf),0);
 	puts("enviado");
 
-	char* otrobuf= malloc(sizeof(char));
-	recv(socket,otrobuf,sizeof(otrobuf),0);
-
-	char bufheader2;
-	bufheader2=otrobuf[0];
-	printf("%c",bufheader2);
-
+	recibirAtributos(socket);
 	puts("recibi algo");
-
-	free(buf);
-	free(otrobuf);
-	close(socket);
 
 	return 1;
 }
 
-int recibirAtributos (char* buf, int socket){
-	char* buffer= malloc(sizeof(buf));
+int recibirAtributos (int socket){
+	char* buffer= malloc(sizeof(char));
 	recv(socket,buffer,sizeof(buffer),0);
 	char bufheader;
 		bufheader=buffer[0];
 		printf("%c",bufheader);
 		puts("recibido");
-		free(buffer);
 	return 0;
 }
 
