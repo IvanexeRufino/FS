@@ -23,7 +23,7 @@
 #define T_LOG_LEVEL LOG_LEVEL_INFO
 
 t_log* logger;
-pthread_mutex_t semaforoBitmap, semaforoTablaDeNodos;
+pthread_mutex_t semaforoBitmap, semaforoTablaDeArchivos, semaforoTablaDeAsignaciones;
 
 int divisionMaxima(int numero) {
 	if (numero == 0) {
@@ -71,7 +71,8 @@ void reconocerOSADA(void) {
 	bloquesDeDatos = (osada_block*) (disco + inicioDeBloqueDeDatos*OSADA_BLOCK_SIZE);
 	cantidadDeBloques = header->fs_blocks;
 	pthread_mutex_init (&semaforoBitmap,NULL);
-	pthread_mutex_init (&semaforoTablaDeNodos,NULL);
+	pthread_mutex_init (&semaforoTablaDeArchivos,NULL);
+	pthread_mutex_init (&semaforoTablaDeAsignaciones,NULL);
 }
 
 int dondeEmpezarLectura(int offset) {
@@ -200,12 +201,12 @@ int leer_archivo(char* path, int offset, int tamanioALeer, char* buffer) {
 		return -1;
 	}
 	int tamanioALeerVerdadero = minimoEntre(tamanioALeer,archivo->file_size - offset);
-	pthread_mutex_lock(&semaforoTablaDeNodos);
+	pthread_mutex_lock(&semaforoTablaDeAsignaciones);
 	int numeroDeTabla = recorrerTablaDeAsignaciones(archivo, divisionMaxima(offset));
 	char* bloqueDeDatos = (char*) bloquesDeDatos[numeroDeTabla] + offsetDondeEmpezar(offset);;
 	int leido = 0;
 	leido = copiarInformacion(tamanioALeerVerdadero, offset,buffer,bloqueDeDatos,archivo);
-	pthread_mutex_unlock(&semaforoTablaDeNodos);
+	pthread_mutex_unlock(&semaforoTablaDeAsignaciones);
 	if(leido != tamanioALeerVerdadero)
 	{
 		return -1;
@@ -272,12 +273,12 @@ int buscarBloqueVacio() {
 
 int crear_archivo(char* path, int direcOArch)
 {
-	pthread_mutex_lock(&semaforoTablaDeNodos);
+	pthread_mutex_lock(&semaforoTablaDeArchivos);
 	int posicionEnLaTabla = buscarArchivoVacio();
 	osada_file* archivoNuevo = &tablaDeArchivos[posicionEnLaTabla];
 	if(archivoNuevo == NULL)
 	{
-		pthread_mutex_unlock(&semaforoTablaDeNodos);
+		pthread_mutex_unlock(&semaforoTablaDeArchivos);
 		//tabla de archivos lleno
 		return -1;
 	}
@@ -293,7 +294,7 @@ int crear_archivo(char* path, int direcOArch)
 	else {
 		archivoNuevo->state = DIRECTORY;
 	}
-	pthread_mutex_unlock(&semaforoTablaDeNodos);
+	pthread_mutex_unlock(&semaforoTablaDeArchivos);
 
 	return posicionEnLaTabla;
 }
@@ -419,9 +420,11 @@ int agregar_informacion(int tamanioAAgregar, int offset, char* inicioDeAgregado,
 }
 
 int agregarBloques(osada_file* archivo, int diferenciaDeTamanios) {
+	pthread_mutex_lock(&semaforoTablaDeAsignaciones);
 	char* inicioDeAgregado = bloquesDeDatos[numeroBloqueDelArchivo(dondeEmpezarLectura(archivo->file_size),archivo)] + offsetDondeEmpezar(archivo->file_size);
 	int agregado = 0;
 	agregado = agregar_informacion(diferenciaDeTamanios, archivo->file_size, inicioDeAgregado, archivo);
+	pthread_mutex_unlock(&semaforoTablaDeAsignaciones);
 	if(agregado != diferenciaDeTamanios) {
 		return -ENOENT;
 	}
@@ -507,11 +510,11 @@ int escribir_archivo(char* path, int offset, int tamanioAEscribir, char* bufferC
 		return -ENOENT;
 	}
 
-	pthread_mutex_lock(&semaforoTablaDeNodos);
+	pthread_mutex_lock(&semaforoTablaDeAsignaciones);
 	int numeroDeTabla = recorrerTablaDeAsignaciones(archivo, divisionMaxima(offset));
 	char* inicioDeEscritura =  (char*) bloquesDeDatos[numeroDeTabla];
 	escrito = escribir_informacion(tamanioAEscribir, offset, bufferConDatos, inicioDeEscritura, archivo);
-	pthread_mutex_unlock(&semaforoTablaDeNodos);
+	pthread_mutex_unlock(&semaforoTablaDeAsignaciones);
 
 	return escrito;
 }
