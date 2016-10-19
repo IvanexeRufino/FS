@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <commons/collections/list.h>
 
 #ifndef __OSADA_H__
 #define __OSADA_H__
@@ -44,7 +45,7 @@ typedef struct {
 
 _Static_assert( sizeof(osada_file) == (sizeof(osada_block) / 2.0), "osada_file size does not half osada_block size");
 
-void reconocerOSADA(void);
+void reconocerOSADA(char* path);
 
 int buscarIndiceConPadre(char* nombreABuscar, int padre);
 

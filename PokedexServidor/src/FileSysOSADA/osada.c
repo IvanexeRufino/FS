@@ -36,18 +36,18 @@ int divisionMaxima(int numero) {
 	}
 }
 
-void reconocerOSADA(void) {
+void reconocerOSADA(char* path) {
 	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
 	log_info(logger, PROGRAM_DESCRIPTION);
 
-	int fd = open("/home/utnso/Descargas/basic.bin",O_RDWR);
+	int fd = open(path,O_RDWR);
 	struct stat my_stat;
 
 	if(fd == -1) {
 		perror("open");
 		exit(-1);
 	}
-	if(stat("/home/utnso/Descargas/basic.bin", &my_stat) < 0) {
+	if(stat(path, &my_stat) < 0) {
 		perror("fstat");
 		close(fd);
 		exit(-1);
@@ -534,45 +534,3 @@ int copiar_archivo(char* pathFuente, char*pathDestino) {
 	}
 	return 0;
 }
-
-//tener cuidado con manejo de errores
-int main () {
-	reconocerOSADA();
-	crear_archivo("/directorio/Entrenador",2);
-	crear_archivo("/directorio/Entrenador/Bruck",2);
-	crear_archivo("/directorio/Entrenador/Bruck/metadata.txt",1);
-	log_info(logger,"\n%s",tablaDeArchivos[6].fname);
-	log_info(logger,"\n%d",tablaDeArchivos[6].file_size);
-	log_info(logger,"\n%d",tablaDeArchivos[6].first_block);
-	char* bufferConDatos = malloc(205);
-	strcpy(bufferConDatos, "nombre = Bruck\nsimbolo = /\nhojaDeViaje=[PuebloPaleta,CiudadPlateada,CiudadVerde]\nobj[PuebloPaleta]=[G,P,B,G]\nobj[CiudadVerde]=[C,Z,C,Z]\nobj[CiudadPlateada]=[P,M,P,M,S,P]\nvidas = 03\nreintentos = 00\n");
-	escribir_archivo("/directorio/Entrenador/Bruck/metadata.txt", 0, 205, bufferConDatos);
-	free(bufferConDatos);
-	char* buffer = malloc(tablaDeArchivos[6].file_size);
-	leer_archivo("/directorio/Entrenador/Bruck/metadata.txt", 0, tablaDeArchivos[6].file_size,buffer);
-	log_info(logger,"\n%s",buffer);
-	free(buffer);
-	char* bufferConDatos2 = malloc(2);
-	strcpy(bufferConDatos2,"01");
-	escribir_archivo("/directorio/Entrenador/Bruck/metadata.txt", 194, 2, bufferConDatos2);
-	free(bufferConDatos2);
-	char* buffer2 = malloc(tablaDeArchivos[6].file_size);
-	leer_archivo("/directorio/Entrenador/Bruck/metadata.txt", 0, tablaDeArchivos[6].file_size,buffer2);
-	log_info(logger,"\n%s",buffer2);
-	free(buffer2);
-	crear_archivo("/directorio/Mapa",2);
-	crear_archivo("/directorio/Mapa/PuebloPaleta",2);
-	crear_archivo("/directorio/Mapa/PuebloPaleta/medalla.jpg",1);
-	char* bufferConDatos3 = malloc(2);
-	strcpy(bufferConDatos3,"AS");
-	escribir_archivo("/directorio/Mapa/PuebloPaleta/medalla.jpg", 0, 2, bufferConDatos3);
-	free(bufferConDatos3);
-	copiar_archivo("/directorio/Mapa/PuebloPaleta/medalla.jpg", "/directorio/Entrenador/Bruck/medalla.jpg");
-	char* buffer3 = malloc(tablaDeArchivos[10].file_size);
-	leer_archivo("/directorio/Entrenador/Bruck/medalla.jpg", 0, tablaDeArchivos[10].file_size,buffer3);
-	log_info(logger,"\n%s",buffer3);
-	free(buffer3);
-	return 0;
-
-}
-

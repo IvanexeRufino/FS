@@ -6,6 +6,7 @@
  */
 
 #include "pokedexservidor.h"
+#include "FileSysOSADA/osada.h"
 
 #define PORT "9999"
 
@@ -136,15 +137,16 @@ int main(void) {
 //	t_log* logger;
 //	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
 //	log_info(logger, PROGRAM_DESCRIPTION);
-	 int socketServidor;
-	 int newfd;
+	int socketServidor;
+	int newfd;
+	system("truncate -s 100k disco.bin");
+	system("./osada-format /home/ivan/tp-2016-2c-so-II-the-payback/PokedexServidor/disco.bin");
 	socketServidor = crearSocketServidor("9999");
 	IniciarSocketServidor(atoi("9999"));
 	puts("conecok");
 	newfd = AceptarConexionCliente(socketServidor);
 	printf("El cliente nuevo se ha conectado por el socket %d\n", newfd);
 	recibirPaquete(newfd, socketServidor);
-
-	    return 0;
+	return 0;
 }
 
