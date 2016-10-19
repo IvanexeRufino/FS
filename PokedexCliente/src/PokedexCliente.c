@@ -19,7 +19,7 @@ typedef struct {
 
 
 static int getattr_callback(const char *path, struct stat *buffer){
-	memset(buffer,0,sizeof(struct stat));
+	//memset(buffer,0,sizeof(struct stat));
 	pedir_atributos("1",path,buffer);
 	return 0;
 }
@@ -39,8 +39,9 @@ int pedir_atributos(char* num, const char *path, struct stat *buffer){
 
 	recibirAtributos(socket);
 	puts("recibi algo");
+	//close(socket);
 
-	return 1;
+	return 0;
 }
 
 int recibirAtributos (int socket){
@@ -86,10 +87,9 @@ int conectarConServer()
 static int readdir_callback(const char *path, void *buf, fuse_fill_dir_t filler,
 		off_t offset, struct fuse_file_info *fi) {
 
-		memset(buf,0,sizeof(buf));
-		int resultado= pedir_atributos("2",path,buf);
-
-		return resultado;
+		//memset(buf,0,sizeof(buf));
+		pedir_atributos("2",path,buf);
+		return 0;
 }
 
 //
@@ -101,10 +101,10 @@ static int readdir_callback(const char *path, void *buf, fuse_fill_dir_t filler,
 //}
 
 static struct fuse_operations fuse_pokedex_cliente = {
+	.readdir=readdir_callback,
     .getattr = getattr_callback,
 //  .open = open_callback,
 //  .read = read_callback,
-//  	.readdir=readdir_callback,
 //  .write = write_callback,
 };
 

@@ -82,11 +82,11 @@ int AceptarConexionCliente(int socketServer)
 }
 
 void getattr(char bufpath){
-
+	puts("getattr");
 }
 
 void readdir(char bufpath){
-
+	puts("readdir");
 }
 
 int enviarPaquete (char* buf,int socketServidor){
@@ -114,14 +114,14 @@ int recibirPaquete(int socket){
 	enviarPaquete(buf,socket);
 	puts("enviado");
 
-//	switch(bufheader){
-//	case '1':
-//		getattr(bufpath);
-//		break;
-//	case '2':
-//		readdir(bufpath);
-//		break;
-//	}
+	switch(bufheader){
+	case '1':
+		getattr(bufpath);
+		break;
+	case '2':
+		readdir(bufpath);
+		break;
+	}
 
 
 	return 0;
