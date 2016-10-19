@@ -88,7 +88,12 @@ void readdir(char bufpath){
 
 }
 
-int recibirPaquete(int newfd){
+int enviarPaquete (char* buf, int socketServidor){
+	send(socketServidor,buf,sizeof(buf),0);
+	puts("enviado");
+}
+
+int recibirPaquete(int newfd, int socketServidor){
 
 	char* buf=malloc(sizeof(char)*2);
 	recv(newfd,buf,sizeof(buf),0);
@@ -104,6 +109,14 @@ int recibirPaquete(int newfd){
 	printf("%c",bufpath);
 	puts("oka2");
 
+	char* bufo=malloc(sizeof(char));
+	strcpy(bufo,"c");
+	send(socketServidor,bufo,sizeof(buf),0);
+	puts("enviado");
+
+	free(buf);
+	free(bufo);
+
 	switch(bufheader){
 	case '1':
 		getattr(bufpath);
@@ -114,7 +127,6 @@ int recibirPaquete(int newfd){
 	}
 
 
-	free(buf);
 	return 0;
 }
 
@@ -131,7 +143,7 @@ int main(void) {
 	puts("conecok");
 	newfd = AceptarConexionCliente(socketServidor);
 	printf("El cliente nuevo se ha conectado por el socket %d\n", newfd);
-	recibirPaquete(newfd);
+	recibirPaquete(newfd, socketServidor);
 
 	    return 0;
 }

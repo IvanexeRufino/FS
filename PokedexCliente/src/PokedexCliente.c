@@ -12,7 +12,7 @@
 #include "pokedexcliente.h"
 
 typedef struct {
-	char *header;
+	char header;
 	const char *path;
 	int size;
 }t_package;
@@ -20,8 +20,8 @@ typedef struct {
 
 static int getattr_callback(const char *path, struct stat *buffer){
 	memset(buffer,0,sizeof(struct stat));
-	int resultado= pedir_atributos("1",path,buffer);
-	return resultado;
+	pedir_atributos("1",path,buffer);
+	return 0;
 }
 
 int pedir_atributos(char* num, const char *path, struct stat *buffer){
@@ -35,9 +35,33 @@ int pedir_atributos(char* num, const char *path, struct stat *buffer){
 
 	int socket = conectarConServer();
 	send(socket,buf,sizeof(buf),0);
+	puts("enviado");
+
+	char* otrobuf= malloc(sizeof(char));
+	recv(socket,otrobuf,sizeof(otrobuf),0);
+
+	char bufheader2;
+	bufheader2=otrobuf[0];
+	printf("%c",bufheader2);
+
+	puts("recibi algo");
+
 	free(buf);
+	free(otrobuf);
+	close(socket);
 
 	return 1;
+}
+
+int recibirAtributos (char* buf, int socket){
+	char* buffer= malloc(sizeof(buf));
+	recv(socket,buffer,sizeof(buffer),0);
+	char bufheader;
+		bufheader=buffer[0];
+		printf("%c",bufheader);
+		puts("recibido");
+		free(buffer);
+	return 0;
 }
 
 int conectarConServer()
@@ -63,7 +87,7 @@ int conectarConServer()
 			printf("Esperando...\n");
 		}
 		conecto = connect (nuevoSocket,(struct sockaddr *)&socket_info,sizeof (socket_info));
-		printf("Conectado");
+		//printf("Conectado");
 	}
 
 	return nuevoSocket;
@@ -91,7 +115,7 @@ static struct fuse_operations fuse_pokedex_cliente = {
     .getattr = getattr_callback,
 //  .open = open_callback,
 //  .read = read_callback,
-  	.readdir=readdir_callback,
+//  	.readdir=readdir_callback,
 //  .write = write_callback,
 };
 
