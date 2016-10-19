@@ -23,6 +23,7 @@ typedef struct {
 	unsigned char padding[40]; // useless bytes just to complete the block size
 } osada_header;
 
+_Static_assert( sizeof(osada_header) == sizeof(osada_block), "osada_header size does not match osada_block size");
 
 typedef enum __attribute__((packed)) {
     DELETED = '\0',
@@ -34,7 +35,7 @@ _Static_assert( sizeof(osada_file_state) == 1, "osada_file_state is not a char t
 
 typedef struct {
 	osada_file_state state;
-	char fname[OSADA_FILENAME_LENGTH];
+	unsigned char fname[OSADA_FILENAME_LENGTH];
 	uint16_t parent_directory;
 	uint32_t file_size;
 	uint32_t lastmod;
@@ -42,6 +43,40 @@ typedef struct {
 } osada_file;
 
 _Static_assert( sizeof(osada_file) == (sizeof(osada_block) / 2.0), "osada_file size does not half osada_block size");
+
+void reconocerOSADA(void);
+
+int buscarIndiceConPadre(char* nombreABuscar, int padre);
+
+int obtenerIndice(char* path);
+
+osada_file* obtenerArchivo(char* path);
+
+t_list* listaDeHijosDelArchivo(int indiceDelPadre);
+
+int borrar_directorio_vacio(char* path);
+
+int leer_archivo(char* path, int offset, int tamanioALeer, char* buffer);
+
+int buscarArchivoVacio();
+
+char* adquirirNombreAnterior(char* path);
+
+char* adquirirNombre(char* path);
+
+uint32_t buscarArchivoDelPadre(char* path);
+
+int crear_archivo(char* path, int direcOArch);
+
+int borrar_archivo(char* path);
+
+int renombrar_archivo(char* pathViejo, char* pathNuevo);
+
+osada_file* truncar_archivo(osada_file* archivo, uint32_t size);
+
+int escribir_archivo(char* path, int offset, int tamanioAEscribir, char* bufferConDatos);
+
+int copiar_archivo(char* pathFuente, char*pathDestino);
 
 #pragma pack(pop)
 

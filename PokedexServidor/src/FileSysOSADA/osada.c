@@ -15,7 +15,6 @@
 #include <pthread.h>
 #include <errno.h>
 
-
 #define LOG_FILE "osada.log"
 #define PROGRAM_NAME "Pokedex Servidor"
 #define PROGRAM_DESCRIPTION "Proceso File System"
@@ -253,7 +252,9 @@ uint32_t buscarArchivoDelPadre(char* path)
 void borrarDelBitmap(int punteroAEliminar) {
 
 	int j = inicioDeBloqueDeDatos;
+	pthread_mutex_lock(&semaforoBitmap);
 	bitarray_clean_bit(bitmap,j + punteroAEliminar);
+	pthread_mutex_unlock(&semaforoBitmap);
 }
 
 int buscarBloqueVacio() {
@@ -365,8 +366,10 @@ int ejemplo_getattr(const char *path, struct stat *st) {
 
 int agregarTablaDeAsignaciones(uint32_t bloqueNuevo, osada_file* archivo, int numeroDeRecorridos) {
 
+	pthread_mutex_lock(&semaforoTablaDeAsignaciones);
 	int numeroDeTabla = recorrerTablaDeAsignaciones(archivo, numeroDeRecorridos);
 	tablaDeAsignaciones[numeroDeTabla] = bloqueNuevo;
+	pthread_mutex_unlock(&semaforoTablaDeAsignaciones);
 	return 1;
 }
 
