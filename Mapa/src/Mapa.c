@@ -2,12 +2,16 @@
 
 t_list* listaPokenest;
 t_list* items;
-t_list* entrenadoresActivos;
-t_list* entrenadoresBloqueados;
+
+t_list* entrenadores_listos;
+t_list* entrenadores_bloqueados;
+
 pthread_mutex_t mutex_EntrenadoresActivos = PTHREAD_MUTEX_INITIALIZER;
+
 t_registroPokenest *pokemonActual;
 t_registroPersonaje *nuevoPersonaje;
 mapa_datos* infoMapa;
+
 int filas, columnas;
 t_log* logger;
 
@@ -264,51 +268,50 @@ void leerConfiguracionPokenest(char mapa[20], char pokemon[50]){
 
 }
 
-void recibirCoordenada(int *coordenada, int socketEntrenador)
+int recibirCoordenada(int socketEntrenador)
 {
+	int coordenada;
 	char* buffer = string_new();
 	recv(socketEntrenador, buffer,sizeof(buffer), 0);
 	char* payload = string_new();
 	payload =string_duplicate(buffer);
 	str_cut(payload,0,1);
 
-	(*coordenada)=atoi(payload);
+	coordenada=atoi(payload);
+	return coordenada;
 
 }
 
-void recibirBienvenidaEntrenador(int newfd,t_registroPersonaje *nuevoPersonaje)
+char recibirBienvenidaEntrenador(int newfd,t_registroPersonaje *nuevoPersonaje)
 {
-	recibirCoordenada(&(nuevoPersonaje->x),newfd);		//Recibo coordenada Entrenador en X
+	nuevoPersonaje->socket=newfd;	// Lleno con el campo del socket donde me voy a comunicar
+	printf("Se conecto con el cliente por el socket %d \n", newfd);
+
+	int x = recibirCoordenada(newfd);
+	nuevoPersonaje->x=x;					// Lleno con el campo de la ubicacion en X
+
+	int y = recibirCoordenada(newfd);
+	nuevoPersonaje->y=y;					// Lleno con el campo de la ubicacion en Y
+
 	printf("La coordenada INICIAL en X del ENTRENADOR es %d \n", nuevoPersonaje->x);
-	recibirCoordenada(&(nuevoPersonaje->y),newfd);		//Recibo coordenada Entrenador en Y
 	printf("La coordenada INICIAL en Y del ENTRENADOR es %d \n", nuevoPersonaje->y);
-
-
 
 	char nombre[40];
 	recv(newfd,nombre,sizeof(nombre),0);
-	printf("Lo que recibio del cliente %d es su nombre: %s\n", newfd, nombre);
-	strcpy(nuevoPersonaje->nombre, nombre);
+	strcpy(nuevoPersonaje->nombre,nombre);	// Lleno con el campo del nombre
+	printf("Su nombre es: %s\n", nuevoPersonaje->nombre);
 
 	char* buffer = string_new();
 	recv(newfd,buffer,sizeof(buffer),0);
-	printf("Lo que recibio del cliente %d es esto: %s\n", newfd,buffer);
+	printf("Lo que recibio del entrenador %d es esto: %s\n", newfd,buffer);
 
 	char bufferConAccion;
 	bufferConAccion=buffer[0];
 	printf("La accion que pide hacer el entrenador es %c\n", bufferConAccion);
 
-	char bufferConID;
-	bufferConID=buffer[1];
-	char identificador= bufferConID;
-
-	nuevoPersonaje->identificador=identificador;
+	nuevoPersonaje->identificador=buffer[1];	// Lleno con el campo con el identificador
 	printf("El ID del entrenador es %c\n", nuevoPersonaje->identificador);
-
-	pthread_mutex_lock(&mutex_EntrenadoresActivos);
-	list_add(entrenadoresActivos, nuevoPersonaje);
-	pthread_mutex_unlock(&mutex_EntrenadoresActivos);
-
+	return (buffer[0]);
 }
 
 void cargoDatosPokemonActual(char pokemonQueRecibo,t_registroPokenest* pokemonActual)
@@ -375,7 +378,7 @@ void envioQueSeAtrapoPokemon (t_registroPersonaje *personaje, t_registroPokenest
 	}
 }
 
-void recibirQueHacer(t_registroPersonaje *nuevoPersonaje,t_registroPokenest* pokemonActual,int *finalizoElMapa)
+void recibirQueHacer(t_registroPersonaje *nuevoPersonaje,t_registroPokenest* pokemonActual)
 {
 	char* buffer = string_new();
 	recv(nuevoPersonaje->socket,buffer,sizeof(buffer),0);
@@ -414,136 +417,96 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje,t_registroPokenest* pok
 
 	case ('3'):
 
+		//Si hay deadlock lo meto en la entrenadores_bloqueados
 		envioQueSeAtrapoPokemon(nuevoPersonaje,pokemonActual);
 
 		break;
 
 	case ('4'):
 		recuperarPokemonDeEntrenador(nuevoPersonaje);
-		(*finalizoElMapa)=1;
-
+		nuevoPersonaje->estado='T';
+		list_remove(entrenadores_listos,0);
 		break;
 	}
 
 }
 
-void funcionDelThread (parametros_entrenador* param)
+void thread_entrenandor (t_registroPersonaje* nuevoPersonaje,t_registroPokenest* pokemonActual)
 {
+	//Lo deberia sacar de la lista de listos, y al finalizar con su operacion ponerlo al final de la cola de listos
+	nuevoPersonaje->estado = 'E';
+	recibirQueHacer(nuevoPersonaje,pokemonActual);
 
-	nuevoPersonaje = malloc(sizeof(t_registroPersonaje));
-	nuevoPersonaje->socket=param->newfd;
-	nuevoPersonaje->threadId = param->idHilo;
+}
 
-	pokemonActual=malloc(sizeof(t_registroPokenest));
+t_registroPersonaje planificarRoundRobin()
+{
+	t_registroPersonaje entrenadorParaEjectuar;
+	return entrenadorParaEjectuar;
+}
 
-	recibirBienvenidaEntrenador(param->newfd,nuevoPersonaje);
-	int finalizoElMapa=0;
-	sleep(10);
-	//Recibo del planificador el quantum que me otorga y lo uso
-	//for (i=0,i<quantum),quantum--);
-	while(finalizoElMapa == 0)
+t_registroPersonaje planificarSRDF()
+{
+	t_registroPersonaje entrenadorParaEjectuar;
+	return entrenadorParaEjectuar;
+}
+
+t_registroPersonaje planificarEntrenador()
 	{
-		recibirQueHacer(nuevoPersonaje,pokemonActual,&finalizoElMapa);
-	}
-
-}
-
-//void recibirEntrenador(int newfd){
-//	char* buffer = malloc(2);
-//	recv(newfd, buffer, sizeof(char) * 2, 0);
-//	//int a;
-//
-//	t_registroPersonaje *nuevoPersonaje;
-//	nuevoPersonaje = malloc(sizeof(t_registroPersonaje));
-//	//memcpy(&(a), buffer, sizeof(char));
-//
-//	char* bufferRecortado = malloc(2);
-//	strcpy(bufferRecortado, buffer);
-//	str_cut(bufferRecortado,0,1);
-//	memcpy((nuevoPersonaje->identificador), bufferRecortado,  sizeof(char));
-//
-//	                    //----RECIBO OBJETIVOS
-//	recv(newfd, nuevoPersonaje->objetivos,sizeof(char)*7,0);
-//	//puts(nuevoPersonaje->objetivos);
-//	nuevoPersonaje->socket=newfd;
-//	//printf("reciving char: %c\n", a);
-//	//printf("reciving char: %c\n", nuevoPersonaje->identificador);
-//	nuevoPersonaje->ultimoRecurso = 0;
-//	nuevoPersonaje->x = 1;
-//	nuevoPersonaje->y = 1;
-//	//char id = (nuevoPersonaje->identificador)[0];
-//    CrearPersonaje(items, nuevoPersonaje->identificador, nuevoPersonaje->x, nuevoPersonaje->y);
-//    pthread_mutex_lock(&mutex_EntrenadoresActivos);
-//    list_add(entrenadoresActivos, nuevoPersonaje);
-//    pthread_mutex_unlock(&mutex_EntrenadoresActivos);
-//    free(buffer);
-////    free(nuevoPersonaje);
-//    free(bufferRecortado);
-//    //nuevoPersonaje = NULL;
-//
-//}
-
-void planificarRoundRobin(t_registroPersonaje* entrenador)
-{
-	return;
-}
-
-void planificarSRDF(t_registroPersonaje* entrenador)
-{
-	return;
-}
-
-void planificarEntrenador(t_registroPersonaje* entrenador)
-	{
-	if (entrenador->estado == 'E')
-			{
+	t_registroPersonaje entrenadorParaEjectuar;
 		if(!strcmp(infoMapa->algoritmo, "RR"))
 				{
-					planificarRoundRobin(entrenador);
+			entrenadorParaEjectuar = planificarRoundRobin();
 				}
 		else
 				{
-					planificarSRDF(entrenador);
+			entrenadorParaEjectuar = planificarSRDF();
 				}
-			}
+
+	return entrenadorParaEjectuar;
 	}
 
+void planificar_Entrenadores(int newfd)
+{
+	 nuevoPersonaje = malloc(sizeof(t_registroPersonaje));
+	 pokemonActual=malloc(sizeof(t_registroPokenest));
+	 char estaListoParaJugar = recibirBienvenidaEntrenador(newfd,nuevoPersonaje);	//Realizo el handshake
 
-void planificar(){
-
-if(entrenadoresActivos->elements_count==0)
+ 	if (estaListoParaJugar == '0')
 	{
-		puts("Cola de Ready vacia");
+ 		nuevoPersonaje->estado='L';
+		pthread_mutex_lock(&mutex_EntrenadoresActivos);
+		list_add(entrenadores_listos,nuevoPersonaje);
+		pthread_mutex_unlock(&mutex_EntrenadoresActivos);
 	}
-else{
-	int s;
-	for(s=0; s<entrenadoresActivos->elements_count; s++){
-
-		planificarEntrenador(list_get(entrenadoresActivos,s));
+		else
+	{
+		printf("Nose para que te conectaste si no queres jugar xD \n");		// No deberia tirar nunca este printf
 	}
+ 	while(nuevoPersonaje->estado !='T')
+ 	{
+  		//pthread_t hiloPlanificador;
+    	//pthread_create (&hiloPlanificador,NULL,(void*)planificarEntrenador,NULL);
+    	//t_registroPersonaje entrenadorQueVaAejecutar=planificarEntrenador();	//Me devuelve cual es el entrenador que ejecuta
+    thread_entrenandor(nuevoPersonaje,pokemonActual);	//tendria que mandar en un futuro el que puede me dice que puedo ejecutar el planificador
+ 	}
 
-}
-}
-
-void iniciarHiloPlanificador(){
-	pthread_t hiloPlanificador;
-	pthread_create (&hiloPlanificador,NULL,(void*)planificar,NULL);
-
-}
-
-
-
+ 	free(pokemonActual);
+ 	free(nuevoPersonaje);
+ }
 int main(int argc, char **argv)
 {
 	filas = 30;
 	columnas = 30;
 	listaPokenest = malloc(sizeof(t_registroPokenest));
-	listaPokenest = list_create();
-	items = list_create();
+	listaPokenest = list_create();							//Lista con todas las pokenest
+	items = list_create();									//Para usar despues en las cajas
 	//nivel_gui_inicializar();
 	//nivel_gui_get_area_nivel(&filas, &columnas);
-	entrenadoresActivos = malloc(sizeof(t_list));
-	entrenadoresBloqueados = malloc (sizeof(t_list));
+	entrenadores_listos = malloc(sizeof(t_list));
+	entrenadores_listos = list_create();
+	entrenadores_bloqueados = malloc (sizeof(t_list));
+	entrenadores_bloqueados = list_create();
 
 		/* Inicializacion y registro inicial de ejecucion */
 		logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
@@ -569,60 +532,30 @@ int main(int argc, char **argv)
 //		  ii++;
 //	  }
 
-// pthread_t idHiloPlanificador;
-//
-// pthread_create (&idHiloPlanificador, NULL, (void*) funcionDelThread, 5);
-//
-// pthread_join(idHiloPlanificador,0);
-
     // bucle principal
 	  int socketServidor;
 	  int newfd;
 	      socketServidor = crearSocketServidor(infoMapa->puertoEscucha);
 	      IniciarSocketServidor(atoi(infoMapa->puertoEscucha));
-	      void iniciarHiloPlanificador();
 
-	  while(1)
-	  {
+	     //Hacemos un while 1 porque siempre queremos recibir conexiones entrantes
+	     //Y ademas creamos un hilo para que mientras que escuche conexiones nuevas, me delegue lo que llego para trabajar
 
+	     while(1)
+	     {
+	    	 newfd = AceptarConexionCliente(socketServidor);
 
-		sleep(4);
-    	newfd = AceptarConexionCliente(socketServidor);
-    	printf("El cliente nuevo se ha conectado por el socket %d\n", newfd);
+	    	 //Aca conviene hacer DATACHABLES PARA QUE CUANDO TERMINE EL HILO LIBERE TODOS SUS RECURSOS
+	    	 //No quiero quedarme esperando a que termine de hacer lo del hilo, por eso no pongo el join
+	    	 //Quiero seguir escuchando conexiones entrantes
 
-    	//Creacion de hilos bajo demanda
-
-//    	pthread_attr_t attr;
-//    	pthread_t idHilo;
-//
-//		pthread_attr_init(&attr);
-//		pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-//
-//    	pthread_create (&idHilo,&attr,(void*)funcionDelThread,(void*)newfd);
-//
-//		pthread_attr_destroy(&attr);
-
-		//Creacion de pool de hilos
-
-    	pthread_t idHilo;
-    	parametros_entrenador* param = malloc(sizeof(parametros_entrenador));
-    	param->idHilo = idHilo;
-    	param->newfd = newfd;
-    	pthread_create (&idHilo,NULL,(void*)funcionDelThread,param);
-    	//pthread_join(idHilo,0);
-	  }
-//    	funcionDelThread(newfd);
+	    	 pthread_t hilo_delegador;
+	    	 pthread_create (&hilo_delegador,NULL,(void*)planificar_Entrenadores,(void*)newfd);
+	     }
 
     	//while(1)
     		// nivel_gui_dibujar(items, argv );
 
-list_destroy(listaPokenest);
-list_destroy(items);
-list_destroy(entrenadoresActivos);
-list_destroy(entrenadoresBloqueados);
-free(pokemonActual);
-free(infoMapa);
-free(nuevoPersonaje);
 
 puts("Se finalizaron las operaciones con todos los entrenadores que estaban conectados");
 puts("-----El proceso mapa se cerrara, gracias por jugar-----");
