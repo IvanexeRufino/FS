@@ -78,6 +78,13 @@ typedef struct
 	int tiempoChequeoDeadlock;
 } mapa_datos;
 
+typedef struct
+	{
+	int newfd;
+	pthread_t idHilo;
+
+	} parametros_entrenador;
+
 /*----------------------- Declaraciones de Variables Globales ---------------------------*/
 
 

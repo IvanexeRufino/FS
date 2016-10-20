@@ -15,6 +15,8 @@ mapa_datos* infoMapa;
 int filas, columnas;
 t_log* logger;
 
+sem_t colaDeListos;
+
 void recuperarPokemonDeEntrenador(t_registroPersonaje *personaje){
 	char origen[300];
 	char destino[300];
@@ -431,46 +433,62 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje,t_registroPokenest* pok
 
 }
 
-void thread_entrenandor (t_registroPersonaje* nuevoPersonaje,t_registroPokenest* pokemonActual)
+void thread_entrenador (t_registroPersonaje* nuevoPersonaje,t_registroPokenest* pokemonActual)
 {
 	//Lo deberia sacar de la lista de listos, y al finalizar con su operacion ponerlo al final de la cola de listos
+
+	switch(nuevoPersonaje->estado)
+	{
+	case 'L':
+
 	nuevoPersonaje->estado = 'E';
 	recibirQueHacer(nuevoPersonaje,pokemonActual);
+	break;
 
+
+	case 'E':
+
+	recibirQueHacer(nuevoPersonaje,pokemonActual);
+	break;
+
+	default:
+		break;
+
+	}
 }
 
-t_registroPersonaje planificarRoundRobin()
+void planificarRoundRobin()
 {
-	t_registroPersonaje entrenadorParaEjectuar;
-	return entrenadorParaEjectuar;
+	return;
 }
 
-t_registroPersonaje planificarSRDF()
+void planificarSRDF()
 {
-	t_registroPersonaje entrenadorParaEjectuar;
-	return entrenadorParaEjectuar;
+	return;
 }
 
-t_registroPersonaje planificarEntrenador()
+void planificarEntrenador(t_registroPersonaje* entrenador)
 	{
-	t_registroPersonaje entrenadorParaEjectuar;
+
 		if(!strcmp(infoMapa->algoritmo, "RR"))
 				{
-			entrenadorParaEjectuar = planificarRoundRobin();
+			planificarRoundRobin();
 				}
 		else
 				{
-			entrenadorParaEjectuar = planificarSRDF();
+			planificarSRDF();
 				}
+		thread_entrenador(entrenador, pokemonActual);
 
-	return entrenadorParaEjectuar;
+	return;
 	}
 
-void planificar_Entrenadores(int newfd)
+void planificar_Entrenadores(parametros_entrenador* param)
 {
 	 nuevoPersonaje = malloc(sizeof(t_registroPersonaje));
 	 pokemonActual=malloc(sizeof(t_registroPokenest));
-	 char estaListoParaJugar = recibirBienvenidaEntrenador(newfd,nuevoPersonaje);	//Realizo el handshake
+	 nuevoPersonaje->threadId = param->idHilo;
+	 char estaListoParaJugar = recibirBienvenidaEntrenador(param->newfd,nuevoPersonaje);	//Realizo el handshake
 
  	if (estaListoParaJugar == '0')
 	{
@@ -478,22 +496,67 @@ void planificar_Entrenadores(int newfd)
 		pthread_mutex_lock(&mutex_EntrenadoresActivos);
 		list_add(entrenadores_listos,nuevoPersonaje);
 		pthread_mutex_unlock(&mutex_EntrenadoresActivos);
+		sem_post(&colaDeListos);
 	}
 		else
 	{
 		printf("Nose para que te conectaste si no queres jugar xD \n");		// No deberia tirar nunca este printf
 	}
- 	while(nuevoPersonaje->estado !='T')
- 	{
-  		//pthread_t hiloPlanificador;
-    	//pthread_create (&hiloPlanificador,NULL,(void*)planificarEntrenador,NULL);
-    	//t_registroPersonaje entrenadorQueVaAejecutar=planificarEntrenador();	//Me devuelve cual es el entrenador que ejecuta
-    thread_entrenandor(nuevoPersonaje,pokemonActual);	//tendria que mandar en un futuro el que puede me dice que puedo ejecutar el planificador
- 	}
+// 	while(nuevoPersonaje->estado !='T')
+// 	{
+//  		//pthread_t hiloPlanificador;
+//    	//pthread_create (&hiloPlanificador,NULL,(void*)planificarEntrenador,NULL);
+//    	//t_registroPersonaje entrenadorQueVaAejecutar=planificarEntrenador();	//Me devuelve cual es el entrenador que ejecuta
+//    thread_entrenador(nuevoPersonaje,pokemonActual);	//tendria que mandar en un futuro el que me dice que puedo ejecutar el planificador
+// 	}
+
 
  	free(pokemonActual);
  	free(nuevoPersonaje);
  }
+void planificar()
+	{
+
+
+		sem_wait(&colaDeListos);
+
+			int s,j;
+			int cantidadEntrenadores;
+			pthread_mutex_lock(&mutex_EntrenadoresActivos);
+			cantidadEntrenadores = entrenadores_listos->elements_count;
+			pthread_mutex_unlock(&mutex_EntrenadoresActivos);
+			while(cantidadEntrenadores!=0)
+			{
+
+		for(j=0; j<cantidadEntrenadores; j++)
+		{
+
+
+			for(s=0; s<infoMapa->quantum; s++)
+				{
+
+
+					planificarEntrenador(list_get(entrenadores_listos,j));
+
+				}
+		}
+			}
+	}
+
+
+
+void iniciarHiloPlanificador(pthread_t hilo)
+	{
+
+
+		pthread_create (&hilo,NULL,(void*)planificar,NULL);
+		return;
+	}
+
+
+
+
+
 int main(int argc, char **argv)
 {
 	filas = 30;
@@ -537,6 +600,15 @@ int main(int argc, char **argv)
 	  int newfd;
 	      socketServidor = crearSocketServidor(infoMapa->puertoEscucha);
 	      IniciarSocketServidor(atoi(infoMapa->puertoEscucha));
+	      pthread_t hiloPlanificador;
+	      //void iniciarHiloPlanificador(hiloPlanificador);
+
+	      pthread_create (&hiloPlanificador,NULL,(void*)planificar,NULL);
+	      int ret;
+	      int count = 0;
+
+	      /* to be shared among processes */
+	      ret = sem_init(&colaDeListos, 1, count);
 
 	     //Hacemos un while 1 porque siempre queremos recibir conexiones entrantes
 	     //Y ademas creamos un hilo para que mientras que escuche conexiones nuevas, me delegue lo que llego para trabajar
@@ -549,8 +621,13 @@ int main(int argc, char **argv)
 	    	 //No quiero quedarme esperando a que termine de hacer lo del hilo, por eso no pongo el join
 	    	 //Quiero seguir escuchando conexiones entrantes
 
-	    	 pthread_t hilo_delegador;
-	    	 pthread_create (&hilo_delegador,NULL,(void*)planificar_Entrenadores,(void*)newfd);
+	    	 pthread_t idHilo;
+
+	    	  parametros_entrenador* param = malloc(sizeof(parametros_entrenador));
+	    	  param->idHilo = idHilo;
+	    	  param->newfd = newfd;
+	    	  pthread_create (&idHilo,NULL,(void*)planificar_Entrenadores,param);
+	    	  //pthread_join(&hiloPlanificador,0);
 	     }
 
     	//while(1)
