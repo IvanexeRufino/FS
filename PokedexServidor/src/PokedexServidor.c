@@ -76,16 +76,15 @@ int IniciarSocketServidor(int puertoServer)
 		return socketEscucha;
 }
 
-int AceptarConexionCliente(int socketServer)
-{
+int AceptarConexionCliente(int socketServer) {
 	socklen_t longitudCliente;//esta variable tiene inicialmente el tamaño de la estructura cliente que se le pase
 	struct sockaddr cliente;
 	int socketNuevaConexion;//esta variable va a tener la descripcion del nuevo socket que estaria creando
 	longitudCliente = sizeof(cliente);
 	socketNuevaConexion = accept (socketServer, &cliente, &longitudCliente);//acepto la conexion del cliente
-	if (socketNuevaConexion < 0)
+	if (socketNuevaConexion < 0){
 		return -1;
-
+	}
 	return socketNuevaConexion;
 
 }
@@ -163,8 +162,8 @@ int main(void) {
 //	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
 //	log_info(logger, PROGRAM_DESCRIPTION);
 	int newfd;
-	system("truncate -s 100k disco.bin");
-	system("./osada-format /home/ivan/tp-2016-2c-so-II-the-payback/PokedexServidor/disco.bin");
+//	system("truncate -s 100k disco.bin");
+//	system("./osada-format /home/ivan/tp-2016-2c-so-II-the-payback/PokedexServidor/disco.bin");
 	socketServidor = crearSocketServidor("9999");
 	IniciarSocketServidor(atoi("9999"));
 	puts("conecok");

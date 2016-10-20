@@ -99,7 +99,6 @@ static int readdir_callback(const char *path, void *buf, fuse_fill_dir_t filler,
 			filler(buf, archivoHijo, NULL, 0);
 		}
 		return 0;
-		return 0;
 }
 
 //
@@ -111,7 +110,7 @@ static int readdir_callback(const char *path, void *buf, fuse_fill_dir_t filler,
 //}
 
 static struct fuse_operations fuse_pokedex_cliente = {
-	.readdir=readdir_callback,
+	.readdir = readdir_callback,
     .getattr = getattr_callback,
 //  .open = open_callback,
 //  .read = read_callback,
@@ -124,10 +123,6 @@ int main(int argc, char *argv[]) {
 //	t_log* logger;
 //	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
 //	log_info(logger, PROGRAM_DESCRIPTION);
-
-
-
-
 
 	return fuse_main(argc,argv,&fuse_pokedex_cliente,NULL);
 }
