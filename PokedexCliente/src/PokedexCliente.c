@@ -12,14 +12,14 @@
 #include "pokedexcliente.h"
 
 typedef struct {
-	char header;
+	char* header;
 	const char *path;
 	int size;
 }t_package;
 
 
 static int getattr_callback(const char *path, struct stat *buffer){
-	memset(buffer,0,sizeof(struct stat));
+	//memset(buffer,0,sizeof(struct stat));
 	pedir_atributos("1",path,buffer);
 	return 0;
 }
@@ -37,30 +37,20 @@ int pedir_atributos(char* num, const char *path, struct stat *buffer){
 	send(socket,buf,sizeof(buf),0);
 	puts("enviado");
 
-	char* otrobuf= malloc(sizeof(char));
-	recv(socket,otrobuf,sizeof(otrobuf),0);
-
-	char bufheader2;
-	bufheader2=otrobuf[0];
-	printf("%c",bufheader2);
-
+	recibirAtributos(socket);
 	puts("recibi algo");
+	//close(socket);
 
-	free(buf);
-	free(otrobuf);
-	close(socket);
-
-	return 1;
+	return 0;
 }
 
-int recibirAtributos (char* buf, int socket){
-	char* buffer= malloc(sizeof(buf));
+int recibirAtributos (int socket){
+	char* buffer= malloc(sizeof(char));
 	recv(socket,buffer,sizeof(buffer),0);
 	char bufheader;
 		bufheader=buffer[0];
 		printf("%c",bufheader);
 		puts("recibido");
-		free(buffer);
 	return 0;
 }
 
@@ -97,10 +87,9 @@ int conectarConServer()
 static int readdir_callback(const char *path, void *buf, fuse_fill_dir_t filler,
 		off_t offset, struct fuse_file_info *fi) {
 
-		memset(buf,0,sizeof(buf));
-		int resultado= pedir_atributos("2",path,buf);
-
-		return resultado;
+		//memset(buf,0,sizeof(buf));
+		pedir_atributos("2",path,buf);
+		return 0;
 }
 
 //
@@ -112,10 +101,10 @@ static int readdir_callback(const char *path, void *buf, fuse_fill_dir_t filler,
 //}
 
 static struct fuse_operations fuse_pokedex_cliente = {
+	.readdir=readdir_callback,
     .getattr = getattr_callback,
 //  .open = open_callback,
 //  .read = read_callback,
-//  	.readdir=readdir_callback,
 //  .write = write_callback,
 };
 
