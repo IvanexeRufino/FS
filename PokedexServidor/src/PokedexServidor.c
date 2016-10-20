@@ -7,8 +7,17 @@
 
 #include "pokedexservidor.h"
 #include "FileSysOSADA/osada.h"
+#include <errno.h>
 
 #define PORT "9999"
+
+int socketServidor;
+
+typedef struct {
+	char* header;
+	const char *path;
+	int size;
+}t_package;
 
 int crearSocketServidor(char *puerto) {
 	int BACKLOOG = 5;
@@ -85,12 +94,33 @@ void getattr(char bufpath){
 	puts("getattr");
 }
 
-void readdir(char bufpath){
-	puts("readdir");
+int readdir(char* bufpath){
+	int i;
+	int indice = obtenerIndice(bufpath);
+	if(indice == -1) {
+		return -ENOENT;
+	}
+	t_list* listaDeHijos = listaDeHijosDelArchivo(indice);
+	char* nombresDeHijos = malloc(list_size(listaDeHijos)*sizeof(listaDeHijos));
+	for(i = 0; i < list_size(listaDeHijos); i++) {
+		nombresDeHijos[i] = list_get(listaDeHijos,i);
+	}
+	char* buff = malloc(sizeof(listaDeHijos));
+	memcpy(buff,nombresDeHijos,sizeof(nombresDeHijos));
+	enviarPaquete("2",buff);
 }
 
-int enviarPaquete (char* buf,int socketServidor){
-	send(socketServidor,buf,sizeof(buf),0);
+int enviarPaquete (char* head, char* buff){
+	t_package *package= malloc(sizeof(package));
+	package->header=head;
+	package->path=buff;
+
+	char* buf= malloc(sizeof(package));
+	strcpy(buf,package->header);
+	strcat(buf,package->path);
+
+	int socket = conectarConServer();
+	send(socketServidor,buff,sizeof(buff),0);
 	puts("enviado");
 	return 0;
 }
@@ -133,7 +163,6 @@ int main(void) {
 //	t_log* logger;
 //	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
 //	log_info(logger, PROGRAM_DESCRIPTION);
-	int socketServidor;
 	int newfd;
 	system("truncate -s 100k disco.bin");
 	system("./osada-format /home/ivan/tp-2016-2c-so-II-the-payback/PokedexServidor/disco.bin");

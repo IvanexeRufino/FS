@@ -13,10 +13,9 @@
 
 typedef struct {
 	char* header;
-	const char *path;
+	const char *body;
 	int size;
 }t_package;
-
 
 static int getattr_callback(const char *path, struct stat *buffer){
 	//memset(buffer,0,sizeof(struct stat));
@@ -24,33 +23,35 @@ static int getattr_callback(const char *path, struct stat *buffer){
 	return 0;
 }
 
-int pedir_atributos(char* num, const char *path, struct stat *buffer){
+t_list* pedir_atributos(char* num, const char *path, struct stat *buffer){
 	t_package *package= malloc(sizeof(package));
 	package->header=num;
-	package->path=path;
+	package->body=path;
 
 	char* buf= malloc(sizeof(package));
 	strcpy(buf,package->header);
-	strcat(buf,package->path);
+	strcat(buf,package->body);
 
 	int socket = conectarConServer();
 	send(socket,buf,sizeof(buf),0);
 	puts("enviado");
 
-	recibirAtributos(socket);
+	char* bufferRecieve = malloc(sizeof(package));
+	recv(socket,bufferRecieve,sizeof(bufferRecieve),0);
 	puts("recibi algo");
-	//close(socket);
+	strcpy(package->header, bufferRecieve[0]);
+	t_list listaDeHijos = list_create();
+	int i;
+	for(i=0;i < sizeof(bufferRecieve) - sizeof(bufferRecieve[0]); i++) {
+		list_set(listaDeHijos,bufferRecieve[i+1]);
+	}
 
-	return 0;
-}
-
-int recibirAtributos (int socket){
-	char* buffer= malloc(sizeof(char));
-	recv(socket,buffer,sizeof(buffer),0);
-	char bufheader;
-		bufheader=buffer[0];
-		printf("%c",bufheader);
-		puts("recibido");
+	filler(buffer, ".", NULL, 0);
+	filler(buffer, "..", NULL, 0);
+	for(int i = 0; i <list_size(listaDeHijos); i++) {
+		char* archivoHijo = list_get(listaDeHijos,i);
+		filler(buffer, archivoHijo, NULL, 0);
+	}
 	return 0;
 }
 
