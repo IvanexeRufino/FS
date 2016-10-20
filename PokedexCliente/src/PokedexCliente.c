@@ -10,50 +10,14 @@
 
 //#include "Configuracion.c"
 #include "pokedexcliente.h"
+#include <commons/collections/list.h>
+#include <fuse.h>
 
 typedef struct {
 	char* header;
 	const char *body;
 	int size;
 }t_package;
-
-static int getattr_callback(const char *path, struct stat *buffer){
-	//memset(buffer,0,sizeof(struct stat));
-	pedir_atributos("1",path,buffer);
-	return 0;
-}
-
-t_list* pedir_atributos(char* num, const char *path, struct stat *buffer){
-	t_package *package= malloc(sizeof(package));
-	package->header=num;
-	package->body=path;
-
-	char* buf= malloc(sizeof(package));
-	strcpy(buf,package->header);
-	strcat(buf,package->body);
-
-	int socket = conectarConServer();
-	send(socket,buf,sizeof(buf),0);
-	puts("enviado");
-
-	char* bufferRecieve = malloc(sizeof(package));
-	recv(socket,bufferRecieve,sizeof(bufferRecieve),0);
-	puts("recibi algo");
-	strcpy(package->header, bufferRecieve[0]);
-	t_list listaDeHijos = list_create();
-	int i;
-	for(i=0;i < sizeof(bufferRecieve) - sizeof(bufferRecieve[0]); i++) {
-		list_set(listaDeHijos,bufferRecieve[i+1]);
-	}
-
-	filler(buffer, ".", NULL, 0);
-	filler(buffer, "..", NULL, 0);
-	for(int i = 0; i <list_size(listaDeHijos); i++) {
-		char* archivoHijo = list_get(listaDeHijos,i);
-		filler(buffer, archivoHijo, NULL, 0);
-	}
-	return 0;
-}
 
 int conectarConServer()
 {
@@ -85,11 +49,56 @@ int conectarConServer()
 }
 
 
+char* pedir_atributos(char* num, const char *path, struct stat *buffer){
+	int i;
+	t_package *package= malloc(sizeof(package));
+	package->header=num;
+	package->body=path;
+
+	char* buf= malloc(sizeof(package));
+	strcpy(buf,package->header);
+	strcat(buf,package->body);
+
+	int socket = conectarConServer();
+	send(socket,buf,sizeof(buf),0);
+	puts("enviado");
+
+	char* bufferRecieve = malloc(sizeof(package));
+	recv(socket,bufferRecieve,sizeof(bufferRecieve),0);
+	puts("recibi algo");
+
+	return bufferRecieve;
+}
+
+static int getattr_callback(const char *path, struct stat *buffer){
+	memset(buffer,0,sizeof(struct stat));
+	pedir_atributos("1",path,buffer);
+	return 0;
+}
+
 static int readdir_callback(const char *path, void *buf, fuse_fill_dir_t filler,
 		off_t offset, struct fuse_file_info *fi) {
 
-		//memset(buf,0,sizeof(buf));
-		pedir_atributos("2",path,buf);
+		memset(buf,0,sizeof(buf));
+		char* bufferRecieve = pedir_atributos("2",path,buf);
+
+		int i;
+		t_package *package= malloc(sizeof(package));
+
+		strcpy(package->header, bufferRecieve[0]);
+		t_list* listaDeHijos = list_create();
+		for(i=0;i < sizeof(bufferRecieve) - sizeof(bufferRecieve[0]); i++) {
+			list_add(listaDeHijos,bufferRecieve[i+1]);
+		}
+
+		filler(buf, ".", NULL, 0);
+		filler(buf, "..", NULL, 0);
+
+		for(i = 0; i <list_size(listaDeHijos); i++) {
+			char* archivoHijo = list_get(listaDeHijos,i);
+			filler(buf, archivoHijo, NULL, 0);
+		}
+		return 0;
 		return 0;
 }
 

@@ -119,7 +119,6 @@ int enviarPaquete (char* head, char* buff){
 	strcpy(buf,package->header);
 	strcat(buf,package->path);
 
-	int socket = conectarConServer();
 	send(socketServidor,buff,sizeof(buff),0);
 	puts("enviado");
 	return 0;
