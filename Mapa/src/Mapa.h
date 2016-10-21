@@ -46,6 +46,7 @@ typedef struct
 {
 	char nombre[40];
 	char identificador;
+	char proximoObjetivo;
 	int ultimoRecurso;  // 0 = ultimo movimiento fue en X ---- 1 = ultimo movimiento fue en Y
 	int socket;
 	int x;

@@ -19,6 +19,32 @@ t_log* logger;
 
 sem_t colaDeListos;
 
+
+
+t_registroPersonaje* calcularMasCercanoASuObjetivo (){
+	t_registroPersonaje* entrenador = (t_registroPersonaje*)list_get(entrenadores_listos, 0);
+	t_registroPersonaje* entrenadorMinimo = entrenador;
+	int distanciaMinima= distanciaAProxObjetivo(entrenador,entrenador->proximoObjetivo);
+	int i;
+	int indice = 0;
+	for(i=0; i <= list_size(entrenadores_listos); i++){
+		entrenador = list_get(entrenadores_listos,i);
+		if(distanciaAProxObjetivo(entrenador,entrenador->proximoObjetivo)<distanciaMinima){
+			entrenadorMinimo = entrenador;
+			distanciaMinima = distanciaAProxObjetivo(entrenador,entrenador->proximoObjetivo);
+			indice = i;
+		}
+	}
+	return entrenadorMinimo;
+}
+
+int distanciaAProxObjetivo(t_registroPersonaje* pj, char obj){
+	int dist;
+	t_registroPokenest* pok= malloc(sizeof(t_registroPokenest));
+	cargoDatosPokemonActual(obj, pok);
+	return (abs(pj->x - pok->x) + abs(pj->y - pok->y));
+}
+
 void recuperarPokemonDeEntrenador(t_registroPersonaje *personaje){
 	char origen[300];
 	char destino[300];
@@ -450,7 +476,7 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje,t_registroPokenest* pok
 	case ('1'):
 
 		cargoDatosPokemonActual(payload[0],pokemonActual);
-
+		nuevoPersonaje->proximoObjetivo = payload[0];
 		coordenadaX = enviarCoordenada(pokemonActual->x,nuevoPersonaje->socket);				//Envio coordenada del pokemon en X
 		printf("Estoy enviando la coordenada en X que es %d \n",coordenadaX);
 
