@@ -21,29 +21,6 @@ sem_t colaDeListos;
 
 
 
-t_registroPersonaje* calcularMasCercanoASuObjetivo (){
-	t_registroPersonaje* entrenador = (t_registroPersonaje*)list_get(entrenadores_listos, 0);
-	t_registroPersonaje* entrenadorMinimo = entrenador;
-	int distanciaMinima= distanciaAProxObjetivo(entrenador,entrenador->proximoObjetivo);
-	int i;
-	int indice = 0;
-	for(i=0; i <= list_size(entrenadores_listos); i++){
-		entrenador = list_get(entrenadores_listos,i);
-		if(distanciaAProxObjetivo(entrenador,entrenador->proximoObjetivo)<distanciaMinima){
-			entrenadorMinimo = entrenador;
-			distanciaMinima = distanciaAProxObjetivo(entrenador,entrenador->proximoObjetivo);
-			indice = i;
-		}
-	}
-	return entrenadorMinimo;
-}
-
-int distanciaAProxObjetivo(t_registroPersonaje* pj, char obj){
-	int dist;
-	t_registroPokenest* pok= malloc(sizeof(t_registroPokenest));
-	cargoDatosPokemonActual(obj, pok);
-	return (abs(pj->x - pok->x) + abs(pj->y - pok->y));
-}
 
 void recuperarPokemonDeEntrenador(t_registroPersonaje *personaje){
 	char origen[300];
@@ -409,6 +386,28 @@ void cargoDatosPokemonActual(char pokemonQueRecibo,t_registroPokenest* pokemonAc
 		}
 }
 
+int distanciaAProxObjetivo(t_registroPersonaje* pj, char obj){
+	t_registroPokenest* pok= malloc(sizeof(t_registroPokenest));
+	cargoDatosPokemonActual(obj, pok);
+	return (abs(pj->x - pok->x) + abs(pj->y - pok->y));
+}
+
+t_registroPersonaje* calcularMasCercanoASuObjetivo (){
+	t_registroPersonaje* entrenador = (t_registroPersonaje*)list_get(entrenadores_listos, 0);
+	t_registroPersonaje* entrenadorMinimo = entrenador;
+	int distanciaMinima= distanciaAProxObjetivo(entrenador,entrenador->proximoObjetivo);
+	int i;
+	int indice = 0;
+	for(i=0; i <= list_size(entrenadores_listos); i++){
+		entrenador = list_get(entrenadores_listos,i);
+		if(distanciaAProxObjetivo(entrenador,entrenador->proximoObjetivo)<distanciaMinima){
+			entrenadorMinimo = entrenador;
+			distanciaMinima = distanciaAProxObjetivo(entrenador,entrenador->proximoObjetivo);
+			indice = i;
+		}
+	}
+	return entrenadorMinimo;
+}
 void mover (t_registroPersonaje *personaje, t_registroPokenest* pokemonActual){
 
 	if(personaje->ultimoRecurso == 1){  //ultimo movimiento fue en Y => me muevo en X
@@ -584,9 +583,9 @@ void planificar_Entrenadores(parametros_entrenador* param)
 //    thread_entrenador(nuevoPersonaje,pokemonActual);	//tendria que mandar en un futuro el que me dice que puedo ejecutar el planificador
 // 	}
 
-
- 	free(pokemonActual);
- 	free(nuevoPersonaje);
+//
+// 	free(pokemonActual);
+// 	free(nuevoPersonaje);
  }
 void planificar()
 	{
