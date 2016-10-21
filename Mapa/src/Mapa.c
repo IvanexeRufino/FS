@@ -1,5 +1,7 @@
 #include "Mapa.h"
 char rutaArgv[100];
+pid_t pid;
+
 t_list* listaPokenest;
 t_list* items;
 
@@ -127,7 +129,7 @@ void *get_in_addr(struct sockaddr *sa)
 
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
-int leerConfiguracionMapa( t_list* listaPokenest)
+int leerConfiguracionMapa()
 {
 	char pathconfigMetadata[256];
 	strcpy(pathconfigMetadata, rutaArgv);
@@ -186,6 +188,48 @@ int leerConfiguracionMapa( t_list* listaPokenest)
 		else
 			perror ("Couldn't open the directory");
 
+	}
+	else
+    {
+		return -1;
+    }
+	return 1 ;
+}
+
+
+int reLeerConfiguracionMapa()
+{
+	char pathconfigMetadata[256];
+	strcpy(pathconfigMetadata, rutaArgv);
+	strcat(pathconfigMetadata,"/Mapas/");
+	char path[256];
+	strcat(pathconfigMetadata, infoMapa->nombre);
+	strcpy(path,pathconfigMetadata);
+	strcat(path, "/PokeNests");
+	strcat(pathconfigMetadata,  "/metadata");
+	t_config* config = config_create(pathconfigMetadata);
+	// Verifico que los parametros tengan sus valores OK
+	if (config_has_property(config, "algoritmo") && config_has_property(config, "quantum")
+	&& config_has_property(config, "retardo") && config_has_property(config, "Batalla")
+	&& config_has_property(config, "TiempoChequeoDeadlock"))
+	{
+		infoMapa->tiempoChequeoDeadlock = config_get_int_value(config, "TiempoChequeoDeadlock");
+		infoMapa->batalla = config_get_int_value(config, "Batalla");
+		infoMapa->algoritmo  = config_get_string_value(config, "algoritmo");
+		infoMapa->quantum = config_get_int_value(config, "quantum");
+		infoMapa->retardo = config_get_int_value(config, "retardo");
+
+		printf(" El nombre del mapa es: %s\n su tiempoChequeoDeadlock es: %d\n su batalla es: %d\n "
+				"su algoritmo es: %s\n su quantum es de: %d\n su retardo es: %d\n su ipEscucha es: %s\n "
+				"su puertoEscucha es: %s\n"
+								,infoMapa->nombre,
+								infoMapa->tiempoChequeoDeadlock,
+								infoMapa->batalla,
+								infoMapa->algoritmo,
+								infoMapa->quantum,
+								infoMapa->retardo,
+								infoMapa->ipEscucha,
+								infoMapa->puertoEscucha);
 	}
 	else
     {
@@ -559,13 +603,20 @@ void iniciarHiloPlanificador(pthread_t hilo)
 
 
 
+void releerconfig(int aSignal)
+{
+	 reLeerConfiguracionMapa();
+	 signal(SIGUSR2,releerconfig);
+	 return ;
+}
+
 
 
 int main(int argc, char **argv)
 {
 	  infoMapa = malloc(sizeof(mapa_datos));
 	if(argc != 3){
-		printf("Cantidad de parametros incorrectos, Aplicando por defecto");
+		printf("Cantidad de parametros incorrectos, Aplicando por defecto \n");
 		strcpy(infoMapa->nombre,"PuebloPaleta");
 		strcpy(rutaArgv, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Pokedex");
 	}
@@ -573,11 +624,13 @@ int main(int argc, char **argv)
 		strcpy(infoMapa->nombre,argv[1]);
 		strcpy(rutaArgv, argv[2]);
 	}
-
+	listaPokenest = malloc(sizeof(t_registroPokenest));
+	listaPokenest = list_create();
+	pid = getpid();
+	printf("El PID del proceso Mapa es %d\n", pid);
+	signal(SIGUSR2,releerconfig);//Por consola kill -SIGUSR2 -PID
 	filas = 30;
 	columnas = 30;
-	listaPokenest = malloc(sizeof(t_registroPokenest));
-	listaPokenest = list_create();							//Lista con todas las pokenest
 	items = list_create();									//Para usar despues en las cajas
 	//nivel_gui_inicializar();
 	//nivel_gui_get_area_nivel(&filas, &columnas);
@@ -591,7 +644,7 @@ int main(int argc, char **argv)
 //		log_info(logger, PROGRAM_DESCRIPTION);
 
 
-	  if (leerConfiguracionMapa (listaPokenest) == 1)
+	  if (leerConfiguracionMapa () == 1)
 		  		  log_info(logger, "Archivo de configuracion leido correctamente");
 			  else
 				  log_error(logger,"Error la leer archivo de configuracion");

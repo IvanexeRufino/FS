@@ -31,6 +31,7 @@
 #include <semaphore.h>
 #include <dirent.h>
 #include <time.h>
+#include <signal.h>
 
 #include <Payback/aceptarConexionCliente.c>
 #include <Payback/str_cut.h>
