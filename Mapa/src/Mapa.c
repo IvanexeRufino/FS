@@ -23,6 +23,7 @@ sem_t colaDeListos;
 
 
 void recuperarPokemonDeEntrenador(t_registroPersonaje *personaje){
+	sleep(3);
 	char origen[300];
 	char destino[300];
 	char comando[500];
@@ -34,11 +35,12 @@ void recuperarPokemonDeEntrenador(t_registroPersonaje *personaje){
 	strcat(origen,"/DirdeBill/");
 
 	strcpy(destino, rutaArgv);
-	strcpy(destino,"/Mapas/");
+	strcat(destino,"/Mapas/");
 	strcat(destino, infoMapa->nombre);
 	strcat(destino, "/PokeNests/");
 
 
+	puts(personaje->nombre);
 	DIR *dp;
 	struct dirent *ep;
 	dp = opendir (origen);
@@ -59,11 +61,13 @@ void recuperarPokemonDeEntrenador(t_registroPersonaje *personaje){
 			    	strcat(comando, destino);
 			    	strcat(comando, ep->d_name);
 			    	strcat(comando, "/");
+			    	puts(comando);
 			    	system(comando);
 			    	strcpy(comando, "rm ");
 			    	strcat(comando, origen);
 			    	strcat(comando, pokemon);
-			   	system(comando);
+			    	puts(comando);
+			    	system(comando);
 			    }
 			    ep = readdir (dp);
 			}
@@ -84,6 +88,7 @@ void copiarPokemonAEntrenador(t_registroPersonaje *personaje, t_registroPokenest
 	strcat(origen, "/PokeNests/");
 	strcat(origen, pokenest->nombre);
 
+	puts(personaje->nombre);
 	strcpy(destino,rutaArgv);
 	strcat(destino,"/Entrenadores/");
 	strcat(destino,personaje->nombre);
@@ -115,10 +120,12 @@ void copiarPokemonAEntrenador(t_registroPersonaje *personaje, t_registroPokenest
 		strcat(comando,origen);
 		strcat(comando, " ");
 		strcat(comando, destino);
+		puts(comando);
 		system(comando);
 
 		strcpy(comando, "rm ");
 		strcat(comando, origen);
+		puts(comando);
 		system(comando);
 }
 
