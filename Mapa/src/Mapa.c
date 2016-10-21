@@ -1,5 +1,5 @@
 #include "Mapa.h"
-
+char rutaArgv[100];
 t_list* listaPokenest;
 t_list* items;
 
@@ -23,11 +23,13 @@ void recuperarPokemonDeEntrenador(t_registroPersonaje *personaje){
 	char comando[500];
 	char pokemon[30];
 
-	strcpy(origen,"/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Entrenador/Entrenadores/");
+	strcpy(origen,rutaArgv);
+	strcat(origen,"/Entrenadores/");
 	strcat(origen,personaje->nombre);
 	strcat(origen,"/DirdeBill/");
 
-	strcpy(destino, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Mapa/Mapas/");
+	strcpy(destino, rutaArgv);
+	strcpy(destino,"/Mapas/");
 	strcat(destino, infoMapa->nombre);
 	strcat(destino, "/PokeNests/");
 
@@ -71,12 +73,14 @@ void copiarPokemonAEntrenador(t_registroPersonaje *personaje, t_registroPokenest
 	char origen[300];
 	char destino[300];
 	char comando[500];
-	strcpy(origen, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Mapa/Mapas/");
+	strcpy(origen, rutaArgv);
+	strcat(origen, "/Mapas/");
 	strcat(origen, infoMapa->nombre);
 	strcat(origen, "/PokeNests/");
 	strcat(origen, pokenest->nombre);
 
-	strcpy(destino,"/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Entrenador/Entrenadores/");
+	strcpy(destino,rutaArgv);
+	strcat(destino,"/Entrenadores/");
 	strcat(destino,personaje->nombre);
 	strcat(destino,"/DirdeBill/");
 
@@ -125,13 +129,11 @@ void *get_in_addr(struct sockaddr *sa)
 }
 int leerConfiguracionMapa( t_list* listaPokenest)
 {
-
-	char nombre[20];
-	printf("%s", "Nombre del Mapa?\n");
-	scanf("%s",nombre);
-	char pathconfigMetadata[256] = "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Mapa/Mapas/";
+	char pathconfigMetadata[256];
+	strcpy(pathconfigMetadata, rutaArgv);
+	strcat(pathconfigMetadata,"/Mapas/");
 	char path[256];
-	strcat(pathconfigMetadata, nombre);
+	strcat(pathconfigMetadata, infoMapa->nombre);
 	strcpy(path,pathconfigMetadata);
 	strcat(path, "/PokeNests");
 	strcat(pathconfigMetadata,  "/metadata");
@@ -142,7 +144,6 @@ int leerConfiguracionMapa( t_list* listaPokenest)
 	&& config_has_property(config, "retardo") && config_has_property(config, "Batalla")
 	&& config_has_property(config, "TiempoChequeoDeadlock"))
 	{
-		strcpy(infoMapa->nombre,nombre);
 		infoMapa->tiempoChequeoDeadlock = config_get_int_value(config, "TiempoChequeoDeadlock");
 		infoMapa->batalla = config_get_int_value(config, "Batalla");
 		infoMapa->algoritmo  = config_get_string_value(config, "algoritmo");
@@ -174,7 +175,7 @@ int leerConfiguracionMapa( t_list* listaPokenest)
 
 				  if(ep->d_name[0]!='.'){
 //					  puts (ep->d_name);
-					  leerConfiguracionPokenest(nombre,ep->d_name);
+					  leerConfiguracionPokenest(infoMapa->nombre,ep->d_name);
 				  }
 				  ep = readdir (dp);
 			}
@@ -193,9 +194,12 @@ int leerConfiguracionMapa( t_list* listaPokenest)
 	return 1 ;
 }
 
-void leerConfiguracionPokenest(char mapa[20], char pokemon[50]){
+void leerConfiguracionPokenest(char mapa[20], char pokemon[256]){
 	int cantidadPokemon = 0;
-	char pathpokenestMetadata[256] = "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Mapa/Mapas/";
+
+	char pathpokenestMetadata[256] ;
+	strcpy(pathpokenestMetadata, rutaArgv);
+	strcat(pathpokenestMetadata, "/Mapas/");
 	strcat(pathpokenestMetadata, mapa);
 	char path[256];
 	strcpy(path,pathpokenestMetadata);
@@ -559,6 +563,17 @@ void iniciarHiloPlanificador(pthread_t hilo)
 
 int main(int argc, char **argv)
 {
+	  infoMapa = malloc(sizeof(mapa_datos));
+	if(argc != 3){
+		printf("Cantidad de parametros incorrectos, Aplicando por defecto");
+		strcpy(infoMapa->nombre,"PuebloPaleta");
+		strcpy(rutaArgv, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Pokedex");
+	}
+	else{
+		strcpy(infoMapa->nombre,argv[1]);
+		strcpy(rutaArgv, argv[2]);
+	}
+
 	filas = 30;
 	columnas = 30;
 	listaPokenest = malloc(sizeof(t_registroPokenest));
@@ -575,7 +590,7 @@ int main(int argc, char **argv)
 		logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
 //		log_info(logger, PROGRAM_DESCRIPTION);
 
-	  infoMapa = malloc(sizeof(mapa_datos));
+
 	  if (leerConfiguracionMapa (listaPokenest) == 1)
 		  		  log_info(logger, "Archivo de configuracion leido correctamente");
 			  else

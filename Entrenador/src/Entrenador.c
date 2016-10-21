@@ -5,6 +5,7 @@ entrenador_datos* infoEntrenador;
 pid_t pid;
 t_list* listaDeNiveles;
 t_nivel* mapa;
+char rutaArgv[100];
 
 
 
@@ -12,7 +13,9 @@ t_nivel* mapa;
 void devolverMedallas(){
 	char ruta[300];
 	char comando[300];
-	strcpy(ruta,"/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Entrenador/Entrenadores/");
+
+	strcpy(ruta,rutaArgv);
+	strcat(ruta,"/Entrenadores/");
 	strcat(ruta,infoEntrenador->nombre);
 	strcat(ruta,"/medallas/");
 
@@ -110,11 +113,11 @@ void imprimirClaveYValor(char* key, void* data) {
 
 int leerConfiguracionEntrenador()
 {
-	char nombre[10];
-	printf("%s", "Nombre del Entrenador?\n");
-	scanf("%s",nombre);
-	char pathconfigMetadata[100] ="/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Entrenador/Entrenadores/";
-	strcat(pathconfigMetadata,nombre);
+
+	char pathconfigMetadata[100];
+	strcpy(pathconfigMetadata, rutaArgv);
+	strcat(pathconfigMetadata, "/Entrenadores/");
+	strcat(pathconfigMetadata,infoEntrenador->nombre);
 	strcat(pathconfigMetadata,"/metadata");
 	t_config* config = config_create(pathconfigMetadata);
 	// Verifico que los parametros tengan sus valores OK
@@ -166,7 +169,9 @@ int leerConfiguracionEntrenador()
 
 int leerConfiguracionMapa(t_nivel* datos)
 {
-	char pathconfigMetadata[90] = "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Mapa/Mapas/";
+	char pathconfigMetadata[100];
+	strcpy(pathconfigMetadata, rutaArgv);
+	strcat(pathconfigMetadata, "/Mapas/");
 	strcat(pathconfigMetadata, datos->nivel);
 	strcat(pathconfigMetadata,  "/metadata");
 	puts(pathconfigMetadata);
@@ -309,12 +314,16 @@ void copiarMedalla(char entrenador[20],char* nombre){
 	char dest[120];
 	char str[300];
 
-		strcpy(source,"/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Mapa/Mapas/");
+
+
+		strcpy(source,rutaArgv);
+		strcat(source,"/Mapas/");
 		strcat(source, nombre);
 		strcat(source, "/medalla-");
 		strcat(source, nombre);
 		strcat(source,".jpg");
-		strcpy(dest,"/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Entrenador/Entrenadores/");
+		strcpy(dest,rutaArgv);
+		strcat(dest,"/Entrenadores/");
 		strcat(dest,entrenador);
 		strcat(dest,"/medallas/");
 
@@ -328,8 +337,18 @@ void copiarMedalla(char entrenador[20],char* nombre){
 		return;
 }
 
-int main(void) {
+int main(int argc, char **argv) {
 
+	infoEntrenador = malloc(sizeof(entrenador_datos));
+	if(argc !=3){
+		printf("Cantidad de parametros incorrecta \n Aplicando Datos por Defecto \n");
+		strcpy(infoEntrenador->nombre, "Red");
+		strcpy(rutaArgv, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Pokedex");
+	}
+	else{
+		strcpy(infoEntrenador->nombre,argv[1]);
+		strcpy(rutaArgv,argv[2]);
+	}
 	pid = getpid();
 	printf("El PID del proceso Personaje es %d\n", pid);
 	signal(SIGINT, muerteDefinitivaPorSenial);//la de ctrl+c
@@ -337,7 +356,7 @@ int main(void) {
 	signal(SIGTERM, muertePorSenial);//Por consola kill -15 PID
 	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
 	log_info(logger, PROGRAM_DESCRIPTION);
-	infoEntrenador = malloc(sizeof(entrenador_datos));
+
 			if ( leerConfiguracionEntrenador() == 1 )
 				log_info(logger, "Archivo de configuracion leido correctamente");
 			else
