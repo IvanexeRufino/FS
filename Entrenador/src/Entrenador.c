@@ -346,6 +346,7 @@ int main(int argc, char **argv) {
 	{
 		log_info(logger, "Cantidad de parametros: %d, Aplicando datos por Defecto para la Ruta",argc);
 		strcpy(infoEntrenador->nombre,argv[1]);
+		strcpy(rutaArgv, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Pokedex");
 	}
 	if(argc == 3){
 		log_info(logger, "Cantidad de parametros: %d",argc);

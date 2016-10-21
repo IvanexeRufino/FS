@@ -23,7 +23,7 @@ sem_t colaDeListos;
 
 
 void recuperarPokemonDeEntrenador(t_registroPersonaje *personaje){
-	sleep(3);
+	log_info(logger,"Recuperando Pokemons de %s", personaje->nombre);
 	char origen[300];
 	char destino[300];
 	char comando[500];
@@ -40,7 +40,7 @@ void recuperarPokemonDeEntrenador(t_registroPersonaje *personaje){
 	strcat(destino, "/PokeNests/");
 
 
-	puts(personaje->nombre);
+//	puts(personaje->nombre);
 	DIR *dp;
 	struct dirent *ep;
 	dp = opendir (origen);
@@ -53,7 +53,7 @@ void recuperarPokemonDeEntrenador(t_registroPersonaje *personaje){
 			    	strcpy(pokemon,ep->d_name);
 			    	int i = strlen(ep->d_name) -7;
 			    	ep->d_name[i] = '\0';
-			    	puts(ep->d_name);
+//			    	puts(ep->d_name);
 			    	strcpy(comando,"cp -r ");
 			    	strcat(comando,  origen);
 			    	strcat(comando,  pokemon);
@@ -61,12 +61,12 @@ void recuperarPokemonDeEntrenador(t_registroPersonaje *personaje){
 			    	strcat(comando, destino);
 			    	strcat(comando, ep->d_name);
 			    	strcat(comando, "/");
-			    	puts(comando);
+//			    	puts(comando);
 			    	system(comando);
 			    	strcpy(comando, "rm ");
 			    	strcat(comando, origen);
 			    	strcat(comando, pokemon);
-			    	puts(comando);
+//			    	puts(comando);
 			    	system(comando);
 			    }
 			    ep = readdir (dp);
@@ -75,10 +75,12 @@ void recuperarPokemonDeEntrenador(t_registroPersonaje *personaje){
 	  }
 		else
 			perror ("Couldn't open the directory");
+	log_info(logger,"Pokemons Recuperados");
 }
 
 
 void copiarPokemonAEntrenador(t_registroPersonaje *personaje, t_registroPokenest* pokenest){
+	log_info(logger," Entregando Pokemon %s, a %s",pokenest->nombre, personaje->nombre);
 	char origen[300];
 	char destino[300];
 	char comando[500];
@@ -88,7 +90,7 @@ void copiarPokemonAEntrenador(t_registroPersonaje *personaje, t_registroPokenest
 	strcat(origen, "/PokeNests/");
 	strcat(origen, pokenest->nombre);
 
-	puts(personaje->nombre);
+//	puts(personaje->nombre);
 	strcpy(destino,rutaArgv);
 	strcat(destino,"/Entrenadores/");
 	strcat(destino,personaje->nombre);
@@ -120,12 +122,12 @@ void copiarPokemonAEntrenador(t_registroPersonaje *personaje, t_registroPokenest
 		strcat(comando,origen);
 		strcat(comando, " ");
 		strcat(comando, destino);
-		puts(comando);
+//		puts(comando);
 		system(comando);
 
 		strcpy(comando, "rm ");
 		strcat(comando, origen);
-		puts(comando);
+//		puts(comando);
 		system(comando);
 }
 
@@ -164,9 +166,9 @@ int leerConfiguracionMapa()
 		infoMapa->ipEscucha = config_get_string_value(config, "IP");
 		infoMapa->puertoEscucha  = config_get_string_value(config, "Puerto");
 
-		printf(" El nombre del mapa es: %s\n su tiempoChequeoDeadlock es: %d\n su batalla es: %d\n "
-				"su algoritmo es: %s\n su quantum es de: %d\n su retardo es: %d\n su ipEscucha es: %s\n "
-				"su puertoEscucha es: %s\n"
+		log_info(logger," El nombre del mapa es: %s su tiempoChequeoDeadlock es: %d su batalla es: %d "
+				"su algoritmo es: %s su quantum es de: %d su retardo es: %d su ipEscucha es: %s "
+				"su puertoEscucha es: %s"
 								,infoMapa->nombre,
 								infoMapa->tiempoChequeoDeadlock,
 								infoMapa->batalla,
@@ -209,6 +211,7 @@ int leerConfiguracionMapa()
 
 int reLeerConfiguracionMapa()
 {
+	log_info(logger, "Se Solicito Releer los datos del Mapa");
 	char pathconfigMetadata[256];
 	strcpy(pathconfigMetadata, rutaArgv);
 	strcat(pathconfigMetadata,"/Mapas/");
@@ -229,9 +232,9 @@ int reLeerConfiguracionMapa()
 		infoMapa->quantum = config_get_int_value(config, "quantum");
 		infoMapa->retardo = config_get_int_value(config, "retardo");
 
-		printf(" El nombre del mapa es: %s\n su tiempoChequeoDeadlock es: %d\n su batalla es: %d\n "
-				"su algoritmo es: %s\n su quantum es de: %d\n su retardo es: %d\n su ipEscucha es: %s\n "
-				"su puertoEscucha es: %s\n"
+		log_info(logger, " El nombre del mapa es: %s su tiempoChequeoDeadlock es: %d su batalla es: %d "
+				"su algoritmo es: %s su quantum es de: %d su retardo es: %d su ipEscucha es: %s "
+				"su puertoEscucha es: %s"
 								,infoMapa->nombre,
 								infoMapa->tiempoChequeoDeadlock,
 								infoMapa->batalla,
@@ -298,8 +301,8 @@ void leerConfiguracionPokenest(char mapa[20], char pokemon[256]){
 		pokenest->identificador=identificadorPokenest[0];
 		strcpy(pokenest->nombre , pokemon);
 
-		printf("\n El Tipo del Nest es: %s\n su posicion es X: %d\n Y es: %d\n "
-							"su identificador: %c\n Y hay %d Pokemons de ese Tipo\n"
+		log_info(logger, " El Tipo del Nest es: %s su posicion es X: %d Y es: %d "
+							"su identificador: %c Y hay %d Pokemons de ese Tipo"
 											,pokenest->tipo,pokenest->x, pokenest->y, pokenest->identificador, pokenest->cantidadDisp);
 
 
@@ -345,7 +348,7 @@ int recibirCoordenada(int socketEntrenador)
 char recibirBienvenidaEntrenador(int newfd,t_registroPersonaje *nuevoPersonaje)
 {
 	nuevoPersonaje->socket=newfd;	// Lleno con el campo del socket donde me voy a comunicar
-	printf("Se conecto con el cliente por el socket %d \n", newfd);
+	log_info(logger,"Se conecto con el cliente por el socket %d ", newfd);
 
 	int x = recibirCoordenada(newfd);
 	nuevoPersonaje->x=x;					// Lleno con el campo de la ubicacion en X
@@ -353,24 +356,25 @@ char recibirBienvenidaEntrenador(int newfd,t_registroPersonaje *nuevoPersonaje)
 	int y = recibirCoordenada(newfd);
 	nuevoPersonaje->y=y;					// Lleno con el campo de la ubicacion en Y
 
-	printf("La coordenada INICIAL en X del ENTRENADOR es %d \n", nuevoPersonaje->x);
-	printf("La coordenada INICIAL en Y del ENTRENADOR es %d \n", nuevoPersonaje->y);
-
+	log_info(logger, "La coordenada INICIAL del Entrenador %s es X: %d Y: %d",nuevoPersonaje->nombre, nuevoPersonaje->x, nuevoPersonaje->y);
 	char nombre[40];
 	recv(newfd,nombre,sizeof(nombre),0);
 	strcpy(nuevoPersonaje->nombre,nombre);	// Lleno con el campo del nombre
-	printf("Su nombre es: %s\n", nuevoPersonaje->nombre);
+	log_info(logger, "Su nombre es: %s\n", nuevoPersonaje->nombre);
 
 	char* buffer = string_new();
 	recv(newfd,buffer,sizeof(buffer),0);
-	printf("Lo que recibio del entrenador %d es esto: %s\n", newfd,buffer);
+	log_info(logger, "Lo que recibio del entrenador %d es esto: %c", newfd,buffer);
 
 	char bufferConAccion;
 	bufferConAccion=buffer[0];
-	printf("La accion que pide hacer el entrenador es %c\n", bufferConAccion);
+	log_info(logger,"La accion que pide hacer el entrenador es %c", bufferConAccion);
 
 	nuevoPersonaje->identificador=buffer[1];	// Lleno con el campo con el identificador
-	printf("El ID del entrenador es %c\n", nuevoPersonaje->identificador);
+	log_info(logger, "El ID del entrenador es %c", nuevoPersonaje->identificador);
+
+	CrearPersonaje(items, nuevoPersonaje->identificador , nuevoPersonaje->x, nuevoPersonaje->y);
+	nivel_gui_dibujar(items,infoMapa->nombre);
 	return (buffer[0]);
 }
 
@@ -433,16 +437,17 @@ void mover (t_registroPersonaje *personaje, t_registroPokenest* pokemonActual){
 	}
 	if(personaje->x == pokemonActual->x) personaje->ultimoRecurso = 0;
 	if(personaje->y == pokemonActual->y) personaje->ultimoRecurso = 1;
+	MoverPersonaje(items, personaje->identificador, personaje->x, personaje->y );
+	nivel_gui_dibujar(items,infoMapa->nombre);
 	enviarCoordenada(personaje->x,personaje->socket);
-	printf("Estoy enviando la coordenada en X que es %d \n",personaje->x);
 	enviarCoordenada(personaje->y,personaje->socket);
-	printf("Estoy enviando la coordenada en Y que es %d \n",personaje->y);
+	log_info(logger, "Estoy enviando la coordenada en X: %d Y: %d \n",personaje->x ,personaje->y);
 }
 
 void envioQueSeAtrapoPokemon (t_registroPersonaje *personaje, t_registroPokenest* pokemonActual){
 	if(pokemonActual->cantidadDisp >= 1) {
 		pokemonActual->cantidadDisp --;
-		printf("/*--------------------El Personaje: %c , atrapo al pokemon %c --------------------*/ \n",personaje->identificador, pokemonActual->identificador);
+		log_info(logger, "/*--------------------El Personaje: %c , atrapo al pokemon %c --------------------*/ \n",personaje->identificador, pokemonActual->identificador);
 
 		copiarPokemonAEntrenador(personaje,pokemonActual);
 
@@ -464,16 +469,12 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje,t_registroPokenest* pok
 {
 	char* buffer = string_new();
 	recv(nuevoPersonaje->socket,buffer,sizeof(buffer),0);
-	printf("Lo que recibio para hacer es esto: %s\n",buffer);
-
 	char bufferConAccion;        //Vendria a ser el header
 	bufferConAccion=buffer[0];
-	printf("Separo el header y me queda: %c\n",bufferConAccion);
-
 	char* payload = string_new();
 	payload =string_duplicate(buffer);
 	str_cut(payload,0,1);
-	printf("Separo el payload y me queda esto: %s\n",payload);
+	log_info(logger,"Lo que recibio para hacer es esto: %s Header: %c Payload: %s",buffer,bufferConAccion,payload);
 
 	int coordenadaX,coordenadaY;
 
@@ -484,11 +485,9 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje,t_registroPokenest* pok
 		cargoDatosPokemonActual(payload[0],pokemonActual);
 		nuevoPersonaje->proximoObjetivo = payload[0];
 		coordenadaX = enviarCoordenada(pokemonActual->x,nuevoPersonaje->socket);				//Envio coordenada del pokemon en X
-		printf("Estoy enviando la coordenada en X que es %d \n",coordenadaX);
 
 		coordenadaY = enviarCoordenada(pokemonActual->y,nuevoPersonaje->socket);				//Envio coordenada del pokemon en Y
-		printf("Estoy enviando la coordenada en Y que es %d \n",coordenadaY);
-
+		log_info(logger,"Estoy enviando la coordenada en X: %d Y: %d \n",coordenadaX,coordenadaY);
 		break;
 
 	case ('2'):
@@ -507,7 +506,7 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje,t_registroPokenest* pok
 	case ('4'):
 		recuperarPokemonDeEntrenador(nuevoPersonaje);
 		nuevoPersonaje->estado='T';
-		list_remove(entrenadores_listos,0);
+		//list_remove(entrenadores_listos,0);
 		break;
 	}
 
@@ -580,7 +579,7 @@ void planificar_Entrenadores(parametros_entrenador* param)
 	}
 		else
 	{
-		printf("Nose para que te conectaste si no queres jugar xD \n");		// No deberia tirar nunca este printf
+		log_info(logger, "Nose para que te conectaste si no queres jugar xD ");		// No deberia tirar nunca este printf
 	}
 // 	while(nuevoPersonaje->estado !='T')
 // 	{
@@ -646,44 +645,48 @@ void releerconfig(int aSignal)
 
 int main(int argc, char **argv)
 {
+	filas = 30;
+	columnas =30;
+	items = list_create();									//Para usar despues en las cajas
+
+	/* Inicializacion y registro inicial de ejecucion */
+	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
+	log_info(logger, PROGRAM_DESCRIPTION);
 	  infoMapa = malloc(sizeof(mapa_datos));
-	if(argc != 3){
-		printf("Cantidad de parametros incorrectos, Aplicando por defecto \n");
+	if(argc == 1){
+		log_info(logger, "Cantidad de parametros incorrectos, Aplicando por defecto");
 		strcpy(infoMapa->nombre,"PuebloPaleta");
 		strcpy(rutaArgv, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Pokedex");
 	}
-	else{
+	if(argc==3){
+		log_info(logger, "Cantidad de parametros CORRECTOS");
 		strcpy(infoMapa->nombre,argv[1]);
 		strcpy(rutaArgv, argv[2]);
 	}
+	if(argc==2){
+		log_info(logger,"Cantidad de parametros Incorrectos, aplicando por defecto para la ruta");
+		strcpy(infoMapa->nombre,argv[1]);
+		strcpy(rutaArgv, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Pokedex");
+	}
+	log_info(logger, "Nombre Mapa: %s Ruta: %s", infoMapa->nombre, rutaArgv);
 	listaPokenest = malloc(sizeof(t_registroPokenest));
 	listaPokenest = list_create();
 	pid = getpid();
-	printf("El PID del proceso Mapa es %d\n", pid);
+	log_info(logger, "El PID del proceso Mapa es %d\n", pid);
 	signal(SIGUSR2,releerconfig);//Por consola kill -SIGUSR2 -PID
-	filas = 30;
-	columnas = 30;
-	items = list_create();									//Para usar despues en las cajas
-	//nivel_gui_inicializar();
-	//nivel_gui_get_area_nivel(&filas, &columnas);
+
 	entrenadores_listos = malloc(sizeof(t_list));
 	entrenadores_listos = list_create();
 	entrenadores_bloqueados = malloc (sizeof(t_list));
 	entrenadores_bloqueados = list_create();
 
-		/* Inicializacion y registro inicial de ejecucion */
-		logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
-//		log_info(logger, PROGRAM_DESCRIPTION);
-
-
 	  if (leerConfiguracionMapa () == 1)
 		  		  log_info(logger, "Archivo de configuracion leido correctamente");
 			  else
 				  log_error(logger,"Error la leer archivo de configuracion");
-
-	//  nivel_gui_inicializar();
-	  	//	nivel_gui_get_area_nivel(&rows, &cols);
-	  	//	nivel_gui_dibujar(items,&argv);
+		nivel_gui_inicializar();
+		nivel_gui_get_area_nivel(&filas, &columnas);
+		nivel_gui_dibujar(items,infoMapa->nombre);
 
 // ------------------- Descomentar para probar si cargaron bien las nests -------------------------//
 //	  t_registroPokenest* pokenestPrueba = malloc(sizeof(t_registroPokenest));
@@ -730,11 +733,7 @@ int main(int argc, char **argv)
 	    	  //pthread_join(&hiloPlanificador,0);
 	     }
 
-    	//while(1)
-    		// nivel_gui_dibujar(items, argv );
-
-
-puts("Se finalizaron las operaciones con todos los entrenadores que estaban conectados");
-puts("-----El proceso mapa se cerrara, gracias por jugar-----");
+log_info(logger, "Se finalizaron las operaciones con todos los entrenadores que estaban conectados");
+log_info(logger, "-----El proceso mapa se cerrara, gracias por jugar-----");
  return 0;
 }

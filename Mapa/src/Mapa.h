@@ -96,7 +96,7 @@ typedef struct
 		#define LOG_FILE "proceso_Mapa.log"
 		#define PROGRAM_NAME "MAPA"
 		#define PROGRAM_DESCRIPTION "Proceso MAPA"
-		#define IS_ACTIVE_CONSOLE true
+		#define IS_ACTIVE_CONSOLE false
 		#define T_LOG_LEVEL LOG_LEVEL_INFO
 
 		/* Configuración de SOCKETS */
