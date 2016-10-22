@@ -7,10 +7,8 @@ t_list* listaDeNiveles;
 t_nivel* mapa;
 char rutaArgv[100];
 
-
-
-
-void devolverMedallas(){
+void devolverMedallas()
+{
 	log_info(logger, "Devolviendo medallas..");
 	char ruta[300];
 	char comando[300];
@@ -50,13 +48,13 @@ void muerteDefinitivaPorSenial(int aSignal)
 	signal(SIGINT, muerteDefinitivaPorSenial);
 }
 
-/*t_nivel* nivelActual*/
 void gameOver()
 {
 	char respuesta= 'a';
 	printf("GAME OVER!!! Parece que el personaje %s ha muerto y se ha quedado sin vidas,¿Desea continuar?(S/n).\n",infoEntrenador->nombre);
 	scanf("%c", &respuesta);
-	while (respuesta != 'S' || respuesta != 'n'){
+	while (respuesta != 'S' || respuesta != 'n')
+	{
 		printf("Por favor responda si desea continuar solamente con (S/n).\n");
 		scanf("%c", &respuesta);
 	}
@@ -95,7 +93,8 @@ void sumarVida(int aSignal)
 	 return ;
 }
 
-char* objetivosDelMapa(char* mapaParaAgregar) {
+char* objetivosDelMapa(char* mapaParaAgregar)
+{
 	char* objetoYparentesisIzquierdo= "obj[";
 	char*parentesisDerecho="]";
 	char * new= malloc(strlen(mapaParaAgregar)+strlen(objetoYparentesisIzquierdo)+strlen(parentesisDerecho)+1);
@@ -108,14 +107,14 @@ char* objetivosDelMapa(char* mapaParaAgregar) {
 	return new;
 }
 
-void imprimirClaveYValor(char* key, void* data) {
-		char* pokemon = (char *) data;
-		printf("Variable: %s  Valor: %s \n", key, pokemon);
-		}
+void imprimirClaveYValor(char* key, void* data)
+{
+	char* pokemon = (char *) data;
+	printf("Variable: %s  Valor: %s \n", key, pokemon);
+}
 
 int leerConfiguracionEntrenador()
 {
-
 	char pathconfigMetadata[100];
 	strcpy(pathconfigMetadata, rutaArgv);
 	strcat(pathconfigMetadata, "/Entrenadores/");
@@ -187,8 +186,8 @@ int leerConfiguracionMapa(t_nivel* datos)
 	else		return -1;
 }
 
-void enviarMensajeInicial(int serverSocket){
-
+void enviarMensajeInicial(int serverSocket)
+{
 	int CoordEnX = enviarCoordenada(infoEntrenador->posicionEnX,serverSocket);
 	int CoordEnY = enviarCoordenada(infoEntrenador->posicionEnY,serverSocket);
 	log_info(logger, "Estoy enviando la coordenada en X del ENTRENADOR que es %d Y: %d",CoordEnX,CoordEnY);
@@ -203,20 +202,6 @@ void enviarMensajeInicial(int serverSocket){
 	send(serverSocket,buffer,sizeof(buffer),0);
 	log_info(logger, "Se ha enviado: %s \n",buffer);
 
-
-}
-void recibirCoordenadaPokemon(int *mapaCoordenadaPokemon, int socketMapa)
-{
-	char* buffer = string_new();
-	recv(socketMapa, buffer,sizeof(buffer), 0);
-
-	char* payload = string_new();
-	payload =string_duplicate(buffer);
-	//strcpy(payload, buffer);
-	str_cut(payload,0,1);
-
-	(*mapaCoordenadaPokemon)=atoi(payload);
-
 }
 
 void solicitarPosicion(t_nivel *mapa,char objetivo)
@@ -227,43 +212,15 @@ void solicitarPosicion(t_nivel *mapa,char objetivo)
 
 	send(mapa->socketMapa, buffer, sizeof(buffer), 0);
 
-	recibirCoordenadaPokemon(&(mapa->pokemonActualPosicionEnX), mapa->socketMapa);    				//Recibo en X
-	recibirCoordenadaPokemon(&(mapa->pokemonActualPosicionEnY), mapa->socketMapa); 					//Recibo en Y
+	int x = recibirCoordenada(mapa->socketMapa);	//Recibo en X
+	mapa->pokemonActualPosicionEnX = x;
+
+	int y = recibirCoordenada(mapa->socketMapa);	//Recibo en Y
+	mapa->pokemonActualPosicionEnY = y;
+
 	log_info(logger, "Las coordenadas del pokemon que solicite X: %d Y: %d", mapa->pokemonActualPosicionEnX, mapa->pokemonActualPosicionEnY);
 }
 
-//void sendObjetivosMapa(int serverSocket)
-//{
-//	char *vector;
-//	int l= 0;
-//	t_nivel* mapa = malloc(sizeof(200));
-//	mapa = list_get(listaDeNiveles, 0);
-//	int i = list_size(mapa->objetivos);
-//	char objetivos[i];
-//	objetivos[i]='\0';
-//			while(l!=list_size(mapa->objetivos)){
-//				vector = list_get(mapa->objetivos,l);
-//				objetivos[l] = *vector;
-//				l++;
-//			}
-//			// ------------ Envio Objetivos
-//	send(serverSocket,&objetivos,6,0);
-//	free(mapa);
-//	puts("conectado");
-//}
-
-void recibirCoordenadaEntrenador(int* coordenada, int socketMapa)
-{
-	char* buffer = string_new();
-	recv(socketMapa, buffer,sizeof(buffer), 0);
-	char* payload = string_new();
-	payload =string_duplicate(buffer);
-	//strcpy(payload, buffer);
-	str_cut(payload,0,1);
-
-	(*coordenada)=atoi(payload);
-
-}
 void informarFinalizacion(t_nivel *mapa)
 {
 	char* buffer = string_new();
@@ -272,15 +229,21 @@ void informarFinalizacion(t_nivel *mapa)
 	log_info(logger, "Le informo al Mapa que finalice mi mision aqui");
 }
 
-void solicitarAvanzar(t_nivel *mapa,char objetivo){
+void solicitarAvanzar(t_nivel *mapa,char objetivo)
+{
 	char* buffer = string_new();
 	string_append(&buffer,string_itoa(SOLICITARAVANZAR));
 	string_append(&buffer,charToString(objetivo));
 
 	send(mapa->socketMapa, buffer, sizeof(buffer), 0);
 	//log_info(logger,"pido avanzar al mapa");
-	recibirCoordenadaEntrenador(&(infoEntrenador->posicionEnX), mapa->socketMapa);    				//Recibo la NUEVA coordenada Entrenador en X
-	recibirCoordenadaEntrenador(&(infoEntrenador->posicionEnY), mapa->socketMapa); 					//Recibo la NUEVA coordenada Entrenador en Y
+
+	int x = recibirCoordenada(mapa->socketMapa);	//Recibo la NUEVA coordenada Entrenador en X
+	infoEntrenador->posicionEnX = x;
+
+	int y = recibirCoordenada(mapa->socketMapa);	//Recibo la NUEVA coordenada Entrenador en Y
+	infoEntrenador->posicionEnY = y;
+
 	log_info(logger, "Mi nueva posicion es X: %d Y: %d \n",infoEntrenador->posicionEnX, infoEntrenador->posicionEnY);
 
 }
@@ -305,13 +268,12 @@ int atraparPokemon(t_nivel *mapa,char objetivo)
 	}
 }
 
-void copiarMedalla(char entrenador[20],char* nombre){
+void copiarMedalla(char entrenador[20],char* nombre)
+{
 	log_info(logger, "Recogiendo medalla");
 	char source[120];
 	char dest[120];
 	char str[300];
-
-
 
 		strcpy(source,rutaArgv);
 		strcat(source,"/Mapas/");
@@ -333,7 +295,8 @@ void copiarMedalla(char entrenador[20],char* nombre){
 		return;
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
 	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
 	log_info(logger, PROGRAM_DESCRIPTION);
 	infoEntrenador = malloc(sizeof(entrenador_datos));

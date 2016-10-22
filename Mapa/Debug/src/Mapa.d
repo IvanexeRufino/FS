@@ -7,7 +7,8 @@ src/Mapa.d: ../src/Mapa.c ../src/Mapa.h \
  /home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Payback/crearSocketServidor.c \
  /home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Payback/charToString.c \
  /home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Payback/string.c \
- /home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Payback/string.h
+ /home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Payback/string.h \
+ /home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Payback/recibirCoordenada.c
 
 ../src/Mapa.h:
 
@@ -28,3 +29,5 @@ src/Mapa.d: ../src/Mapa.c ../src/Mapa.h \
 /home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Payback/string.c:
 
 /home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Payback/string.h:
+
+/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Payback/recibirCoordenada.c:

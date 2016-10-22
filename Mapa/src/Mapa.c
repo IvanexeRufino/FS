@@ -19,10 +19,8 @@ t_log* logger;
 
 sem_t colaDeListos;
 
-
-
-
-void recuperarPokemonDeEntrenador(t_registroPersonaje *personaje){
+void recuperarPokemonDeEntrenador(t_registroPersonaje *personaje)
+{
 	log_info(logger,"Recuperando Pokemons de %s", personaje->nombre);
 	char origen[300];
 	char destino[300];
@@ -38,7 +36,6 @@ void recuperarPokemonDeEntrenador(t_registroPersonaje *personaje){
 	strcat(destino,"/Mapas/");
 	strcat(destino, infoMapa->nombre);
 	strcat(destino, "/PokeNests/");
-
 
 //	puts(personaje->nombre);
 	DIR *dp;
@@ -79,7 +76,8 @@ void recuperarPokemonDeEntrenador(t_registroPersonaje *personaje){
 }
 
 
-void copiarPokemonAEntrenador(t_registroPersonaje *personaje, t_registroPokenest* pokenest){
+void copiarPokemonAEntrenador(t_registroPersonaje *personaje, t_registroPokenest* pokenest)
+{
 	log_info(logger," Entregando Pokemon %s, a %s",pokenest->nombre, personaje->nombre);
 	char origen[300];
 	char destino[300];
@@ -95,7 +93,6 @@ void copiarPokemonAEntrenador(t_registroPersonaje *personaje, t_registroPokenest
 	strcat(destino,"/Entrenadores/");
 	strcat(destino,personaje->nombre);
 	strcat(destino,"/DirdeBill/");
-
 
 	DIR *dp;
 	struct dirent *ep;
@@ -131,16 +128,6 @@ void copiarPokemonAEntrenador(t_registroPersonaje *personaje, t_registroPokenest
 		system(comando);
 }
 
-
-// get sockaddr, IPv4 or IPv6:
-void *get_in_addr(struct sockaddr *sa)
-{
-    if (sa->sa_family == AF_INET) {
-        return &(((struct sockaddr_in*)sa)->sin_addr);
-    }
-
-    return &(((struct sockaddr_in6*)sa)->sin6_addr);
-}
 int leerConfiguracionMapa()
 {
 	char pathconfigMetadata[256];
@@ -251,7 +238,8 @@ int reLeerConfiguracionMapa()
 	return 1 ;
 }
 
-void leerConfiguracionPokenest(char mapa[20], char pokemon[256]){
+void leerConfiguracionPokenest(char mapa[20], char pokemon[256])
+{
 	int cantidadPokemon = 0;
 
 	char pathpokenestMetadata[256] ;
@@ -331,29 +319,15 @@ void leerConfiguracionPokenest(char mapa[20], char pokemon[256]){
 
 }
 
-int recibirCoordenada(int socketEntrenador)
-{
-	int coordenada;
-	char* buffer = string_new();
-	recv(socketEntrenador, buffer,sizeof(buffer), 0);
-	char* payload = string_new();
-	payload =string_duplicate(buffer);
-	str_cut(payload,0,1);
-
-	coordenada=atoi(payload);
-	return coordenada;
-
-}
-
 char recibirBienvenidaEntrenador(int newfd,t_registroPersonaje *nuevoPersonaje)
 {
 	nuevoPersonaje->socket=newfd;	// Lleno con el campo del socket donde me voy a comunicar
 	log_info(logger,"Se conecto con el cliente por el socket %d ", newfd);
 
-	int x = recibirCoordenada(newfd);
+	int x = recibirCoordenada(nuevoPersonaje->socket);
 	nuevoPersonaje->x=x;					// Lleno con el campo de la ubicacion en X
 
-	int y = recibirCoordenada(newfd);
+	int y = recibirCoordenada(nuevoPersonaje->socket);
 	nuevoPersonaje->y=y;					// Lleno con el campo de la ubicacion en Y
 
 	log_info(logger, "La coordenada INICIAL del Entrenador %s es X: %d Y: %d",nuevoPersonaje->nombre, nuevoPersonaje->x, nuevoPersonaje->y);
@@ -397,21 +371,25 @@ void cargoDatosPokemonActual(char pokemonQueRecibo,t_registroPokenest* pokemonAc
 		}
 }
 
-int distanciaAProxObjetivo(t_registroPersonaje* pj, char obj){
+int distanciaAProxObjetivo(t_registroPersonaje* pj, char obj)
+{
 	t_registroPokenest* pok= malloc(sizeof(t_registroPokenest));
 	cargoDatosPokemonActual(obj, pok);
 	return (abs(pj->x - pok->x) + abs(pj->y - pok->y));
 }
 
-t_registroPersonaje* calcularMasCercanoASuObjetivo (){
+t_registroPersonaje* calcularMasCercanoASuObjetivo ()
+{
 	t_registroPersonaje* entrenador = (t_registroPersonaje*)list_get(entrenadores_listos, 0);
 	t_registroPersonaje* entrenadorMinimo = entrenador;
 	int distanciaMinima= distanciaAProxObjetivo(entrenador,entrenador->proximoObjetivo);
 	int i;
 	int indice = 0;
-	for(i=0; i <= list_size(entrenadores_listos); i++){
+	for(i=0; i <= list_size(entrenadores_listos); i++)
+	{
 		entrenador = list_get(entrenadores_listos,i);
-		if(distanciaAProxObjetivo(entrenador,entrenador->proximoObjetivo)<distanciaMinima){
+		if(distanciaAProxObjetivo(entrenador,entrenador->proximoObjetivo)<distanciaMinima)
+		{
 			entrenadorMinimo = entrenador;
 			distanciaMinima = distanciaAProxObjetivo(entrenador,entrenador->proximoObjetivo);
 			indice = i;
@@ -419,9 +397,10 @@ t_registroPersonaje* calcularMasCercanoASuObjetivo (){
 	}
 	return entrenadorMinimo;
 }
-void mover (t_registroPersonaje *personaje, t_registroPokenest* pokemonActual){
-
-	if(personaje->ultimoRecurso == 1){  //ultimo movimiento fue en Y => me muevo en X
+void mover (t_registroPersonaje *personaje, t_registroPokenest* pokemonActual)
+{
+	if(personaje->ultimoRecurso == 1) //ultimo movimiento fue en Y => me muevo en X
+	{
 		if(personaje->x <= pokemonActual->x)
 			personaje->x +=1;
 		else
@@ -444,13 +423,14 @@ void mover (t_registroPersonaje *personaje, t_registroPokenest* pokemonActual){
 	log_info(logger, "Estoy enviando la coordenada en X: %d Y: %d \n",personaje->x ,personaje->y);
 }
 
-void envioQueSeAtrapoPokemon (t_registroPersonaje *personaje, t_registroPokenest* pokemonActual){
-	if(pokemonActual->cantidadDisp >= 1) {
+void envioQueSeAtrapoPokemon (t_registroPersonaje *personaje, t_registroPokenest* pokemonActual)
+{
+	if(pokemonActual->cantidadDisp >= 1)
+	{
 		pokemonActual->cantidadDisp --;
 		log_info(logger, "/*--------------------El Personaje: %c , atrapo al pokemon %c --------------------*/ \n",personaje->identificador, pokemonActual->identificador);
 
 		copiarPokemonAEntrenador(personaje,pokemonActual);
-
 
 		char* buffer = string_new();
 		string_append(&buffer,string_itoa(1));
@@ -595,8 +575,6 @@ void planificar_Entrenadores(parametros_entrenador* param)
  }
 void planificar()
 	{
-
-
 		sem_wait(&colaDeListos);
 
 			int s,j;
@@ -626,8 +604,6 @@ void planificar()
 
 void iniciarHiloPlanificador(pthread_t hilo)
 	{
-
-
 		pthread_create (&hilo,NULL,(void*)planificar,NULL);
 		return;
 	}

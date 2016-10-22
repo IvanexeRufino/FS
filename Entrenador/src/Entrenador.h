@@ -31,6 +31,7 @@
 #include <Payback/crearSocketCliente.c>
 #include <Payback/conectarConServer.c>
 #include <Payback/convertirStreamAString.c>
+#include <Payback/recibirCoordenada.c>
 
 /*----------------------- Declaraciones de Estructuras ---------------------------------*/
 
@@ -79,18 +80,22 @@ typedef struct {
 
 /*----------------------- Declaraciones de Prototipos ---------------------------------*/
 
-char* objetivosDelMapa(char* );
-void muerteDefinitivaPorSenial(int );
+char* objetivosDelMapa(char*);
+void muerteDefinitivaPorSenial(int);
 void gameOver();
-void muertePorSenial(int );
-void sumarVida(int );
-char* objetivosDelMapa(char* );
-void imprimirClaveYValor(char* , void* );
-void enviarMensajeInicial(int );
-void jugarTurno(int );
-void sendObjetivosMapa(int );
-int conectarConServer(char *, int );
-int crearSocketCliente(char [], int );
-
+void muertePorSenial(int);
+void sumarVida(int);
+char* objetivosDelMapa(char*);
+void imprimirClaveYValor(char*,void*);
+void enviarMensajeInicial(int);
+void jugarTurno(int);
+void devolverMedallas();
+int leerConfiguracionEntrenador();
+int leerConfiguracionMapa(t_nivel*);
+void solicitarPosicion(t_nivel*,char);
+void informarFinalizacion(t_nivel*);
+void solicitarAvanzar(t_nivel*,char);
+int atraparPokemon(t_nivel*,char);
+void copiarMedalla(char*,char*);
 
 #endif /* ENTRENADOR_H_ */

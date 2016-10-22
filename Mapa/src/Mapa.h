@@ -1,10 +1,3 @@
-/*
- * Mapa.h
- *
- *  Created on: 5/9/2016
- *      Author: utnso
- */
-
 #ifndef MAPA_H_
 #define MAPA_H_
 
@@ -40,6 +33,8 @@
 #include <Payback/crearSocketServidor.c>
 #include <Payback/charToString.c>
 #include <Payback/string.c>
+#include <Payback/recibirCoordenada.c>
+
 /*----------------------- Declaraciones de Estructuras ---------------------------------*/
 
 typedef struct
@@ -110,12 +105,6 @@ typedef struct
 
 /*----------------------- Declaraciones de Prototipos ---------------------------------*/
 
-		void *get_in_addr(struct sockaddr *sa);
-		/*
-		Objetivo : utilizar estructura IPv4 or IPv6 segun corresponda la familia del protocolo
-		Recibe   : puntero a una estructura sockaddr
-		Devuelve : Devuelve una estructura sockaddr_in o sockaddr_in6
-		*/
-		void leerConfiguracionPokenest(char* mapa, char* path);
+		void leerConfiguracionPokenest(char*, char*);
 
 #endif /* MAPA_H_ */
