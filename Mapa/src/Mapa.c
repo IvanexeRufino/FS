@@ -334,21 +334,19 @@ char recibirBienvenidaEntrenador(int newfd,t_registroPersonaje *nuevoPersonaje)
 	char nombre[40];
 	recv(newfd,nombre,sizeof(nombre),0);
 	strcpy(nuevoPersonaje->nombre,nombre);	// Lleno con el campo del nombre
-	log_info(logger, "Su nombre es: %s\n", nuevoPersonaje->nombre);
+	//log_info(logger, "Su nombre es: %s\n", nuevoPersonaje->nombre);
 
 	log_info(logger, "La coordenada INICIAL del Entrenador %s es X: %d Y: %d",nuevoPersonaje->nombre, nuevoPersonaje->x, nuevoPersonaje->y);
 
 	char* buffer = string_new();
 	recv(newfd,buffer,sizeof(buffer),0);
-	log_info(logger, "Lo que recibio del entrenador %d es esto: %c", newfd,buffer);
 
 	char bufferConAccion;
 	bufferConAccion=buffer[0];
-	log_info(logger,"La accion que pide hacer el entrenador es %c", bufferConAccion);
 
 	nuevoPersonaje->identificador=buffer[1];	// Lleno con el campo con el identificador
-	log_info(logger, "El ID del entrenador es %c", nuevoPersonaje->identificador);
 
+	log_info(logger,"*BIENVENIDA* Recibi de %s: %s,con ID %c y accion: %c",nuevoPersonaje->nombre,buffer,nuevoPersonaje->identificador,bufferConAccion);
 	//CrearPersonaje(items, nuevoPersonaje->identificador , nuevoPersonaje->x, nuevoPersonaje->y);
 	//nivel_gui_dibujar(items,infoMapa->nombre);
 	return (buffer[0]);
@@ -422,7 +420,7 @@ void mover (t_registroPersonaje *personaje, t_registroPokenest* pokemonActual)
 	//nivel_gui_dibujar(items,infoMapa->nombre);
 	enviarCoordenada(personaje->x,personaje->socket);
 	enviarCoordenada(personaje->y,personaje->socket);
-	log_info(logger, "Estoy enviando la coordenada en X: %d Y: %d \n",personaje->x ,personaje->y);
+	log_info(logger, "*MOVER* Se mueve %c (%s) por la coordenada X: %d Y: %d para llegar a: %c \n",personaje->identificador,personaje->nombre,personaje->x,personaje->y,pokemonActual->identificador);
 }
 
 void envioQueSeAtrapoPokemon (t_registroPersonaje *personaje, t_registroPokenest* pokemonActual)
@@ -457,7 +455,7 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje,t_registroPokenest* pok
 	char* payload = string_new();
 	payload =string_duplicate(buffer);
 	str_cut(payload,0,1);
-	log_info(logger,"Lo que recibio para hacer es esto: %s Header: %c Payload: %s",buffer,bufferConAccion,payload);
+	log_info(logger,"Recibio para hacer: %s Header: %c Payload: %s",buffer,bufferConAccion,payload);
 
 	int coordenadaX,coordenadaY;
 
@@ -470,8 +468,9 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje,t_registroPokenest* pok
 		coordenadaX = enviarCoordenada(pokemonActual->x,nuevoPersonaje->socket);				//Envio coordenada del pokemon en X
 
 		coordenadaY = enviarCoordenada(pokemonActual->y,nuevoPersonaje->socket);				//Envio coordenada del pokemon en Y
-		log_info(logger,"Estoy enviando la coordenada en X: %d Y: %d \n",coordenadaX,coordenadaY);
+		log_info(logger,"*ENVIAR POSICION INICIAL* La coordenada de: %c (%s) en X: %d Y: %d \n",nuevoPersonaje->identificador,nuevoPersonaje->nombre,coordenadaX,coordenadaY);
 		break;
+
 
 	case ('2'):
 
@@ -486,16 +485,19 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje,t_registroPokenest* pok
 
 		break;
 
+	case ('\0'):
 	case ('4'):
 		recuperarPokemonDeEntrenador(nuevoPersonaje);
 		nuevoPersonaje->estado='T';
-		//list_remove(entrenadores_listos,0);
+		close(nuevoPersonaje->socket);
+		pthread_exit(NULL);
 		break;
+
 	}
 
 }
 
-void thread_entrenador (t_registroPersonaje* nuevoPersonaje,t_registroPokenest* pokemonActual)
+void accion_entrenador (t_registroPersonaje* nuevoPersonaje,t_registroPokenest* pokemonActual)
 {
 	//Lo deberia sacar de la lista de listos, y al finalizar con su operacion ponerlo al final de la cola de listos
 
@@ -545,7 +547,7 @@ void planificarSRDF()
 //				{
 //			planificarSRDF();
 //				}
-//		//thread_entrenador(entrenador, pokemonActual);
+//		//accion_entrenador(entrenador, pokemonActual);
 //
 //	return;
 //	}
@@ -570,30 +572,17 @@ void planificar_Entrenadores(parametros_entrenador* param)
 	{
 		log_info(logger, "Nose para que te conectaste si no queres jugar xD ");		// No deberia tirar nunca este printf
 	}
-
  	while(nuevoPersonaje->estado!='T')
  	{
- 		sem_wait(&(nuevoPersonaje->turno));			//Le bajo el quantum del semaforo
- 		nuevoPersonaje->quantumFaltante--;
-		thread_entrenador(nuevoPersonaje,pokemonActual);
-		if(nuevoPersonaje->quantumFaltante == 0)			//Cuando termine mi quantum, lo vuelvo a agregar a la cola de ready
-		{													//Y ademas le doy paso al siguiente entrenador de la lista
-			list_add(entrenadores_listos,nuevoPersonaje);
-			sem_post(&pasoDeEntrenador);
+		while(nuevoPersonaje->quantumFaltante != 0 && nuevoPersonaje->estado!='T')
+		{
+			nuevoPersonaje->quantumFaltante--;
+			accion_entrenador(nuevoPersonaje,pokemonActual);
 		}
+		list_add(entrenadores_listos,nuevoPersonaje);	//Cuando termine mi quantum, lo vuelvo a agregar a la cola de listos
+		sem_post(&pasoDeEntrenador);					//Le doy paso al siguiente entrenador de la lista
  	}
-// 	while(nuevoPersonaje->estado !='T')
-// 	{
-//  		//pthread_t hiloPlanificador;
-//    	//pthread_create (&hiloPlanificador,NULL,(void*)planificarEntrenador,NULL);
-//    	//t_registroPersonaje entrenadorQueVaAejecutar=planificarEntrenador();	//Me devuelve cual es el entrenador que ejecuta
-//    thread_entrenador(nuevoPersonaje,pokemonActual);	//tendria que mandar en un futuro el que me dice que puedo ejecutar el planificador
-// 	}
-
-//
-// 	free(pokemonActual);
-// 	free(nuevoPersonaje);
- }
+}
 void planificar()
 {
 	sem_wait(&colaDeListos);
@@ -614,10 +603,9 @@ void planificar()
 //	}
 	while(!list_is_empty(entrenadores_listos))
 	{
-		t_registroPersonaje* entrenador=list_get(entrenadores_listos,0);
+		t_registroPersonaje* entrenador=list_get(entrenadores_listos,0);	//Que me devuelva el primero que va a ser el que se ejecute
 		if(!strcmp(infoMapa->algoritmo,"RR"))		//Aca planifico RoundRobin
 		{
-		sem_init(&(entrenador->turno),1,infoMapa->quantum);	//Que el semaforo que le va a bloquear la accion al entrenador se setee
 		entrenador->quantumFaltante=infoMapa->quantum;
 		list_remove(entrenadores_listos,0);			//Al ejecutarse lo saco de la cola de listos
 		sem_wait(&pasoDeEntrenador);				//Este semaforo se queda esperando en bloqueado hasta que termine el quantum
@@ -626,6 +614,7 @@ void planificar()
 		{
 		planificarSRDF();
 		}
+
 	}
 }
 
@@ -636,14 +625,12 @@ void iniciarHiloPlanificador(pthread_t hilo)
 	}
 
 
-
 void releerconfig(int aSignal)
 {
 	 reLeerConfiguracionMapa();
 	 signal(SIGUSR2,releerconfig);
 	 return ;
 }
-
 
 
 int main(int argc, char **argv)
