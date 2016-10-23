@@ -18,6 +18,7 @@ int filas, columnas;
 t_log* logger;
 
 sem_t colaDeListos;
+sem_t pasoDeEntrenador;
 
 void recuperarPokemonDeEntrenador(t_registroPersonaje *personaje)
 {
@@ -330,11 +331,12 @@ char recibirBienvenidaEntrenador(int newfd,t_registroPersonaje *nuevoPersonaje)
 	int y = recibirCoordenada(nuevoPersonaje->socket);
 	nuevoPersonaje->y=y;					// Lleno con el campo de la ubicacion en Y
 
-	log_info(logger, "La coordenada INICIAL del Entrenador %s es X: %d Y: %d",nuevoPersonaje->nombre, nuevoPersonaje->x, nuevoPersonaje->y);
 	char nombre[40];
 	recv(newfd,nombre,sizeof(nombre),0);
 	strcpy(nuevoPersonaje->nombre,nombre);	// Lleno con el campo del nombre
 	log_info(logger, "Su nombre es: %s\n", nuevoPersonaje->nombre);
+
+	log_info(logger, "La coordenada INICIAL del Entrenador %s es X: %d Y: %d",nuevoPersonaje->nombre, nuevoPersonaje->x, nuevoPersonaje->y);
 
 	char* buffer = string_new();
 	recv(newfd,buffer,sizeof(buffer),0);
@@ -347,8 +349,8 @@ char recibirBienvenidaEntrenador(int newfd,t_registroPersonaje *nuevoPersonaje)
 	nuevoPersonaje->identificador=buffer[1];	// Lleno con el campo con el identificador
 	log_info(logger, "El ID del entrenador es %c", nuevoPersonaje->identificador);
 
-	CrearPersonaje(items, nuevoPersonaje->identificador , nuevoPersonaje->x, nuevoPersonaje->y);
-	nivel_gui_dibujar(items,infoMapa->nombre);
+	//CrearPersonaje(items, nuevoPersonaje->identificador , nuevoPersonaje->x, nuevoPersonaje->y);
+	//nivel_gui_dibujar(items,infoMapa->nombre);
 	return (buffer[0]);
 }
 
@@ -416,8 +418,8 @@ void mover (t_registroPersonaje *personaje, t_registroPokenest* pokemonActual)
 	}
 	if(personaje->x == pokemonActual->x) personaje->ultimoRecurso = 0;
 	if(personaje->y == pokemonActual->y) personaje->ultimoRecurso = 1;
-	MoverPersonaje(items, personaje->identificador, personaje->x, personaje->y );
-	nivel_gui_dibujar(items,infoMapa->nombre);
+	//MoverPersonaje(items, personaje->identificador, personaje->x, personaje->y );
+	//nivel_gui_dibujar(items,infoMapa->nombre);
 	enviarCoordenada(personaje->x,personaje->socket);
 	enviarCoordenada(personaje->y,personaje->socket);
 	log_info(logger, "Estoy enviando la coordenada en X: %d Y: %d \n",personaje->x ,personaje->y);
@@ -451,6 +453,7 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje,t_registroPokenest* pok
 	recv(nuevoPersonaje->socket,buffer,sizeof(buffer),0);
 	char bufferConAccion;        //Vendria a ser el header
 	bufferConAccion=buffer[0];
+	nuevoPersonaje->accion=bufferConAccion;
 	char* payload = string_new();
 	payload =string_duplicate(buffer);
 	str_cut(payload,0,1);
@@ -526,21 +529,27 @@ void planificarSRDF()
 	return;
 }
 
-void planificarEntrenador(t_registroPersonaje* entrenador)
-	{
-
-		if(!strcmp(infoMapa->algoritmo, "RR"))
-				{
-			planificarRoundRobin();
-				}
-		else
-				{
-			planificarSRDF();
-				}
-		thread_entrenador(entrenador, pokemonActual);
-
-	return;
-	}
+//void planificarEntrenador(int cantidadEntrenadores/*t_registroPersonaje* entrenador*/)
+//{
+//	int j;
+//	for(j=0; j<cantidadEntrenadores; j++)
+//	{
+//		t_registroPersonaje* entrenador=list_get(entrenadores_listos,j);
+//		if(!strcmp(infoMapa->algoritmo,"RR"))
+//		{
+//			sem_init(&(entrenador->turno),1,infoMapa->quantum);
+//
+//			//planificarRoundRobin();
+//		}
+//		else
+//				{
+//			planificarSRDF();
+//				}
+//		//thread_entrenador(entrenador, pokemonActual);
+//
+//	return;
+//	}
+//}
 
 void planificar_Entrenadores(parametros_entrenador* param)
 {
@@ -561,6 +570,18 @@ void planificar_Entrenadores(parametros_entrenador* param)
 	{
 		log_info(logger, "Nose para que te conectaste si no queres jugar xD ");		// No deberia tirar nunca este printf
 	}
+
+ 	while(nuevoPersonaje->estado!='T')
+ 	{
+ 		sem_wait(&(nuevoPersonaje->turno));			//Le bajo el quantum del semaforo
+ 		nuevoPersonaje->quantumFaltante--;
+		thread_entrenador(nuevoPersonaje,pokemonActual);
+		if(nuevoPersonaje->quantumFaltante == 0)			//Cuando termine mi quantum, lo vuelvo a agregar a la cola de ready
+		{													//Y ademas le doy paso al siguiente entrenador de la lista
+			list_add(entrenadores_listos,nuevoPersonaje);
+			sem_post(&pasoDeEntrenador);
+		}
+ 	}
 // 	while(nuevoPersonaje->estado !='T')
 // 	{
 //  		//pthread_t hiloPlanificador;
@@ -574,33 +595,39 @@ void planificar_Entrenadores(parametros_entrenador* param)
 // 	free(nuevoPersonaje);
  }
 void planificar()
+{
+	sem_wait(&colaDeListos);
+//	int s,j;
+//	int cantidadEntrenadores;
+//	pthread_mutex_lock(&mutex_EntrenadoresActivos);
+//	cantidadEntrenadores = entrenadores_listos->elements_count;
+//	pthread_mutex_unlock(&mutex_EntrenadoresActivos);
+//	while(cantidadEntrenadores!=0)
+//	{
+//		for(j=0; j<cantidadEntrenadores; j++)
+//		{
+//			for(s=0; s<infoMapa->quantum; s++)
+//			{
+//				planificarEntrenador(cantidadEntrenadores/*list_get(entrenadores_listos,j)*/);
+//			}
+//		}
+//	}
+	while(!list_is_empty(entrenadores_listos))
 	{
-		sem_wait(&colaDeListos);
-
-			int s,j;
-			int cantidadEntrenadores;
-			pthread_mutex_lock(&mutex_EntrenadoresActivos);
-			cantidadEntrenadores = entrenadores_listos->elements_count;
-			pthread_mutex_unlock(&mutex_EntrenadoresActivos);
-			while(cantidadEntrenadores!=0)
-			{
-
-		for(j=0; j<cantidadEntrenadores; j++)
+		t_registroPersonaje* entrenador=list_get(entrenadores_listos,0);
+		if(!strcmp(infoMapa->algoritmo,"RR"))		//Aca planifico RoundRobin
 		{
-
-
-			for(s=0; s<infoMapa->quantum; s++)
-				{
-
-
-					planificarEntrenador(list_get(entrenadores_listos,j));
-
-				}
+		sem_init(&(entrenador->turno),1,infoMapa->quantum);	//Que el semaforo que le va a bloquear la accion al entrenador se setee
+		entrenador->quantumFaltante=infoMapa->quantum;
+		list_remove(entrenadores_listos,0);			//Al ejecutarse lo saco de la cola de listos
+		sem_wait(&pasoDeEntrenador);				//Este semaforo se queda esperando en bloqueado hasta que termine el quantum
+		}											//Si el entrenador no termino de hacer lo que le faltaba , se agrega al final de la cola de listos
+		else
+		{
+		planificarSRDF();
 		}
-			}
 	}
-
-
+}
 
 void iniciarHiloPlanificador(pthread_t hilo)
 	{
@@ -624,22 +651,26 @@ int main(int argc, char **argv)
 	filas = 30;
 	columnas =30;
 	items = list_create();									//Para usar despues en las cajas
+	sem_init(&(pasoDeEntrenador),1,0);
 
 	/* Inicializacion y registro inicial de ejecucion */
 	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
 	log_info(logger, PROGRAM_DESCRIPTION);
 	  infoMapa = malloc(sizeof(mapa_datos));
-	if(argc == 1){
+	if(argc == 1)
+	{
 		log_info(logger, "Cantidad de parametros incorrectos, Aplicando por defecto");
 		strcpy(infoMapa->nombre,"PuebloPaleta");
 		strcpy(rutaArgv, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Pokedex");
 	}
-	if(argc==3){
+	else if(argc==3)
+	{
 		log_info(logger, "Cantidad de parametros CORRECTOS");
 		strcpy(infoMapa->nombre,argv[1]);
 		strcpy(rutaArgv, argv[2]);
 	}
-	if(argc==2){
+	else if(argc==2)
+	{
 		log_info(logger,"Cantidad de parametros Incorrectos, aplicando por defecto para la ruta");
 		strcpy(infoMapa->nombre,argv[1]);
 		strcpy(rutaArgv, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Pokedex");
@@ -660,9 +691,9 @@ int main(int argc, char **argv)
 		  		  log_info(logger, "Archivo de configuracion leido correctamente");
 			  else
 				  log_error(logger,"Error la leer archivo de configuracion");
-		nivel_gui_inicializar();
-		nivel_gui_get_area_nivel(&filas, &columnas);
-		nivel_gui_dibujar(items,infoMapa->nombre);
+		//nivel_gui_inicializar();
+		//nivel_gui_get_area_nivel(&filas, &columnas);
+		//nivel_gui_dibujar(items,infoMapa->nombre);
 
 // ------------------- Descomentar para probar si cargaron bien las nests -------------------------//
 //	  t_registroPokenest* pokenestPrueba = malloc(sizeof(t_registroPokenest));
@@ -682,12 +713,13 @@ int main(int argc, char **argv)
 	      pthread_t hiloPlanificador;
 	      //void iniciarHiloPlanificador(hiloPlanificador);
 
+	      sem_init(&colaDeListos, 1,0);
 	      pthread_create (&hiloPlanificador,NULL,(void*)planificar,NULL);
-	      int ret;
-	      int count = 0;
+	     // int ret;
 
 	      /* to be shared among processes */
-	      ret = sem_init(&colaDeListos, 1, count);
+	     // ret = sem_init(&colaDeListos, 1, count);
+
 
 	     //Hacemos un while 1 porque siempre queremos recibir conexiones entrantes
 	     //Y ademas creamos un hilo para que mientras que escuche conexiones nuevas, me delegue lo que llego para trabajar
@@ -706,6 +738,7 @@ int main(int argc, char **argv)
 	    	  param->idHilo = idHilo;
 	    	  param->newfd = newfd;
 	    	  pthread_create (&idHilo,NULL,(void*)planificar_Entrenadores,param);
+	    	  //planificar_Entrenadores(param);
 	    	  //pthread_join(&hiloPlanificador,0);
 	     }
 

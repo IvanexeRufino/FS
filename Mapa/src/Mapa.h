@@ -50,7 +50,9 @@ typedef struct
 	bool posicionPedida;
 	int threadId;
 	char estado; // E= en ejecucion, B= bloqueado, L = listo 	T = terminado
-
+	sem_t turno;
+	char accion;
+	int quantumFaltante;
 }t_registroPersonaje;
 
 typedef struct
@@ -91,7 +93,7 @@ typedef struct
 		#define LOG_FILE "proceso_Mapa.log"
 		#define PROGRAM_NAME "MAPA"
 		#define PROGRAM_DESCRIPTION "Proceso MAPA"
-		#define IS_ACTIVE_CONSOLE false
+		#define IS_ACTIVE_CONSOLE true
 		#define T_LOG_LEVEL LOG_LEVEL_INFO
 
 		/* Configuración de SOCKETS */

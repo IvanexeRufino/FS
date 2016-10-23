@@ -300,18 +300,19 @@ int main(int argc, char **argv)
 	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
 	log_info(logger, PROGRAM_DESCRIPTION);
 	infoEntrenador = malloc(sizeof(entrenador_datos));
-	if(argc ==1){
+	if(argc ==1)
+	{
 		log_info(logger, "Cantidad de parametros: %d, Aplicando datos por Defecto",argc);
 		strcpy(infoEntrenador->nombre, "Red");
 		strcpy(rutaArgv, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Pokedex");
 	}
-	if(argc == 2)
+	else if(argc == 2)
 	{
 		log_info(logger, "Cantidad de parametros: %d, Aplicando datos por Defecto para la Ruta",argc);
 		strcpy(infoEntrenador->nombre,argv[1]);
 		strcpy(rutaArgv, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Pokedex");
 	}
-	if(argc == 3){
+	else if(argc == 3){
 		log_info(logger, "Cantidad de parametros: %d",argc);
 		strcpy(infoEntrenador->nombre,argv[1]);
 		strcpy(rutaArgv,argv[2]);
@@ -376,6 +377,7 @@ int main(int argc, char **argv)
 			copiarMedalla(infoEntrenador->nombre, mapa->nivel);
 			log_info(logger, "Felicitaciones, terminaste de capturar todos los pokemons del mapa nro %d \n",j);
 			informarFinalizacion(mapa);
+			close(mapa->socketMapa);
 		}
 		clock_t fin=clock();
 
