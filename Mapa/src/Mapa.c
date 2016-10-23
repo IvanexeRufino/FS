@@ -334,7 +334,6 @@ char recibirBienvenidaEntrenador(int newfd,t_registroPersonaje *nuevoPersonaje)
 	char nombre[40];
 	recv(newfd,nombre,sizeof(nombre),0);
 	strcpy(nuevoPersonaje->nombre,nombre);	// Lleno con el campo del nombre
-	//log_info(logger, "Su nombre es: %s\n", nuevoPersonaje->nombre);
 
 	log_info(logger, "La coordenada INICIAL del Entrenador %s es X: %d Y: %d",nuevoPersonaje->nombre, nuevoPersonaje->x, nuevoPersonaje->y);
 
@@ -343,7 +342,6 @@ char recibirBienvenidaEntrenador(int newfd,t_registroPersonaje *nuevoPersonaje)
 
 	char bufferConAccion;
 	bufferConAccion=buffer[0];
-
 	nuevoPersonaje->identificador=buffer[1];	// Lleno con el campo con el identificador
 
 	log_info(logger,"*BIENVENIDA* Recibi de %s: %s,con ID %c y accion: %c",nuevoPersonaje->nombre,buffer,nuevoPersonaje->identificador,bufferConAccion);
@@ -553,7 +551,7 @@ void planificarSRDF()
 //	}
 //}
 
-void planificar_Entrenadores(parametros_entrenador* param)
+void ejecutar_Entrenador(parametros_entrenador* param)
 {
 	 nuevoPersonaje = malloc(sizeof(t_registroPersonaje));
 	 pokemonActual=malloc(sizeof(t_registroPokenest));
@@ -702,11 +700,6 @@ int main(int argc, char **argv)
 
 	      sem_init(&colaDeListos, 1,0);
 	      pthread_create (&hiloPlanificador,NULL,(void*)planificar,NULL);
-	     // int ret;
-
-	      /* to be shared among processes */
-	     // ret = sem_init(&colaDeListos, 1, count);
-
 
 	     //Hacemos un while 1 porque siempre queremos recibir conexiones entrantes
 	     //Y ademas creamos un hilo para que mientras que escuche conexiones nuevas, me delegue lo que llego para trabajar
@@ -715,7 +708,6 @@ int main(int argc, char **argv)
 	     {
 	    	 newfd = AceptarConexionCliente(socketServidor);
 
-	    	 //Aca conviene hacer DATACHABLES PARA QUE CUANDO TERMINE EL HILO LIBERE TODOS SUS RECURSOS
 	    	 //No quiero quedarme esperando a que termine de hacer lo del hilo, por eso no pongo el join
 	    	 //Quiero seguir escuchando conexiones entrantes
 
@@ -724,9 +716,8 @@ int main(int argc, char **argv)
 	    	  parametros_entrenador* param = malloc(sizeof(parametros_entrenador));
 	    	  param->idHilo = idHilo;
 	    	  param->newfd = newfd;
-	    	  pthread_create (&idHilo,NULL,(void*)planificar_Entrenadores,param);
-	    	  //planificar_Entrenadores(param);
-	    	  //pthread_join(&hiloPlanificador,0);
+	    	  pthread_create (&idHilo,NULL,(void*)ejecutar_Entrenador,param);
+	    	  //pthread_join(&idHilo,0);
 	     }
 
 log_info(logger, "Se finalizaron las operaciones con todos los entrenadores que estaban conectados");
