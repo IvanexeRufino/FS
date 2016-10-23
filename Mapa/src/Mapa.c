@@ -9,6 +9,7 @@ t_list* entrenadores_listos;
 t_list* entrenadores_bloqueados;
 
 pthread_mutex_t mutex_EntrenadoresActivos = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutex_threadAEjecutar = PTHREAD_MUTEX_INITIALIZER;
 
 t_registroPokenest *pokemonActual;
 t_registroPersonaje *nuevoPersonaje;
@@ -19,6 +20,10 @@ t_log* logger;
 
 sem_t colaDeListos;
 sem_t pasoDeEntrenador;
+int threadAEjecutar;
+
+
+
 
 void recuperarPokemonDeEntrenador(t_registroPersonaje *personaje)
 {
@@ -513,6 +518,10 @@ void accion_entrenador (t_registroPersonaje* nuevoPersonaje,t_registroPokenest* 
 	recibirQueHacer(nuevoPersonaje,pokemonActual);
 	break;
 
+	case 'B':
+		  log_info(logger,"El entrenador %s se encuentra bloqueado \n", nuevoPersonaje->nombre);
+		  break;
+
 	default:
 		break;
 
@@ -551,6 +560,19 @@ void planificarSRDF()
 //	}
 //}
 
+char esperarSerPlanificado(int threadId, t_registroPersonaje* entrenador)
+  {
+
+      if (threadId == entrenador->threadId)
+        {
+          accion_entrenador(entrenador, pokemonActual);
+        }
+
+      return entrenador->estado;
+
+  }
+
+
 void ejecutar_Entrenador(parametros_entrenador* param)
 {
 	 nuevoPersonaje = malloc(sizeof(t_registroPersonaje));
@@ -572,16 +594,73 @@ void ejecutar_Entrenador(parametros_entrenador* param)
 	}
  	while(nuevoPersonaje->estado!='T')
  	{
-		while(nuevoPersonaje->quantumFaltante != 0 && nuevoPersonaje->estado!='T')
-		{
-			nuevoPersonaje->quantumFaltante--;
-			accion_entrenador(nuevoPersonaje,pokemonActual);
-		}
-		list_add(entrenadores_listos,nuevoPersonaje);	//Cuando termine mi quantum, lo vuelvo a agregar a la cola de listos
-		sem_post(&pasoDeEntrenador);					//Le doy paso al siguiente entrenador de la lista
+//		while(nuevoPersonaje->quantumFaltante != 0 && nuevoPersonaje->estado!='T')
+//		{
+//			nuevoPersonaje->quantumFaltante--;
+//			accion_entrenador(nuevoPersonaje,pokemonActual);
+//		}
+//		list_add(entrenadores_listos,nuevoPersonaje);	//Cuando termine mi quantum, lo vuelvo a agregar a la cola de listos
+//		sem_post(&pasoDeEntrenador);					//Le doy paso al siguiente entrenador de la lista
+
+
+ 		      nuevoPersonaje->estado = esperarSerPlanificado(threadAEjecutar, nuevoPersonaje);
+
+
  	}
 }
-void planificar()
+void planificarNico()
+  {
+
+
+
+
+
+
+    sem_wait(&colaDeListos);
+
+      int s,j;
+      int cantidadEntrenadores;
+      pthread_mutex_lock(&mutex_EntrenadoresActivos);
+      cantidadEntrenadores = entrenadores_listos->elements_count;
+      pthread_mutex_unlock(&mutex_EntrenadoresActivos);
+      while(cantidadEntrenadores!=0)
+      {
+
+    for(j=0; j<cantidadEntrenadores; j++)
+    {
+    	t_registroPersonaje* aux = malloc(sizeof(t_registroPersonaje));
+    	          aux = (list_get(entrenadores_listos,j));
+    	if(aux->estado!= 'B')
+    	{
+
+
+
+
+
+      for(s=0; s<infoMapa->quantum; s++)
+        {
+
+    	  pthread_mutex_lock(&mutex_threadAEjecutar);
+    	      	 threadAEjecutar = aux->threadId;
+    	  pthread_mutex_lock(&mutex_threadAEjecutar);
+
+
+
+        }
+      pthread_mutex_lock(&mutex_EntrenadoresActivos);
+
+
+
+    	}
+
+
+
+
+    }
+      }
+  }
+
+void planificarGabi()
 {
 	sem_wait(&colaDeListos);
 //	int s,j;
@@ -616,11 +695,7 @@ void planificar()
 	}
 }
 
-void iniciarHiloPlanificador(pthread_t hilo)
-	{
-		pthread_create (&hilo,NULL,(void*)planificar,NULL);
-		return;
-	}
+
 
 
 void releerconfig(int aSignal)
@@ -696,10 +771,10 @@ int main(int argc, char **argv)
 	      socketServidor = crearSocketServidor(infoMapa->puertoEscucha);
 	      IniciarSocketServidor(atoi(infoMapa->puertoEscucha));
 	      pthread_t hiloPlanificador;
-	      //void iniciarHiloPlanificador(hiloPlanificador);
+
 
 	      sem_init(&colaDeListos, 1,0);
-	      pthread_create (&hiloPlanificador,NULL,(void*)planificar,NULL);
+	      pthread_create (&hiloPlanificador,NULL,(void*)planificarNico,NULL);
 
 	     //Hacemos un while 1 porque siempre queremos recibir conexiones entrantes
 	     //Y ademas creamos un hilo para que mientras que escuche conexiones nuevas, me delegue lo que llego para trabajar
