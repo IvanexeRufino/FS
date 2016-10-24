@@ -50,7 +50,8 @@ typedef struct
 	bool posicionPedida;
 	int threadId;
 	char estado; // E= en ejecucion, B= bloqueado, L = listo 	T = terminado
-	sem_t turno;
+	sem_t ejecutar1;
+	sem_t ejecutar2;
 	char accion;
 	int quantumFaltante;
 }t_registroPersonaje;
