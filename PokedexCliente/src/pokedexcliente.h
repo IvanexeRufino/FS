@@ -23,6 +23,9 @@
 #include <commons/collections/list.h>
 #include <stdbool.h>
 
+typedef unsigned char osada_block[64];
+typedef uint32_t osada_block_pointer;
+
 /* -- declaraciones de estructuras -- */
 
 /* -- declaraciones de constantes -- */

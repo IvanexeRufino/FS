@@ -89,58 +89,57 @@ int AceptarConexionCliente(int socketServer) {
 
 }
 
-void getattr(char bufpath){
-	puts("getattr");
+int getattr(char* bufpath){
+	osada_file* archivo = obtenerArchivo (bufpath);
+	if(archivo == NULL || archivo->state == 0) {
+//		return -ENOENT;
+	}
+
+	send(socketServidor,archivo,sizeof(archivo),0);
+	return 0;
 }
 
 int readdir(char* bufpath){
 	int i;
 	int indice = obtenerIndice(bufpath);
 	if(indice == -1) {
-		return -ENOENT;
+//		return -ENOENT;
 	}
 	t_list* listaDeHijos = listaDeHijosDelArchivo(indice);
-	char* nombresDeHijos = malloc(list_size(listaDeHijos)*sizeof(listaDeHijos));
-	for(i = 0; i < list_size(listaDeHijos); i++) {
-		nombresDeHijos[i] = list_get(listaDeHijos,i);
-	}
-	char* buff = malloc(sizeof(listaDeHijos));
-	memcpy(buff,nombresDeHijos,sizeof(nombresDeHijos));
-	enviarPaquete("2",buff);
+	send(socketServidor,listaDeHijos,sizeof(listaDeHijos),0);
+
+	return 0;
 }
 
-int enviarPaquete (char* head, char* buff){
-	t_package *package= malloc(sizeof(package));
-	package->header=head;
-	package->path=buff;
+int open_callback(char* path) {
+	osada_file* archivo = obtenerArchivo (path);
+	if(archivo == NULL || archivo->state == 0) {
+		return -ENOENT;
+	}
 
-	char* buf= malloc(sizeof(package));
-	strcpy(buf,package->header);
-	strcat(buf,package->path);
+	send(socketServidor,archivo,sizeof(archivo),0);
+	return 0;
+}
 
-	send(socketServidor,buff,sizeof(buff),0);
-	puts("enviado");
+int mkdir_callback(char* nombreNuevo) {
+	crear_archivo(nombreNuevo, 2);
 	return 0;
 }
 
 int recibirPaquete(int socket){
 
-	char* buf=malloc(sizeof(char)*2);
-	recv(socket,buf,sizeof(buf),0);
+	char* buf=malloc(sizeof(t_package*));
+	recv(socket,buf,sizeof(buf),MSG_WAITALL);
 	puts("recibi");
 
 	char bufheader;
 	bufheader=buf[0];
-	printf("%c",bufheader);
-	puts("oka");
 
-	char bufpath;
-	bufpath=buf[1];
-	printf("%c",bufpath);
-	puts("oka2");
+	char* bufpath = malloc(sizeof(char*));
+	bufpath = (char*) buf[1];
 
-	enviarPaquete(buf,socket);
-	puts("enviado");
+	printf("%c \n",bufheader);
+	printf("%s \n",&bufpath);
 
 	switch(bufheader){
 	case '1':
@@ -149,12 +148,16 @@ int recibirPaquete(int socket){
 	case '2':
 		readdir(bufpath);
 		break;
+	case '3':
+		open_callback(bufpath);
+		break;
+	case '4':
+		mkdir_callback(bufpath);
+		break;
 	}
-
 
 	return 0;
 }
-
 
 int main(void) {
 
@@ -162,14 +165,15 @@ int main(void) {
 //	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
 //	log_info(logger, PROGRAM_DESCRIPTION);
 	int newfd;
-//	system("truncate -s 100k disco.bin");
-//	system("./osada-format /home/ivan/tp-2016-2c-so-II-the-payback/PokedexServidor/disco.bin");
 	socketServidor = crearSocketServidor("9999");
 	IniciarSocketServidor(atoi("9999"));
 	puts("conecok");
-	newfd = AceptarConexionCliente(socketServidor);
-	printf("El cliente nuevo se ha conectado por el socket %d\n", newfd);
-	recibirPaquete(newfd);
+	while (1) {
+		newfd = AceptarConexionCliente(socketServidor);
+		printf("El cliente nuevo se ha conectado por el socket %d\n", newfd);
+		recibirPaquete(newfd);
+	}
 	return 0;
 }
+
 
