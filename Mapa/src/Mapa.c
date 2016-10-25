@@ -11,6 +11,10 @@ t_list* entrenadores_bloqueados;
 pthread_mutex_t mutex_EntrenadoresActivos = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutex_threadAEjecutar = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutex_bloqPlanificador = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutex_entrenadorEnEjecucion = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutex_Ejecucion = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutex_siguienteQuantum = PTHREAD_MUTEX_INITIALIZER;
+
 
 t_registroPokenest *pokemonActual;
 t_registroPersonaje *nuevoPersonaje;
@@ -21,6 +25,8 @@ t_log* logger;
 
 sem_t colaDeListos;
 sem_t pasoDeEntrenador;
+sem_t execute;
+
 int threadAEjecutar;
 
 
@@ -473,6 +479,7 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje,t_registroPokenest* pok
 
 		coordenadaY = enviarCoordenada(pokemonActual->y,nuevoPersonaje->socket);				//Envio coordenada del pokemon en Y
 		log_info(logger,"*ENVIAR POSICION INICIAL* La coordenada de: %c (%s) en X: %d Y: %d \n",nuevoPersonaje->identificador,nuevoPersonaje->nombre,coordenadaX,coordenadaY);
+
 		break;
 
 
@@ -579,6 +586,7 @@ void ejecutar_Entrenador(parametros_entrenador* param)
 	 nuevoPersonaje = malloc(sizeof(t_registroPersonaje));
 	 pokemonActual=malloc(sizeof(t_registroPokenest));
 	 nuevoPersonaje->threadId = param->idHilo;
+	 sem_init(&nuevoPersonaje->turno,1,0);
 	 char estaListoParaJugar = recibirBienvenidaEntrenador(param->newfd,nuevoPersonaje);	//Realizo el handshake
 
  	if (estaListoParaJugar == '0')
@@ -593,9 +601,11 @@ void ejecutar_Entrenador(parametros_entrenador* param)
 	{
 		log_info(logger, "Nose para que te conectaste si no queres jugar xD ");		// No deberia tirar nunca este printf
 	}
-
- 	while(nuevoPersonaje->estado!='T')
- 	{
+// 	------------------------------------------
+// 	while(pthread_mutex_lock(&mutex_Ejecucion));
+// 	------------------------------------------
+// 	while(nuevoPersonaje->estado == 'E')
+// 	{
 //		while(nuevoPersonaje->quantumFaltante != 0 && nuevoPersonaje->estado!='T')
 //		{
 //			nuevoPersonaje->quantumFaltante--;
@@ -615,10 +625,31 @@ void ejecutar_Entrenador(parametros_entrenador* param)
 // 		  pthread_mutex_unlock(&mutex_bloqPlanificador);
 // 	   }
 // 	}
- 		sem_wait(&(nuevoPersonaje->ejecutar1));
- 		accion_entrenador(nuevoPersonaje, pokemonActual);
- 		sem_post(&(nuevoPersonaje->ejecutar2));
+ 		//sem_wait(&(nuevoPersonaje->ejecutar1));
+ 		//accion_entrenador(nuevoPersonaje, pokemonActual);
+// 	------------------------------------------------------------
+// 		recibirQueHacer(nuevoPersonaje,pokemonActual);
+// 		pthread_mutex_unlock(&mutex_siguienteQuantum);
+//-------------------------------------------------------------------
+ 		//sem_post(&(nuevoPersonaje->ejecutar2));
+// 	}
+ 	while(1)
+ 	{
+ 		sem_wait(&nuevoPersonaje->turno);
+
+
+ 			 		recibirQueHacer(nuevoPersonaje,pokemonActual);
+ 			 		pthread_mutex_unlock(&mutex_Ejecucion);
+
+
+
  	}
+}
+
+void ejecutarTrainer(t_registroPersonaje* entrenador)
+{
+
+
 }
 void planificarNico()
 {
@@ -656,26 +687,37 @@ void planificarNuevo()
 	while(1)
 	{
 		int cantidadEntrenadores = entrenadores_listos->elements_count;
-		for(i=0;i<=cantidadEntrenadores;i++)
+		for(i=0;i<cantidadEntrenadores;i++)
 		{
-			if(i == cantidadEntrenadores)
-			{
-				i=0;
-			}
+
 			cantidadEntrenadores = entrenadores_listos->elements_count;
-			t_registroPersonaje* entrenador = list_remove(entrenadores_listos,i);
-			sem_init(&(entrenador->ejecutar1),1,0);
-			sem_init(&(entrenador->ejecutar2),1,0);
+			t_registroPersonaje* entrenador = malloc(sizeof(t_registroPersonaje));
+			 entrenador = list_remove(entrenadores_listos,i);
+//			sem_init(&(entrenador->ejecutar1),1,0);
+//			sem_init(&(entrenador->ejecutar2),1,0);
 
 			if(!strcmp(infoMapa->algoritmo,"RR"))
 			{
+
 				for(j=0;j<=infoMapa->quantum;j++)
 				{
-					sem_post(&(entrenador->ejecutar1));
-					sem_wait(&(entrenador->ejecutar2));
+					entrenador->estado = 'E';
+					sem_post(&entrenador->turno);
+					//ejecutarTrainer(entrenador);
+					pthread_mutex_lock(&mutex_Ejecucion);
+					//pthread_mutex_unlock(&mutex_Ejecucion);
 				}
+				entrenador->estado = 'L';
+
 			}
+			pthread_mutex_lock(&mutex_EntrenadoresActivos);
 			list_add(entrenadores_listos,entrenador);
+			pthread_mutex_unlock(&mutex_EntrenadoresActivos);
+
+//			if(i == cantidadEntrenadores)
+//						{
+//							i=0;
+//						}
 		}
 	}
 }
@@ -791,6 +833,7 @@ int main(int argc, char **argv)
 
 
 	      sem_init(&colaDeListos, 1,0);
+	      sem_init(&execute,1,0);
 	      pthread_create (&hiloPlanificador,NULL,(void*)planificarNuevo,NULL);
 
 	     //Hacemos un while 1 porque siempre queremos recibir conexiones entrantes
