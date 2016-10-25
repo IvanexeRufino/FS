@@ -1,128 +1,141 @@
 /*
- ============================================================================
- Name        : PokedexCliente.c
- Author      : 
- Version     :
- Copyright   : Your copyright notice
- Description : Hello World in C, Ansi-style
- ============================================================================
+ * ejemplo.c
+ *
+ *  Created on: 26/08/2016
+ *      Author: utnso
  */
 
-//#include "Configuracion.c"
-#include "pokedexcliente.h"
-#include <commons/collections/list.h>
+#include <stdio.h>
 #include <fuse.h>
+#include <sys/mman.h>
+#include <errno.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <signal.h>
+#include "FileSysOSADA/osada.h"
 
-typedef struct {
-	char* header;
-	const char *body;
-	int size;
-}t_package;
+static int ejemplo_getattr(const char *path, struct stat *stbuf) {
+	int res = 0;
+	memset(stbuf, 0, sizeof(struct stat));
 
-int conectarConServer()
-{
-	struct sockaddr_in socket_info;
-	int nuevoSocket;
-	// Se carga informacion del socket
-	socket_info.sin_family = AF_INET;
-	socket_info.sin_addr.s_addr = inet_addr("127.0.0.1");
-	socket_info.sin_port = htons(9999);
+	osada_file* archivo = obtenerArchivo(path);
 
-	// Crear un socket:
-	// AF_INET, SOCK_STREM, 0
-	nuevoSocket = socket (AF_INET, SOCK_STREAM, 0);
-	if (nuevoSocket < 0)
-		return -1;
-	// Conectar el socket con la direccion 'socketInfo'.
-	int conecto = connect (nuevoSocket,(struct sockaddr *)&socket_info,sizeof (socket_info));
-	int mostrarEsperaAconectar=0;
-	while (conecto != 0){
-		mostrarEsperaAconectar++;
-		if (mostrarEsperaAconectar == 1){
-			printf("Esperando...\n");
-		}
-		conecto = connect (nuevoSocket,(struct sockaddr *)&socket_info,sizeof (socket_info));
-		//printf("Conectado");
+	if (strcmp(path, "/") == 0) {
+		stbuf->st_mode = S_IFDIR | 0755;
+		stbuf->st_nlink = 2;
+	} else if(archivo == NULL || archivo->state == 0) {
+		return -ENOENT;
+	} else if (archivo->state == 2) {
+		stbuf->st_mode = S_IFDIR | 0755;
+		stbuf->st_nlink = 2;
+	} 	else {
+		stbuf->st_mode = S_IFREG | 0666;
+		stbuf->st_nlink = 1;
+		stbuf->st_size = archivo->file_size;
+	}
+	return res;
+}
+
+static int ejemplo_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
+		off_t offset, struct fuse_file_info *fi) {
+
+	int res = 0;
+	int i;
+	int indice = obtenerIndice(path);
+	t_list* listaDeHijos = listaDeHijosDelArchivo(indice);
+	filler(buf, ".", NULL, 0);
+	filler(buf, "..", NULL, 0);
+	for(i = 0; i <list_size(listaDeHijos); i++) {
+		osada_file* archivoHijo = list_get(listaDeHijos,i);
+		filler(buf, archivoHijo->fname, NULL, 0);
 	}
 
-	return nuevoSocket;
+	return res;
 }
 
-
-char* pedir_atributos(char* num, const char *path, struct stat *buffer){
-	int i;
-	t_package *package= malloc(sizeof(package));
-	package->header=num;
-	package->body=path;
-
-	char* buf= malloc(sizeof(package));
-	strcpy(buf,package->header);
-	strcat(buf,package->body);
-
-	int socket = conectarConServer();
-	send(socket,buf,sizeof(buf),0);
-	puts("enviado");
-
-	char* bufferRecieve = malloc(sizeof(package));
-	recv(socket,bufferRecieve,sizeof(bufferRecieve),0);
-	puts("recibi algo");
-
-	return bufferRecieve;
-}
-
-static int getattr_callback(const char *path, struct stat *buffer){
-	memset(buffer,0,sizeof(struct stat));
-	pedir_atributos("1",path,buffer);
+static int ejemplo_mkdir(const char* filename, mode_t modo){
+	crear_archivo(filename,2);
 	return 0;
 }
 
-static int readdir_callback(const char *path, void *buf, fuse_fill_dir_t filler,
-		off_t offset, struct fuse_file_info *fi) {
-
-		memset(buf,0,sizeof(buf));
-		char* bufferRecieve = pedir_atributos("2",path,buf);
-
-		int i;
-		t_package *package= malloc(sizeof(package));
-
-		strcpy(package->header, bufferRecieve[0]);
-		t_list* listaDeHijos = list_create();
-		for(i=0;i < sizeof(bufferRecieve) - sizeof(bufferRecieve[0]); i++) {
-			list_add(listaDeHijos,bufferRecieve[i+1]);
-		}
-
-		filler(buf, ".", NULL, 0);
-		filler(buf, "..", NULL, 0);
-
-		for(i = 0; i <list_size(listaDeHijos); i++) {
-			char* archivoHijo = list_get(listaDeHijos,i);
-			filler(buf, archivoHijo, NULL, 0);
-		}
-		return 0;
+static int ejemplo_create (const char* path, mode_t modo, struct fuse_file_info * info) {
+	crear_archivo(path,1);
+	return 0;
 }
 
-//
-//static int open_callback(const char *path, struct fuse_file_info *fi){
-//	return 0;
-//}
-//static int write_callback(const char* path, char *buf, size_t size, off_t offset, struct fuse_file_info* fi){
-//	return 0;
-//}
+static int ejemplo_open(const char * path, int info) {
+	osada_file* archivo = obtenerArchivo (path);
+	if(archivo == NULL || archivo->state == 0) {
+		return -ENOENT;
+	}
+	return 0;
+}
 
-static struct fuse_operations fuse_pokedex_cliente = {
-	.readdir = readdir_callback,
-    .getattr = getattr_callback,
-//  .open = open_callback,
-//  .read = read_callback,
-//  .write = write_callback,
+static int ejemplo_read(char *path, char *buf, size_t size, off_t offset,
+		struct fuse_file_info *fi) {
+	return leer_archivo(path,offset,size,buf);
+}
+
+
+static int ejemplo_write ( char *path,  char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
+	return escribir_archivo(path,offset,size,buf);
+}
+
+static int ejemplo_remove (char* path) {
+	osada_file* archivo = obtenerArchivo(path);
+	if (archivo == NULL) {
+		return -ENOENT;
+	}
+
+	if(archivo->state == 1) {
+		return borrar_archivo(path);
+	}
+	else if(archivo->state == 2) {
+		return borrar_directorio_vacio(path);
+	}
+	else {
+		return -ENOENT;
+	}
+}
+
+static int ejemplo_utimens (const char * param1, const struct timespec tv[2] ){
+	return 0;
+}
+
+static int ejemplo_truncate(char* path, off_t size) {
+
+	osada_file* archivo = obtenerArchivo(path);
+	if(archivo == NULL) {
+		return -ENOENT;
+	}
+	else {
+		truncar_archivo(archivo,(uint32_t)size);
+		return 0;
+	}
+
+}
+
+static struct fuse_operations ejemplo_oper = {
+		.getattr = ejemplo_getattr,
+		.readdir = ejemplo_readdir,
+		.open = ejemplo_open,
+		.read = ejemplo_read,
+		.create = ejemplo_create,
+		.unlink = ejemplo_remove,
+		.mkdir = ejemplo_mkdir,
+		.write = ejemplo_write,
+		.utimens = ejemplo_utimens,
+		.rmdir = ejemplo_remove,
+		.truncate = ejemplo_truncate,
 };
 
 
 int main(int argc, char *argv[]) {
 
-//	t_log* logger;
-//	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
-//	log_info(logger, PROGRAM_DESCRIPTION);
+	reconocerOSADA("/home/utnso/disco.bin");
+//	crear_archivo("/pepito.txt",1);
 
-	return fuse_main(argc,argv,&fuse_pokedex_cliente,NULL);
+	return fuse_main(argc, argv, &ejemplo_oper, NULL );
+
 }

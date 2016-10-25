@@ -10,18 +10,11 @@
 #include <sys/mman.h>
 #include <commons/log.h>
 #include <sys/mman.h>
-#include <string.h>
+#include <commons/string.h>
 #include <commons/collections/list.h>
 #include <pthread.h>
 #include <errno.h>
 
-#define LOG_FILE "osada.log"
-#define PROGRAM_NAME "Pokedex Servidor"
-#define PROGRAM_DESCRIPTION "Proceso File System"
-#define IS_ACTIVE_CONSOLE true
-#define T_LOG_LEVEL LOG_LEVEL_INFO
-
-t_log* logger;
 pthread_mutex_t semaforoBitmap, semaforoTablaDeArchivos, semaforoTablaDeAsignaciones;
 
 int divisionMaxima(int numero) {
@@ -37,8 +30,6 @@ int divisionMaxima(int numero) {
 }
 
 void reconocerOSADA(char* path) {
-	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
-	log_info(logger, PROGRAM_DESCRIPTION);
 
 	int fd = open(path,O_RDWR);
 	struct stat my_stat;
@@ -97,6 +88,7 @@ int buscarIndiceConPadre(char* nombreABuscar, int padre) {
 
 
 int obtenerIndice(char* path) {
+	if(strcmp(path,"/") == 0){return 65535;}
 	char** arrayPath = string_split(path + 1,"/");
 	int i = 0;
 	int archivo = 65535;
@@ -112,12 +104,11 @@ int obtenerIndice(char* path) {
 }
 
 osada_file* obtenerArchivo(char* path) {
-
 	int indice = obtenerIndice(path);
 
 	if (indice == -1) {
 		return NULL;
-	}else {
+	} else {
 		return &tablaDeArchivos[indice];
 	}
 
@@ -505,7 +496,7 @@ int escribir_archivo(char* path, int offset, int tamanioAEscribir, char* bufferC
 	int escrito = 0;
 
 	if(archivo == NULL) {
-			return -ENOENT;
+		return -ENOENT;
 		}
 	archivo = truncar_archivo(archivo,maximoEntre(offset+tamanioAEscribir,archivo->file_size));
 
