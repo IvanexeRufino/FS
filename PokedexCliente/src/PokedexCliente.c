@@ -116,6 +116,16 @@ static int ejemplo_truncate(char* path, off_t size) {
 
 }
 
+static int ejemplo_rename(const char *nombreViejo, const char *nombreNuevo){
+	renombrar_archivo(nombreViejo,nombreNuevo);
+	return 0;
+}
+
+static int ejemplo_link (const char *archivoOrigen, const char *archivoDestino){
+	copiar_archivo(archivoOrigen, archivoDestino);
+	return 0;
+}
+
 static struct fuse_operations ejemplo_oper = {
 		.getattr = ejemplo_getattr,
 		.readdir = ejemplo_readdir,
@@ -128,13 +138,16 @@ static struct fuse_operations ejemplo_oper = {
 		.utimens = ejemplo_utimens,
 		.rmdir = ejemplo_remove,
 		.truncate = ejemplo_truncate,
+		.rename = ejemplo_rename,
+		.link = ejemplo_link,
 };
 
 
 int main(int argc, char *argv[]) {
 
+	system("truncate -s 100k disco.bin");
+	system("./osada-format /home/utnso/disco.bin");
 	reconocerOSADA("/home/utnso/disco.bin");
-//	crear_archivo("/pepito.txt",1);
 
 	return fuse_main(argc, argv, &ejemplo_oper, NULL );
 
