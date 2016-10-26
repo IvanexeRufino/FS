@@ -18,6 +18,7 @@ pthread_mutex_t mutex_siguienteQuantum = PTHREAD_MUTEX_INITIALIZER;
 
 t_registroPokenest *pokemonActual;
 t_registroPersonaje *nuevoPersonaje;
+t_registroPersonaje *hiloEscucha;
 mapa_datos* infoMapa;
 
 int filas, columnas;
@@ -25,7 +26,7 @@ t_log* logger;
 
 sem_t colaDeListos;
 sem_t pasoDeEntrenador;
-sem_t execute;
+sem_t turnoMain;
 
 int threadAEjecutar;
 
@@ -586,7 +587,8 @@ void ejecutar_Entrenador(parametros_entrenador* param)
 	 nuevoPersonaje = malloc(sizeof(t_registroPersonaje));
 	 pokemonActual=malloc(sizeof(t_registroPokenest));
 	 nuevoPersonaje->threadId = param->idHilo;
-	 sem_init(&nuevoPersonaje->turno,1,0);
+	 sem_init(&nuevoPersonaje->comienzoTurno,1,0);
+	 sem_init(&nuevoPersonaje->finTurno,1,0);
 	 char estaListoParaJugar = recibirBienvenidaEntrenador(param->newfd,nuevoPersonaje);	//Realizo el handshake
 
  	if (estaListoParaJugar == '0')
@@ -633,17 +635,23 @@ void ejecutar_Entrenador(parametros_entrenador* param)
 //-------------------------------------------------------------------
  		//sem_post(&(nuevoPersonaje->ejecutar2));
 // 	}
+// 	while(1)
+// 	{
+// 		sem_wait(&nuevoPersonaje->comienzoTurno);
+//
+//
+// 			 		recibirQueHacer(nuevoPersonaje,pokemonActual);
+// 			 		pthread_mutex_unlock(&mutex_Ejecucion);
+//
+//
+//
+// 	}
  	while(1)
- 	{
- 		sem_wait(&nuevoPersonaje->turno);
-
-
- 			 		recibirQueHacer(nuevoPersonaje,pokemonActual);
- 			 		pthread_mutex_unlock(&mutex_Ejecucion);
-
-
-
- 	}
+ 		{
+ 			sem_wait(&nuevoPersonaje->comienzoTurno);
+ 			recibirQueHacer(nuevoPersonaje, pokemonActual);
+ 			sem_post(&nuevoPersonaje->finTurno);
+ 		}
 }
 
 void ejecutarTrainer(t_registroPersonaje* entrenador)
@@ -682,43 +690,63 @@ void planificarNico()
 
 void planificarNuevo()
 {
-	sem_wait(&colaDeListos);
 	int i,j;
 	while(1)
-	{
-		int cantidadEntrenadores = entrenadores_listos->elements_count;
-		for(i=0;i<cantidadEntrenadores;i++)
-		{
 
-			cantidadEntrenadores = entrenadores_listos->elements_count;
+
+	{
+//		int cantidadEntrenadores = entrenadores_listos->elements_count;
+//		for(i=0;i<cantidadEntrenadores;i++)
+//		{
+//
+//			cantidadEntrenadores = entrenadores_listos->elements_count;
+			sem_wait(&colaDeListos);
 			t_registroPersonaje* entrenador = malloc(sizeof(t_registroPersonaje));
-			 entrenador = list_remove(entrenadores_listos,i);
+			pthread_mutex_lock(&mutex_EntrenadoresActivos);
+			 entrenador = list_remove(entrenadores_listos,0);
+			 pthread_mutex_unlock(&mutex_EntrenadoresActivos);
 //			sem_init(&(entrenador->ejecutar1),1,0);
 //			sem_init(&(entrenador->ejecutar2),1,0);
 
 			if(!strcmp(infoMapa->algoritmo,"RR"))
 			{
 
-				for(j=0;j<=infoMapa->quantum;j++)
+				for(j=0;j<infoMapa->quantum;j++)
 				{
+					if(entrenador->estado == 'M')
+					{
+
+															//Esto es por si consideramos al Main como un proceso mas
 					entrenador->estado = 'E';
-					sem_post(&entrenador->turno);
+					sem_post(&(entrenador->comienzoTurno));
 					//ejecutarTrainer(entrenador);
-					pthread_mutex_lock(&mutex_Ejecucion);
+					sem_wait(&(entrenador->finTurno));
+					entrenador->estado = 'M';
+					j = 3;
 					//pthread_mutex_unlock(&mutex_Ejecucion);
+
 				}
-				entrenador->estado = 'L';
+					else
+					{
+						entrenador->estado = 'E';
+						sem_post(&(entrenador->comienzoTurno));
+						//ejecutarTrainer(entrenador);
+						sem_wait(&(entrenador->finTurno));
+						entrenador->estado = 'L';
+					}
+				}
 
 			}
 			pthread_mutex_lock(&mutex_EntrenadoresActivos);
 			list_add(entrenadores_listos,entrenador);
 			pthread_mutex_unlock(&mutex_EntrenadoresActivos);
+			sem_post(&colaDeListos);
 
 //			if(i == cantidadEntrenadores)
 //						{
 //							i=0;
 //						}
-		}
+//		}
 	}
 }
 
@@ -825,6 +853,13 @@ int main(int argc, char **argv)
 //	  }
 
     // bucle principal
+//	  hiloEscucha = malloc(sizeof(t_registroPersonaje));
+//	  hiloEscucha->estado = 'M';
+//	  sem_init(&colaDeListos, 1,0);
+//	  sem_init(&hiloEscucha->comienzoTurno,1,0);
+//	  sem_init(&hiloEscucha->finTurno,1,0);
+//	  list_add(entrenadores_listos, hiloEscucha);
+//	  sem_post(&colaDeListos);
 	  int socketServidor;
 	  int newfd;
 	      socketServidor = crearSocketServidor(infoMapa->puertoEscucha);
@@ -832,8 +867,8 @@ int main(int argc, char **argv)
 	      pthread_t hiloPlanificador;
 
 
-	      sem_init(&colaDeListos, 1,0);
-	      sem_init(&execute,1,0);
+
+
 	      pthread_create (&hiloPlanificador,NULL,(void*)planificarNuevo,NULL);
 
 	     //Hacemos un while 1 porque siempre queremos recibir conexiones entrantes
@@ -841,20 +876,28 @@ int main(int argc, char **argv)
 
 	     while(1)
 	     {
+	    	 //sem_wait(&hiloEscucha->comienzoTurno);
+
 	    	 newfd = AceptarConexionCliente(socketServidor);
+
+
+
 
 	    	 //No quiero quedarme esperando a que termine de hacer lo del hilo, por eso no pongo el join
 	    	 //Quiero seguir escuchando conexiones entrantes
 
-	    	 pthread_t idHilo;
+	    		 	 	 pthread_t idHilo;
 
-	    	  parametros_entrenador* param = malloc(sizeof(parametros_entrenador));
-	    	  param->idHilo = idHilo;
-	    	  param->newfd = newfd;
-	    	  pthread_create (&idHilo,NULL,(void*)ejecutar_Entrenador,param);
+	    		 	 	 parametros_entrenador* param = malloc(sizeof(parametros_entrenador));
+	    		 	 	 param->idHilo = idHilo;
+	    		 	 	 param->newfd = newfd;
+	    		 	 	 pthread_create (&idHilo,NULL,(void*)ejecutar_Entrenador,param);
+	    		 	 	 //sem_post(&hiloEscucha->finTurno);
 	    	  //pthread_join(&idHilo,0);
-	     }
 
+
+
+	     }
 log_info(logger, "Se finalizaron las operaciones con todos los entrenadores que estaban conectados");
 log_info(logger, "-----El proceso mapa se cerrara, gracias por jugar-----");
  return 0;

@@ -49,9 +49,9 @@ typedef struct
 	int distanciaARecurso;
 	bool posicionPedida;
 	int threadId;
-	char estado; // E= en ejecucion, B= bloqueado, L = listo 	T = terminado
-	sem_t turno;
-	sem_t ejecutar2;
+	char estado; // E= en ejecucion, B= bloqueado, L = listo 	T = terminado    M = es el hilo Main
+	sem_t comienzoTurno;
+	sem_t finTurno;
 	char accion;
 	int quantumFaltante;
 }t_registroPersonaje;
