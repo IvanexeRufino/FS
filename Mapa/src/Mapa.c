@@ -16,8 +16,8 @@ pthread_mutex_t mutex_Ejecucion = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutex_siguienteQuantum = PTHREAD_MUTEX_INITIALIZER;
 
 
-t_registroPokenest *pokemonActual;
-t_registroPersonaje *nuevoPersonaje;
+
+
 t_registroPersonaje *hiloEscucha;
 mapa_datos* infoMapa;
 
@@ -412,21 +412,21 @@ void mover (t_registroPersonaje *personaje, t_registroPokenest* pokemonActual)
 {
 	if(personaje->ultimoRecurso == 1) //ultimo movimiento fue en Y => me muevo en X
 	{
-		if(personaje->x <= pokemonActual->x)
+		if(personaje->x <= personaje->pokemonActual->x)
 			personaje->x +=1;
 		else
 			personaje->x -=1;
 	personaje->ultimoRecurso = 0;
 	}
 	else{
-		if(personaje->y <= pokemonActual->y)
+		if(personaje->y <= personaje->pokemonActual->y)
 			personaje->y +=1;
 		else
 			personaje->y -=1;
 	 personaje->ultimoRecurso = 1 ;
 	}
-	if(personaje->x == pokemonActual->x) personaje->ultimoRecurso = 0;
-	if(personaje->y == pokemonActual->y) personaje->ultimoRecurso = 1;
+	if(personaje->x == personaje->pokemonActual->x) personaje->ultimoRecurso = 0;
+	if(personaje->y == personaje->pokemonActual->y) personaje->ultimoRecurso = 1;
 	//MoverPersonaje(items, personaje->identificador, personaje->x, personaje->y );
 	//nivel_gui_dibujar(items,infoMapa->nombre);
 	enviarCoordenada(personaje->x,personaje->socket);
@@ -436,12 +436,12 @@ void mover (t_registroPersonaje *personaje, t_registroPokenest* pokemonActual)
 
 void envioQueSeAtrapoPokemon (t_registroPersonaje *personaje, t_registroPokenest* pokemonActual)
 {
-	if(pokemonActual->cantidadDisp >= 1)
+	if(personaje->pokemonActual->cantidadDisp >= 1)
 	{
-		pokemonActual->cantidadDisp --;
-		log_info(logger, "/*--------------------El Personaje: %c , atrapo al pokemon %c --------------------*/ \n",personaje->identificador, pokemonActual->identificador);
+		personaje->pokemonActual->cantidadDisp --;
+		log_info(logger, "/*--------------------El Personaje: %c , atrapo al pokemon %c --------------------*/ \n",personaje->identificador, personaje->pokemonActual->identificador);
 
-		copiarPokemonAEntrenador(personaje,pokemonActual);
+		copiarPokemonAEntrenador(personaje,personaje->pokemonActual);
 
 		char* buffer = string_new();
 		string_append(&buffer,string_itoa(1));
@@ -456,8 +456,9 @@ void envioQueSeAtrapoPokemon (t_registroPersonaje *personaje, t_registroPokenest
 	}
 }
 
-void recibirQueHacer(t_registroPersonaje *nuevoPersonaje,t_registroPokenest* pokemonActual)
+void recibirQueHacer(t_registroPersonaje *nuevoPersonaje)
 {
+
 	char* buffer = string_new();
 	recv(nuevoPersonaje->socket,buffer,sizeof(buffer),0);
 	char bufferConAccion;        //Vendria a ser el header
@@ -474,11 +475,11 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje,t_registroPokenest* pok
 	{
 	case ('1'):
 
-		cargoDatosPokemonActual(payload[0],pokemonActual);
+		cargoDatosPokemonActual(payload[0],nuevoPersonaje->pokemonActual);
 		nuevoPersonaje->proximoObjetivo = payload[0];
-		coordenadaX = enviarCoordenada(pokemonActual->x,nuevoPersonaje->socket);				//Envio coordenada del pokemon en X
+		coordenadaX = enviarCoordenada((nuevoPersonaje->pokemonActual)->x,nuevoPersonaje->socket);				//Envio coordenada del pokemon en X
 
-		coordenadaY = enviarCoordenada(pokemonActual->y,nuevoPersonaje->socket);				//Envio coordenada del pokemon en Y
+		coordenadaY = enviarCoordenada((nuevoPersonaje->pokemonActual)->y,nuevoPersonaje->socket);				//Envio coordenada del pokemon en Y
 		log_info(logger,"*ENVIAR POSICION INICIAL* La coordenada de: %c (%s) en X: %d Y: %d \n",nuevoPersonaje->identificador,nuevoPersonaje->nombre,coordenadaX,coordenadaY);
 
 		break;
@@ -486,14 +487,14 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje,t_registroPokenest* pok
 
 	case ('2'):
 
-		mover(nuevoPersonaje,pokemonActual);
+		mover(nuevoPersonaje,nuevoPersonaje->pokemonActual);
 
 		break;
 
 	case ('3'):
 
 		//Si hay deadlock lo meto en la entrenadores_bloqueados
-		envioQueSeAtrapoPokemon(nuevoPersonaje,pokemonActual);
+		envioQueSeAtrapoPokemon(nuevoPersonaje,nuevoPersonaje->pokemonActual);
 
 		break;
 
@@ -502,50 +503,51 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje,t_registroPokenest* pok
 		recuperarPokemonDeEntrenador(nuevoPersonaje);
 		nuevoPersonaje->estado='T';
 		close(nuevoPersonaje->socket);
-		pthread_exit(NULL);
+		//sem_wait(&nuevoPersonaje->finTurno);
+		//pthread_exit(0);
 		break;
 
 	}
 
 }
 
-void accion_entrenador (t_registroPersonaje* nuevoPersonaje,t_registroPokenest* pokemonActual)
-{
-	//Lo deberia sacar de la lista de listos, y al finalizar con su operacion ponerlo al final de la cola de listos
-
-	switch(nuevoPersonaje->estado)
-	{
-	case 'L':
-
-	nuevoPersonaje->estado = 'E';
-	recibirQueHacer(nuevoPersonaje,pokemonActual);
-	break;
-
-
-	case 'E':
-
-	recibirQueHacer(nuevoPersonaje,pokemonActual);
-	break;
-
-	case 'B':
-		  log_info(logger,"El entrenador %s se encuentra bloqueado \n", nuevoPersonaje->nombre);
-		  break;
-
-	default:
-		break;
-
-	}
-}
-
-void planificarRoundRobin()
-{
-	return;
-}
-
-void planificarSRDF()
-{
-	return;
-}
+//void accion_entrenador (t_registroPersonaje* nuevoPersonaje,t_registroPokenest* pokemonActual)
+//{
+//	//Lo deberia sacar de la lista de listos, y al finalizar con su operacion ponerlo al final de la cola de listos
+//
+//	switch(nuevoPersonaje->estado)
+//	{
+//	case 'L':
+//
+//	nuevoPersonaje->estado = 'E';
+//	recibirQueHacer(nuevoPersonaje,pokemonActual);
+//	break;
+//
+//
+//	case 'E':
+//
+//	recibirQueHacer(nuevoPersonaje,pokemonActual);
+//	break;
+//
+//	case 'B':
+//		  log_info(logger,"El entrenador %s se encuentra bloqueado \n", nuevoPersonaje->nombre);
+//		  break;
+//
+//	default:
+//		break;
+//
+//	}
+//}
+//
+//void planificarRoundRobin()
+//{
+//	return;
+//}
+//
+//void planificarSRDF()
+//{
+//	return;
+//}
 
 //void planificarEntrenador(int cantidadEntrenadores/*t_registroPersonaje* entrenador*/)
 //{
@@ -569,23 +571,24 @@ void planificarSRDF()
 //	}
 //}
 
-char esperarSerPlanificado(int threadId, t_registroPersonaje* entrenador)
-  {
-
-      if (threadId == entrenador->threadId)
-        {
-          accion_entrenador(entrenador, pokemonActual);
-        }
-
-      return entrenador->estado;
-
-  }
+//char esperarSerPlanificado(int threadId, t_registroPersonaje* entrenador)
+//  {
+//
+//      if (threadId == entrenador->threadId)
+//        {
+//          accion_entrenador(entrenador, pokemonActual);
+//        }
+//
+//      return entrenador->estado;
+//
+//  }
 
 
 void ejecutar_Entrenador(parametros_entrenador* param)
 {
+	 t_registroPersonaje* nuevoPersonaje;
 	 nuevoPersonaje = malloc(sizeof(t_registroPersonaje));
-	 pokemonActual=malloc(sizeof(t_registroPokenest));
+	 nuevoPersonaje->pokemonActual=malloc(sizeof(t_registroPokenest));
 	 nuevoPersonaje->threadId = param->idHilo;
 	 sem_init(&nuevoPersonaje->comienzoTurno,1,0);
 	 sem_init(&nuevoPersonaje->finTurno,1,0);
@@ -603,6 +606,7 @@ void ejecutar_Entrenador(parametros_entrenador* param)
 	{
 		log_info(logger, "Nose para que te conectaste si no queres jugar xD ");		// No deberia tirar nunca este printf
 	}
+ 	return;
 // 	------------------------------------------
 // 	while(pthread_mutex_lock(&mutex_Ejecucion));
 // 	------------------------------------------
@@ -646,12 +650,15 @@ void ejecutar_Entrenador(parametros_entrenador* param)
 //
 //
 // 	}
- 	while(1)
- 		{
- 			sem_wait(&nuevoPersonaje->comienzoTurno);
- 			recibirQueHacer(nuevoPersonaje, pokemonActual);
- 			sem_post(&nuevoPersonaje->finTurno);
- 		}
+// 	while(1)
+// 		{
+// 			sem_wait(&nuevoPersonaje->comienzoTurno);
+// 			recibirQueHacer(nuevoPersonaje, pokemonActual);
+// 			sem_post(&nuevoPersonaje->finTurno);
+// 		}
+
+ 	sem_wait(&nuevoPersonaje->finTurno);
+ 	pthread_exit(0);
 }
 
 void ejecutarTrainer(t_registroPersonaje* entrenador)
@@ -659,38 +666,40 @@ void ejecutarTrainer(t_registroPersonaje* entrenador)
 
 
 }
-void planificarNico()
-{
-	sem_wait(&colaDeListos);
-    int s,j;
-    int cantidadEntrenadores;
-    pthread_mutex_lock(&mutex_EntrenadoresActivos);
-    cantidadEntrenadores = entrenadores_listos->elements_count;
-    pthread_mutex_unlock(&mutex_EntrenadoresActivos);
-    while(cantidadEntrenadores!=0)
-    {
-    	for(j=0; j<cantidadEntrenadores; j++)
-        {
-			t_registroPersonaje* aux = malloc(sizeof(t_registroPersonaje));
-			aux = (list_get(entrenadores_listos,j));
-			if(aux->estado!= 'B')
-			{
-				for(s=0; s<infoMapa->quantum; s++)
-				{
-					nuevoPersonaje->quantumFaltante=0;
-					pthread_mutex_lock(&mutex_threadAEjecutar);
-					threadAEjecutar = aux->threadId;
-					pthread_mutex_unlock(&mutex_threadAEjecutar);
-				}
-
-			}
-    	}
-     }
-}
+//void planificarNico()
+//{
+//	sem_wait(&colaDeListos);
+//    int s,j;
+//    int cantidadEntrenadores;
+//    pthread_mutex_lock(&mutex_EntrenadoresActivos);
+//    cantidadEntrenadores = entrenadores_listos->elements_count;
+//    pthread_mutex_unlock(&mutex_EntrenadoresActivos);
+//    while(cantidadEntrenadores!=0)
+//    {
+//    	for(j=0; j<cantidadEntrenadores; j++)
+//        {
+//			t_registroPersonaje* aux = malloc(sizeof(t_registroPersonaje));
+//			aux = (list_get(entrenadores_listos,j));
+//			if(aux->estado!= 'B')
+//			{
+//				for(s=0; s<infoMapa->quantum; s++)
+//				{
+//					nuevoPersonaje->quantumFaltante=0;
+//					pthread_mutex_lock(&mutex_threadAEjecutar);
+//					threadAEjecutar = aux->threadId;
+//					pthread_mutex_unlock(&mutex_threadAEjecutar);
+//				}
+//
+//			}
+//    	}
+//     }
+//}
 
 void planificarNuevo()
 {
 	int i,j;
+	i=0;
+
 	while(1)
 
 
@@ -713,34 +722,32 @@ void planificarNuevo()
 
 				for(j=0;j<infoMapa->quantum;j++)
 				{
-					if(entrenador->estado == 'M')
+					if(entrenador->estado != 'T')
 					{
 
-															//Esto es por si consideramos al Main como un proceso mas
-					entrenador->estado = 'E';
-					sem_post(&(entrenador->comienzoTurno));
-					//ejecutarTrainer(entrenador);
-					sem_wait(&(entrenador->finTurno));
-					entrenador->estado = 'M';
-					j = 3;
-					//pthread_mutex_unlock(&mutex_Ejecucion);
+					recibirQueHacer(entrenador);
+					i++;
 
-				}
-					else
-					{
-						entrenador->estado = 'E';
-						sem_post(&(entrenador->comienzoTurno));
-						//ejecutarTrainer(entrenador);
-						sem_wait(&(entrenador->finTurno));
-						entrenador->estado = 'L';
 					}
+					else{
+						sem_post(&entrenador->finTurno);
+						j = 7; // es para que salga del for
+
+					}
+
+
+
 				}
+				if (i==infoMapa->quantum)
+								{	i=0;
+									pthread_mutex_lock(&mutex_EntrenadoresActivos);
+														list_add(entrenadores_listos,entrenador);
+														pthread_mutex_unlock(&mutex_EntrenadoresActivos);
+														sem_post(&colaDeListos);
+								}
 
 			}
-			pthread_mutex_lock(&mutex_EntrenadoresActivos);
-			list_add(entrenadores_listos,entrenador);
-			pthread_mutex_unlock(&mutex_EntrenadoresActivos);
-			sem_post(&colaDeListos);
+
 
 //			if(i == cantidadEntrenadores)
 //						{
@@ -750,40 +757,40 @@ void planificarNuevo()
 	}
 }
 
-void planificarGabi()
-{
-	sem_wait(&colaDeListos);
-//	int s,j;
-//	int cantidadEntrenadores;
-//	pthread_mutex_lock(&mutex_EntrenadoresActivos);
-//	cantidadEntrenadores = entrenadores_listos->elements_count;
-//	pthread_mutex_unlock(&mutex_EntrenadoresActivos);
-//	while(cantidadEntrenadores!=0)
+//void planificarGabi()
+//{
+//	sem_wait(&colaDeListos);
+////	int s,j;
+////	int cantidadEntrenadores;
+////	pthread_mutex_lock(&mutex_EntrenadoresActivos);
+////	cantidadEntrenadores = entrenadores_listos->elements_count;
+////	pthread_mutex_unlock(&mutex_EntrenadoresActivos);
+////	while(cantidadEntrenadores!=0)
+////	{
+////		for(j=0; j<cantidadEntrenadores; j++)
+////		{
+////			for(s=0; s<infoMapa->quantum; s++)
+////			{
+////				planificarEntrenador(cantidadEntrenadores/*list_get(entrenadores_listos,j)*/);
+////			}
+////		}
+////	}
+//	while(!list_is_empty(entrenadores_listos))
 //	{
-//		for(j=0; j<cantidadEntrenadores; j++)
+//		t_registroPersonaje* entrenador=list_get(entrenadores_listos,0);	//Que me devuelva el primero que va a ser el que se ejecute
+//		if(!strcmp(infoMapa->algoritmo,"RR"))		//Aca planifico RoundRobin
 //		{
-//			for(s=0; s<infoMapa->quantum; s++)
-//			{
-//				planificarEntrenador(cantidadEntrenadores/*list_get(entrenadores_listos,j)*/);
-//			}
+//		entrenador->quantumFaltante=infoMapa->quantum;
+//		list_remove(entrenadores_listos,0);			//Al ejecutarse lo saco de la cola de listos
+//		sem_wait(&pasoDeEntrenador);				//Este semaforo se queda esperando en bloqueado hasta que termine el quantum
+//		}											//Si el entrenador no termino de hacer lo que le faltaba , se agrega al final de la cola de listos
+//		else
+//		{
+//		planificarSRDF();
 //		}
+//
 //	}
-	while(!list_is_empty(entrenadores_listos))
-	{
-		t_registroPersonaje* entrenador=list_get(entrenadores_listos,0);	//Que me devuelva el primero que va a ser el que se ejecute
-		if(!strcmp(infoMapa->algoritmo,"RR"))		//Aca planifico RoundRobin
-		{
-		entrenador->quantumFaltante=infoMapa->quantum;
-		list_remove(entrenadores_listos,0);			//Al ejecutarse lo saco de la cola de listos
-		sem_wait(&pasoDeEntrenador);				//Este semaforo se queda esperando en bloqueado hasta que termine el quantum
-		}											//Si el entrenador no termino de hacer lo que le faltaba , se agrega al final de la cola de listos
-		else
-		{
-		planificarSRDF();
-		}
-
-	}
-}
+//}
 
 void releerconfig(int aSignal)
 {

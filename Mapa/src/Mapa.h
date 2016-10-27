@@ -39,6 +39,16 @@
 
 typedef struct
 {
+	char nombre[50];
+	char identificador;
+	char tipo[15];
+	int x;
+	int y;
+	int cantidadDisp;
+}t_registroPokenest;
+
+typedef struct
+{
 	char nombre[40];
 	char identificador;
 	char proximoObjetivo;
@@ -54,17 +64,11 @@ typedef struct
 	sem_t finTurno;
 	char accion;
 	int quantumFaltante;
+	t_registroPokenest* pokemonActual;
+
 }t_registroPersonaje;
 
-typedef struct
-{
-	char nombre[50];
-	char identificador;
-	char tipo[15];
-	int x;
-	int y;
-	int cantidadDisp;
-}t_registroPokenest;
+
 
 typedef struct
 {
