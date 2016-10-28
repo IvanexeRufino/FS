@@ -115,7 +115,7 @@ static int ejemplo_readdir(char *path, void *buf, fuse_fill_dir_t filler,
 }
 
 static int ejemplo_mkdir(char* filename, mode_t modo){
-	enviarQueSos("3", NULL);
+	enviarQueSos("3", filename);
 	crear_archivo(filename,2);
 	return 0;
 }
@@ -166,7 +166,7 @@ static int ejemplo_remove (char* path) {
 }
 
 static int ejemplo_utimens (char * param1, const struct timespec tv[2] ){
-	enviarQueSos("9", NULL);
+	enviarQueSos("9", param1);
 	return 0;
 }
 
@@ -184,13 +184,13 @@ static int ejemplo_truncate(char* path, off_t size) {
 }
 
 static int ejemplo_rename(char *nombreViejo, char *nombreNuevo){
-	enviarQueSos("11", NULL);
+	enviarQueSos("11", nombreViejo);
 	renombrar_archivo(nombreViejo,nombreNuevo);
 	return 0;
 }
 
 static int ejemplo_link (char *archivoOrigen, char *archivoDestino){
-	enviarQueSos("12", NULL);
+	enviarQueSos("12", archivoOrigen);
 	copiar_archivo(archivoOrigen, archivoDestino);
 	return 0;
 }
@@ -214,8 +214,8 @@ static struct fuse_operations ejemplo_oper = {
 
 int main(int argc, char *argv[]) {
 
-	system("truncate -s 100k disco.bin");
-	system("./osada-format /home/utnso/disco.bin");
+//	system("truncate -s 100k disco.bin");
+//	system("./osada-format /home/utnso/disco.bin");
 	reconocerOSADA("/home/utnso/disco.bin");
 
 	return fuse_main(argc, argv, &ejemplo_oper, NULL );

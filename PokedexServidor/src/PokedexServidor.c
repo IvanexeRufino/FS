@@ -126,8 +126,8 @@ int AceptarConexionCliente(int socketServer) {
 //}
 
 void recibirQueSos(int newfd){
-	char* buforecibido = malloc(sizeof(char*) + 50);
-	recv(newfd,buforecibido,51,0);
+	char* buforecibido = malloc(250);
+	recv(newfd,buforecibido,250,0);
 	printf("%s",buforecibido);
 	printf("%d",strlen(buforecibido));
 	puts("imprimi mierda");
