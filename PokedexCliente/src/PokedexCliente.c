@@ -62,19 +62,20 @@ int conectarConServer()
   	return nuevoSocket;
 };
 
-void enviarQueSos(char* nroop){
+void enviarQueSos(char* nroop, char* path){
   	char* bufo = malloc(sizeof(char*));
-  	char* path = malloc(10);
-  	strcpy(path,"hola mundo");
+  	//char* pato = malloc(strlen(path));
+  	//printf("%d",strlen(pato));
+  	//puts("imprimi");
   	int socket= conectarConServer();
   	memcpy(bufo,nroop,sizeof(nroop));
-  	memcpy(bufo + 1, path, 10);
-  	send(socket,bufo,11,0);
-  	free(bufo);
+  	memcpy(bufo + 1, path, strlen(path));
+  	send(socket,bufo,strlen(path)+1,0);
+//	free(bufo);
 }
 
 static int ejemplo_getattr(char *path, struct stat *stbuf) {
-	enviarQueSos("1");
+	enviarQueSos("1",path);
 	int res = 0;
 	memset(stbuf, 0, sizeof(struct stat));
 
@@ -98,7 +99,7 @@ static int ejemplo_getattr(char *path, struct stat *stbuf) {
 
 static int ejemplo_readdir(char *path, void *buf, fuse_fill_dir_t filler,
 		off_t offset, struct fuse_file_info *fi) {
-	enviarQueSos("2");
+	enviarQueSos("2", path);
 	int res = 0;
 	int i;
 	int indice = obtenerIndice(path);
@@ -114,19 +115,19 @@ static int ejemplo_readdir(char *path, void *buf, fuse_fill_dir_t filler,
 }
 
 static int ejemplo_mkdir(char* filename, mode_t modo){
-	enviarQueSos("3");
+	enviarQueSos("3", NULL);
 	crear_archivo(filename,2);
 	return 0;
 }
 
 static int ejemplo_create (char* path, mode_t modo, struct fuse_file_info * info) {
-	enviarQueSos("4");
+	enviarQueSos("4", path);
 	crear_archivo(path,1);
 	return 0;
 }
 
 static int ejemplo_open(char * path, int info) {
-	enviarQueSos("5");
+	enviarQueSos("5", path);
 	osada_file* archivo = obtenerArchivo (path);
 	if(archivo == NULL || archivo->state == 0) {
 		return -ENOENT;
@@ -136,18 +137,18 @@ static int ejemplo_open(char * path, int info) {
 
 static int ejemplo_read(char *path, char *buf, size_t size, off_t offset,
 		struct fuse_file_info *fi) {
-	enviarQueSos("6");
+	enviarQueSos("6", path);
 	return leer_archivo(path,offset,size,buf);
 }
 
 
 static int ejemplo_write (char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
-	enviarQueSos("7");
+	enviarQueSos("7", path);
 	return escribir_archivo(path,offset,size,buf);
 }
 
 static int ejemplo_remove (char* path) {
-	enviarQueSos("8");
+	enviarQueSos("8", path);
 	osada_file* archivo = obtenerArchivo(path);
 	if (archivo == NULL) {
 		return -ENOENT;
@@ -165,12 +166,12 @@ static int ejemplo_remove (char* path) {
 }
 
 static int ejemplo_utimens (char * param1, const struct timespec tv[2] ){
-	enviarQueSos("9");
+	enviarQueSos("9", NULL);
 	return 0;
 }
 
 static int ejemplo_truncate(char* path, off_t size) {
-	enviarQueSos("10");
+	enviarQueSos("10", path);
 	osada_file* archivo = obtenerArchivo(path);
 	if(archivo == NULL) {
 		return -ENOENT;
@@ -183,13 +184,13 @@ static int ejemplo_truncate(char* path, off_t size) {
 }
 
 static int ejemplo_rename(char *nombreViejo, char *nombreNuevo){
-	enviarQueSos("11");
+	enviarQueSos("11", NULL);
 	renombrar_archivo(nombreViejo,nombreNuevo);
 	return 0;
 }
 
 static int ejemplo_link (char *archivoOrigen, char *archivoDestino){
-	enviarQueSos("12");
+	enviarQueSos("12", NULL);
 	copiar_archivo(archivoOrigen, archivoDestino);
 	return 0;
 }
@@ -212,9 +213,9 @@ static struct fuse_operations ejemplo_oper = {
 
 
 int main(int argc, char *argv[]) {
-//
-//	system("truncate -s 100k disco.bin");
-//	system("./osada-format /home/utnso/disco.bin");
+
+	system("truncate -s 100k disco.bin");
+	system("./osada-format /home/utnso/disco.bin");
 	reconocerOSADA("/home/utnso/disco.bin");
 
 	return fuse_main(argc, argv, &ejemplo_oper, NULL );

@@ -91,7 +91,7 @@ int AceptarConexionCliente(int socketServer) {
 //int getattr(char* bufpath){
 //	osada_file* archivo = obtenerArchivo (bufpath);
 //	if(archivo == NULL || archivo->state == 0) {
-////		return -ENOENT;
+//		return -ENOENT;
 //	}
 //
 //	send(socketServidor,archivo,sizeof(archivo),0);
@@ -102,14 +102,14 @@ int AceptarConexionCliente(int socketServer) {
 //	int i;
 //	int indice = obtenerIndice(bufpath);
 //	if(indice == -1) {
-////		return -ENOENT;
+//		return -ENOENT;
 //	}
 //	t_list* listaDeHijos = listaDeHijosDelArchivo(indice);
 //	send(socketServidor,listaDeHijos,sizeof(listaDeHijos),0);
 //
 //	return 0;
 //}
-
+//
 //int open_callback(char* path) {
 //	osada_file* archivo = obtenerArchivo (path);
 //	if(archivo == NULL || archivo->state == 0) {
@@ -126,11 +126,12 @@ int AceptarConexionCliente(int socketServer) {
 //}
 
 void recibirQueSos(int newfd){
-	char* buforecibido = malloc(sizeof(char*) + 10);;
-	recv(newfd,buforecibido,11,0);
+	char* buforecibido = malloc(sizeof(char*) + 50);
+	recv(newfd,buforecibido,51,0);
 	printf("%s",buforecibido);
+	printf("%d",strlen(buforecibido));
 	puts("imprimi mierda");
-	free(buforecibido);
+//	free(buforecibido);
 
 //		switch(headerrecv){
 //		case '1':
@@ -163,7 +164,6 @@ int main(void) {
 	while (1) {
 		newfd = AceptarConexionCliente(socketServidor);
 		recibirQueSos(newfd);
-		//recibirPaquete(newfd);
 	}
 	return 0;
 }
