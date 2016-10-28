@@ -262,14 +262,14 @@ int atraparPokemon(t_nivel *mapa,char objetivo, char* proximoObj)
 	send(mapa->socketMapa, buffer, sizeof(buffer), 0);
 	char* recibo = string_new();
 	recv(mapa->socketMapa, recibo, sizeof(recibo),0);
+	char* buffer2 = string_new();
+	strcpy(buffer2,proximoObj);
+	printf("%s",buffer2);
+	send(mapa->socketMapa,buffer2,sizeof(char),0);
+	log_info(logger, "Se ha enviado: %s \n",buffer2);
 
 	if(!strcmp(buffer,"1"))
 		{
-		char* buffer2 = string_new();
-		strcpy(buffer2,proximoObj);
-		printf("%s",buffer2);
-		send(mapa->socketMapa,buffer2,sizeof(char),0);
-		log_info(logger, "Se ha enviado: %s \n",buffer2);
 		return 1;
 		}
 	else
@@ -381,8 +381,14 @@ int main(int argc, char **argv)
 
 						if(infoEntrenador->posicionEnX == mapa->pokemonActualPosicionEnX && infoEntrenador->posicionEnY == mapa->pokemonActualPosicionEnY)
 							{
-							vector = list_get(mapa->objetivos,k+1);
-							int atrapado = atraparPokemon(mapa,objetivos[k],vector);  								//Le envio en el header el ID 3
+							int atrapado;
+							if(k<i-1){
+									vector = list_get(mapa->objetivos,k+1);
+
+							}
+							else
+								strcpy(vector,"0");
+							atrapado = atraparPokemon(mapa,objetivos[k],vector);//Le envio en el header el ID 3
 							if (atrapado == 1)
 								{
 								log_info(logger,"Felicitaciones, capturaste el pokemon nro %d \n",k);

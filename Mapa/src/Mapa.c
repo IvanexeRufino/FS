@@ -458,8 +458,11 @@ void envioQueSeAtrapoPokemon (t_registroPersonaje *personaje, t_registroPokenest
 		//Ahora tengo que recibir el siguiente
 		char* objetivo = string_new();
 		recv(personaje->socket,objetivo,sizeof(objetivo),0);
-		personaje->proximoObjetivo = objetivo[1];
+		personaje->proximoObjetivo = objetivo[0];
 		printf("%s",objetivo);
+		if(objetivo[0]=='0') {
+			personaje->estado = 'T';
+		}
 
 
 	}
