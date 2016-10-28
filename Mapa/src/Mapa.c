@@ -357,7 +357,11 @@ char recibirBienvenidaEntrenador(int newfd,t_registroPersonaje *nuevoPersonaje)
 	bufferConAccion=buffer[0];
 	nuevoPersonaje->identificador=buffer[1];	// Lleno con el campo con el identificador
 
-	log_info(logger,"*BIENVENIDA* Recibi de %s: %s,con ID %c y accion: %c",nuevoPersonaje->nombre,buffer,nuevoPersonaje->identificador,bufferConAccion);
+	char* objetivo = string_new();
+	recv(newfd,objetivo,sizeof(char),0);
+	nuevoPersonaje->proximoObjetivo = objetivo[0];
+
+	log_info(logger,"*BIENVENIDA* Recibi de %s: %s,con ID %c y accion: %c objetivo: %c",nuevoPersonaje->nombre,buffer,nuevoPersonaje->identificador,bufferConAccion, nuevoPersonaje->proximoObjetivo);
 	//CrearPersonaje(items, nuevoPersonaje->identificador , nuevoPersonaje->x, nuevoPersonaje->y);
 	//nivel_gui_dibujar(items,infoMapa->nombre);
 	return (buffer[0]);
@@ -384,9 +388,12 @@ void cargoDatosPokemonActual(char pokemonQueRecibo,t_registroPokenest* pokemonAc
 
 int distanciaAProxObjetivo(t_registroPersonaje* pj, char obj)
 {
+
 	t_registroPokenest* pok= malloc(sizeof(t_registroPokenest));
 	cargoDatosPokemonActual(obj, pok);
-	return (abs(pj->x - pok->x) + abs(pj->y - pok->y));
+	int dist = (abs(pj->x - pok->x) + abs(pj->y - pok->y));
+	log_info(logger, "Distancia Desde %c Hasta %c : %d",pj->identificador,obj,dist);
+	return dist;
 }
 
 t_registroPersonaje* calcularMasCercanoASuObjetivo ()
@@ -396,7 +403,7 @@ t_registroPersonaje* calcularMasCercanoASuObjetivo ()
 	int distanciaMinima= distanciaAProxObjetivo(entrenador,entrenador->proximoObjetivo);
 	int i;
 	int indice;
-	for(i=0; i <= list_size(entrenadores_listos); i++)
+	for(i=0; i < list_size(entrenadores_listos); i++)
 	{
 		entrenador = list_get(entrenadores_listos,i);
 		if(distanciaAProxObjetivo(entrenador,entrenador->proximoObjetivo)<distanciaMinima)
@@ -446,6 +453,14 @@ void envioQueSeAtrapoPokemon (t_registroPersonaje *personaje, t_registroPokenest
 		char* buffer = string_new();
 		string_append(&buffer,string_itoa(1));
 		send(personaje->socket,buffer, sizeof(buffer), 0);
+
+
+		//Ahora tengo que recibir el siguiente
+		char* objetivo = string_new();
+		recv(personaje->socket,objetivo,sizeof(objetivo),0);
+		personaje->proximoObjetivo = objetivo[1];
+		printf("%s",objetivo);
+
 
 	}
 	else
@@ -711,15 +726,15 @@ void planificarNuevo()
 //			cantidadEntrenadores = entrenadores_listos->elements_count;
 			sem_wait(&colaDeListos);
 			t_registroPersonaje* entrenador = malloc(sizeof(t_registroPersonaje));
-			pthread_mutex_lock(&mutex_EntrenadoresActivos);
-			 entrenador = list_remove(entrenadores_listos,0);
-			 pthread_mutex_unlock(&mutex_EntrenadoresActivos);
+
 //			sem_init(&(entrenador->ejecutar1),1,0);
 //			sem_init(&(entrenador->ejecutar2),1,0);
 
 			if(!strcmp(infoMapa->algoritmo,"RR"))
 			{
-
+				pthread_mutex_lock(&mutex_EntrenadoresActivos);
+				entrenador = list_remove(entrenadores_listos,0);
+				pthread_mutex_unlock(&mutex_EntrenadoresActivos);
 				for(j=0;j<infoMapa->quantum;j++)
 				{
 					if(entrenador->estado != 'T')
@@ -741,9 +756,9 @@ void planificarNuevo()
 				if (i==infoMapa->quantum)
 								{	i=0;
 									pthread_mutex_lock(&mutex_EntrenadoresActivos);
-														list_add(entrenadores_listos,entrenador);
-														pthread_mutex_unlock(&mutex_EntrenadoresActivos);
-														sem_post(&colaDeListos);
+									list_add(entrenadores_listos,entrenador);
+									pthread_mutex_unlock(&mutex_EntrenadoresActivos);
+									sem_post(&colaDeListos);
 								}
 
 			}
@@ -754,6 +769,25 @@ void planificarNuevo()
 //							i=0;
 //						}
 //		}
+		log_info(logger,"Planificando.. " );
+		if(strcmp(infoMapa->algoritmo,"RR"))  //NOT RR
+				{
+					pthread_mutex_lock(&mutex_EntrenadoresActivos);
+					entrenador = calcularMasCercanoASuObjetivo();
+					log_info(logger,"El entrenador mas cercano es %c" , entrenador->identificador);
+					pthread_mutex_unlock(&mutex_EntrenadoresActivos);
+					char objetivoActual = entrenador->proximoObjetivo;
+					while(objetivoActual == entrenador->proximoObjetivo){
+						if(entrenador->estado != 'T')
+											{
+											recibirQueHacer(entrenador);
+											i++;
+											}
+						else break;
+					}
+					sem_post(&colaDeListos);
+
+				}
 	}
 }
 

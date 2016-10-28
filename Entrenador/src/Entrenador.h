@@ -87,7 +87,7 @@ void muertePorSenial(int);
 void sumarVida(int);
 char* objetivosDelMapa(char*);
 void imprimirClaveYValor(char*,void*);
-void enviarMensajeInicial(int);
+void enviarMensajeInicial(int,char*);
 void jugarTurno(int);
 void devolverMedallas();
 int leerConfiguracionEntrenador();
@@ -95,7 +95,7 @@ int leerConfiguracionMapa(t_nivel*);
 void solicitarPosicion(t_nivel*,char);
 void informarFinalizacion(t_nivel*);
 void solicitarAvanzar(t_nivel*,char);
-int atraparPokemon(t_nivel*,char);
+int atraparPokemon(t_nivel*,char,char*);
 void copiarMedalla(char*,char*);
 
 #endif /* ENTRENADOR_H_ */
