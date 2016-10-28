@@ -6,7 +6,6 @@
  */
 
 #include "pokedexservidor.h"
-#include "FileSysOSADA/osada.h"
 #include <errno.h>
 
 #define PORT "9999"
@@ -89,63 +88,64 @@ int AceptarConexionCliente(int socketServer) {
 
 }
 
-int getattr(char* bufpath){
-	osada_file* archivo = obtenerArchivo (bufpath);
-	if(archivo == NULL || archivo->state == 0) {
+//int getattr(char* bufpath){
+//	osada_file* archivo = obtenerArchivo (bufpath);
+//	if(archivo == NULL || archivo->state == 0) {
+////		return -ENOENT;
+//	}
+//
+//	send(socketServidor,archivo,sizeof(archivo),0);
+//	return 0;
+//}
+//
+//int readdir(char* bufpath){
+//	int i;
+//	int indice = obtenerIndice(bufpath);
+//	if(indice == -1) {
+////		return -ENOENT;
+//	}
+//	t_list* listaDeHijos = listaDeHijosDelArchivo(indice);
+//	send(socketServidor,listaDeHijos,sizeof(listaDeHijos),0);
+//
+//	return 0;
+//}
+
+//int open_callback(char* path) {
+//	osada_file* archivo = obtenerArchivo (path);
+//	if(archivo == NULL || archivo->state == 0) {
 //		return -ENOENT;
-	}
-
-	send(socketServidor,archivo,sizeof(archivo),0);
-	return 0;
-}
-
-int readdir(char* bufpath){
-	int i;
-	int indice = obtenerIndice(bufpath);
-	if(indice == -1) {
-//		return -ENOENT;
-	}
-	t_list* listaDeHijos = listaDeHijosDelArchivo(indice);
-	send(socketServidor,listaDeHijos,sizeof(listaDeHijos),0);
-
-	return 0;
-}
-
-int open_callback(char* path) {
-	osada_file* archivo = obtenerArchivo (path);
-	if(archivo == NULL || archivo->state == 0) {
-		return -ENOENT;
-	}
-
-	send(socketServidor,archivo,sizeof(archivo),0);
-	return 0;
-}
-
-int mkdir_callback(char* nombreNuevo) {
-	crear_archivo(nombreNuevo, 2);
-	return 0;
-}
+//	}
+//
+//	send(socketServidor,archivo,sizeof(archivo),0);
+//	return 0;
+//}
+//
+//int mkdir_callback(char* nombreNuevo) {
+//	crear_archivo(nombreNuevo, 2);
+//	return 0;
+//}
 
 void recibirQueSos(int newfd){
-	char* buforeci= malloc(sizeof(char*)+sizeof(const char*));
-	recv(newfd,buforeci,sizeof(buforeci),0);
-	char headerrecv= buforeci[0];
-	char* bufpath= (char*)buforeci[1];
+	char* buforecibido = malloc(sizeof(char*) + 10);;
+	recv(newfd,buforecibido,11,0);
+	printf("%s",buforecibido);
+	puts("imprimi mierda");
+	free(buforecibido);
 
-		switch(headerrecv){
-		case '1':
-			getattr(bufpath);
-			break;
-		case '2':
-			readdir(bufpath);
-			break;
-		case '5':
-			open_callback(bufpath);
-			break;
+//		switch(headerrecv){
+//		case '1':
+//			getattr(bufpath);
+//			break;
+//		case '2':
+//			readdir(bufpath);
+//			break;
+//		case '5':
+//			open_callback(bufpath);
+//			break;
 //		case '3':
 //			mkdir_callback(bufpath);
 //			break;
-		}
+//		}
 
 }
 
@@ -162,7 +162,6 @@ int main(void) {
 	puts("conecok");
 	while (1) {
 		newfd = AceptarConexionCliente(socketServidor);
-		printf("El cliente nuevo se ha conectado por el socket %d\n", newfd);
 		recibirQueSos(newfd);
 		//recibirPaquete(newfd);
 	}
