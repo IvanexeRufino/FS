@@ -396,13 +396,13 @@ int distanciaAProxObjetivo(t_registroPersonaje* pj, char obj)
 	return dist;
 }
 
-t_registroPersonaje* calcularMasCercanoASuObjetivo ()
+int calcularMasCercanoASuObjetivo ()
 {
 	t_registroPersonaje* entrenador = (t_registroPersonaje*)list_get(entrenadores_listos, 0);
 	t_registroPersonaje* entrenadorMinimo = entrenador;
 	int distanciaMinima= distanciaAProxObjetivo(entrenador,entrenador->proximoObjetivo);
 	int i;
-	int indice;
+	int indice=0;
 	for(i=0; i < list_size(entrenadores_listos); i++)
 	{
 		entrenador = list_get(entrenadores_listos,i);
@@ -413,7 +413,7 @@ t_registroPersonaje* calcularMasCercanoASuObjetivo ()
 			indice = i;
 		}
 	}
-	return entrenadorMinimo;
+	return indice;
 }
 void mover (t_registroPersonaje *personaje, t_registroPokenest* pokemonActual)
 {
@@ -461,7 +461,10 @@ void envioQueSeAtrapoPokemon (t_registroPersonaje *personaje, t_registroPokenest
 		personaje->proximoObjetivo = objetivo[0];
 		printf("%s",objetivo);
 		if(objetivo[0]=='0') {
-			personaje->estado = 'T';
+			personaje->proximoObjetivo = '0';
+			personaje->estado='T';
+			recuperarPokemonDeEntrenador(personaje);
+			close(personaje->socket);
 		}
 
 
@@ -518,8 +521,9 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje)
 
 	case ('\0'):
 	case ('4'):
-		recuperarPokemonDeEntrenador(nuevoPersonaje);
+		nuevoPersonaje->proximoObjetivo = '0';
 		nuevoPersonaje->estado='T';
+		recuperarPokemonDeEntrenador(nuevoPersonaje);
 		close(nuevoPersonaje->socket);
 		//sem_wait(&nuevoPersonaje->finTurno);
 		//pthread_exit(0);
@@ -773,10 +777,13 @@ void planificarNuevo()
 //						}
 //		}
 		log_info(logger,"Planificando.. " );
+
 		if(strcmp(infoMapa->algoritmo,"RR"))  //NOT RR
 				{
+					int pos;
 					pthread_mutex_lock(&mutex_EntrenadoresActivos);
-					entrenador = calcularMasCercanoASuObjetivo();
+					pos = calcularMasCercanoASuObjetivo();
+					entrenador =  list_remove(entrenadores_listos,pos);
 					log_info(logger,"El entrenador mas cercano es %c" , entrenador->identificador);
 					pthread_mutex_unlock(&mutex_EntrenadoresActivos);
 					char objetivoActual = entrenador->proximoObjetivo;
@@ -784,11 +791,16 @@ void planificarNuevo()
 						if(entrenador->estado != 'T')
 											{
 											recibirQueHacer(entrenador);
-											i++;
 											}
-						else break;
 					}
-					sem_post(&colaDeListos);
+					if(entrenador->estado!='T'){
+						pthread_mutex_lock(&mutex_EntrenadoresActivos);
+						list_add(entrenadores_listos,entrenador);
+						pthread_mutex_unlock(&mutex_EntrenadoresActivos);
+						sem_post(&colaDeListos);
+					}
+
+
 
 				}
 	}
