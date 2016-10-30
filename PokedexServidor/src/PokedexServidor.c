@@ -9,15 +9,46 @@
 #include <errno.h>
 
 #define PORT "9999"
+#define size_header  sizeof(uint16_t) * 2
+#define MAX_BUFFERSIZE 1024
 
 int socketServidor;
 
 typedef struct {
-	char* header;
-	const char *path;
-	int size;
-}t_package;
+	uint16_t codigo;
+	uint16_t tamanio;
+	char* datos;
+  }__attribute__((__packed__)) t_paquete;
 
+  void* memoria(int cantidad)
+  {
+  	void* puntero = NULL;
+  	if (cantidad !=0)
+  	{
+  		while (puntero == NULL)
+  		{
+  			puntero= malloc(cantidad);
+  		}
+  	}
+  	return puntero;
+  }
+  void desacoplador(char* buffer,int sizeBuffer, t_list* paquetes)/*transforma multiples streams en estructuras de t_paquete y los agrega a una lista*/
+  {
+  	int desacoplado = 0;
+  	t_paquete* paquete;
+  	while (sizeBuffer!= desacoplado)
+  	{
+  		paquete= memoria(sizeof(t_paquete));
+  		paquete->codigo= (uint16_t)*(buffer + desacoplado);
+  		paquete->tamanio= (uint16_t)* (buffer + sizeof(uint16_t) + desacoplado);
+  		paquete->datos= memoria(paquete->tamanio);
+  		memcpy(paquete->datos, buffer + desacoplado + size_header, paquete->tamanio);
+  		list_add(paquetes, paquete);
+  		desacoplado += (size_header + paquete->tamanio);
+
+  	}
+  	return;
+  }
 int crearSocketServidor(char *puerto) {
 	int BACKLOOG = 5;
 	struct addrinfo hints;
@@ -126,31 +157,65 @@ int AceptarConexionCliente(int socketServer) {
 //}
 
 void recibirQueSos(int newfd){
-	char* buforecibido = malloc(250);
-	recv(newfd,buforecibido,250,0);
-	printf("%s",buforecibido);
-	printf("%d",strlen(buforecibido));
-	puts("imprimi mierda");
-//	free(buforecibido);
+	char buffer[MAX_BUFFERSIZE];
+	t_paquete* paquete;
+	int sizebytes;
+	t_list* paquetes= malloc(sizeof(t_list*));
+	if((sizebytes = recv(newfd, &buffer, MAX_BUFFERSIZE - 1,0)) <= 0)
+	{
+		puts("ERROR RECIBIR");
+		//log_error(logDelPersonaje, "Error al recibir paquete del cliente \n");
+		exit(1);
+	}
+	printf("El cliente me envía un paquete \n");
+	desacoplador(buffer,sizebytes,paquetes);
+	paquete = list_remove(paquetes, 0);
 
-//		switch(headerrecv){
-//		case '1':
-//			getattr(bufpath);
+	printf("el codigo es %d \n", paquete->codigo);
+	printf("los datos son %s \n",paquete->datos);
+	printf("el tamaño es %d \n", paquete->tamanio);
+
+//	switch(paquete->codigo){
+//		case 1:
+//			getattr(paquete->datos);
 //			break;
-//		case '2':
-//			readdir(bufpath);
+//		case 2:
+//			readdir(paquete->datos);
 //			break;
-//		case '5':
-//			open_callback(bufpath);
+//		case 3:
+//			mkdir_callback(paquete->datos);
 //			break;
-//		case '3':
-//			mkdir_callback(bufpath);
+//		case 4:
+//			create_callback(paquete->datos);
+//			break;
+//		case 5:
+//			open_callback(paquete->datos);
+//			break;
+//		case 6:
+//			read_callback(paquete->datos);
+//			break;
+//		case 7:
+//			write_callback(paquete->datos);
+//			break;
+//		case 8:
+//			remove_callback(paquete->datos);
+//			break;
+//		case 9:
+//			utimens_callback(paquete->datos);
+//			break;
+//		case 10:
+//			truncate_callback(paquete->datos);
+//			break;
+//		case 11:
+//			rename_callback(paquete->datos);
+//			break;
+//		case 12:
+//			link_callback(paquete->datos);
 //			break;
 //		}
 
+//	free(buffer);
 }
-
-
 
 int main(void) {
 
@@ -161,12 +226,15 @@ int main(void) {
 	socketServidor = crearSocketServidor("9999");
 	IniciarSocketServidor(atoi("9999"));
 	puts("conecok");
+	newfd= AceptarConexionCliente(socketServidor);
+
 	while (1) {
 		newfd = AceptarConexionCliente(socketServidor);
 		recibirQueSos(newfd);
 	}
 	return 0;
 }
+
 
 
 
