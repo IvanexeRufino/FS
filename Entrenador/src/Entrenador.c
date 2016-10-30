@@ -203,7 +203,7 @@ void enviarMensajeInicial(int serverSocket, char* obj)
 	log_info(logger, "Se ha enviado: %s \n",buffer);
 
 	char* buffer2 = string_new();
-	strcpy(buffer2,obj);
+	string_append(&buffer2,charToString(obj[0]));
 	send(serverSocket,buffer2,sizeof(char),0);
 	log_info(logger, "Se ha enviado: %s \n",buffer2);
 }
@@ -263,7 +263,7 @@ int atraparPokemon(t_nivel *mapa,char objetivo, char* proximoObj)
 	char* recibo = string_new();
 	recv(mapa->socketMapa, recibo, sizeof(recibo),0);
 	char* buffer2 = string_new();
-	strcpy(buffer2,proximoObj);
+	string_append(&buffer2,charToString(proximoObj[0]));
 	printf("%s",buffer2);
 	send(mapa->socketMapa,buffer2,sizeof(char),0);
 	log_info(logger, "Se ha enviado: %s \n",buffer2);
