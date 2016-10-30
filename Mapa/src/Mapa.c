@@ -722,7 +722,7 @@ int main(int argc, char **argv)
 		  pthread_create (&idHilo,NULL,(void*)ejecutar_Entrenador,param);
 		  //sem_post(&hiloEscucha->finTurno);
 		  //pthread_join(&idHilo,0);
-	     }
+	  }
 
 log_info(logger, "Se finalizaron las operaciones con todos los entrenadores que estaban conectados");
 log_info(logger, "-----El proceso mapa se cerrara, gracias por jugar-----");
