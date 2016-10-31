@@ -186,7 +186,7 @@ int leerConfiguracionMapa(t_nivel* datos)
 	else		return -1;
 }
 
-void enviarMensajeInicial(int serverSocket, char* obj)
+void enviarMensajeInicial(int serverSocket)
 {
 	int CoordEnX = enviarCoordenada(infoEntrenador->posicionEnX,serverSocket);
 	int CoordEnY = enviarCoordenada(infoEntrenador->posicionEnY,serverSocket);
@@ -202,15 +202,10 @@ void enviarMensajeInicial(int serverSocket, char* obj)
 	send(serverSocket,buffer,sizeof(buffer),0);
 	log_info(logger, "Se ha enviado: %s \n",buffer);
 
-	char* buffer2 = string_new();
-	string_append(&buffer2,charToString(obj[0]));
-	send(serverSocket,buffer2,sizeof(char),0);
-	log_info(logger, "Se ha enviado: %s \n",buffer2);
 }
 
 void solicitarPosicion(t_nivel *mapa,char objetivo)
 {
-
 	char* buffer = string_new();
 	string_append(&buffer,string_itoa(SOLICITARPOSICION));
 	string_append(&buffer,charToString(objetivo));
@@ -253,7 +248,7 @@ void solicitarAvanzar(t_nivel *mapa,char objetivo)
 
 }
 
-int atraparPokemon(t_nivel *mapa,char objetivo, char* proximoObj)
+int atraparPokemon(t_nivel *mapa,char objetivo)
 {
 	char* buffer = string_new();
 	string_append(&buffer,string_itoa(ATRAPARPOKEMON));
@@ -262,11 +257,6 @@ int atraparPokemon(t_nivel *mapa,char objetivo, char* proximoObj)
 	send(mapa->socketMapa, buffer, sizeof(buffer), 0);
 	char* recibo = string_new();
 	recv(mapa->socketMapa, recibo, sizeof(recibo),0);
-	char* buffer2 = string_new();
-	string_append(&buffer2,charToString(proximoObj[0]));
-	printf("%s",buffer2);
-	send(mapa->socketMapa,buffer2,sizeof(char),0);
-	log_info(logger, "Se ha enviado: %s \n",buffer2);
 
 	if(!strcmp(buffer,"1"))
 		{
@@ -353,24 +343,19 @@ int main(int argc, char **argv)
 			log_info(logger, "Conectado al servidor");							// Lo reflejo en el log
 			infoEntrenador->posicionEnX = 0;									//Estaria en la posicion 0 en el nuevo mapa
 			infoEntrenador->posicionEnY = 0;
-
-			char *vec=malloc(sizeof(char)*10);
-			int i = list_size(mapa->objetivos);
-			vec = list_get(mapa->objetivos,0);
-			enviarMensajeInicial(mapa->socketMapa ,vec);								//Le envio el simbolo al Mapa - HEADER ID es el 0
-
+			enviarMensajeInicial(mapa->socketMapa);								//Le envio el simbolo al Mapa - HEADER ID es el 0
 			int k=0;
+
 			//La utilizo para moverme entre objetivos de pokemones
 			for(k = 0 ; k< list_size(mapa->objetivos); k++)
 					{
 
-//				int i = list_size(mapa->objetivos);
+				int i = list_size(mapa->objetivos);
 				char objetivos[i];
 				vector = list_get(mapa->objetivos,k);
 				objetivos[k] = *vector;
 
 				log_info(logger, "El objetivo actual es %c \n", objetivos[k]);
-
 				solicitarPosicion(mapa,objetivos[k]);										   //Le envio en el header el ID 1
 
 							while((infoEntrenador->posicionEnX != mapa->pokemonActualPosicionEnX ||
@@ -381,14 +366,7 @@ int main(int argc, char **argv)
 
 						if(infoEntrenador->posicionEnX == mapa->pokemonActualPosicionEnX && infoEntrenador->posicionEnY == mapa->pokemonActualPosicionEnY)
 							{
-							int atrapado;
-							if(k<i-1){
-									vector = list_get(mapa->objetivos,k+1);
-
-							}
-							else
-								strcpy(vector,"0");
-							atrapado = atraparPokemon(mapa,objetivos[k],vector);//Le envio en el header el ID 3
+							int atrapado = atraparPokemon(mapa,objetivos[k]);  								//Le envio en el header el ID 3
 							if (atrapado == 1)
 								{
 								log_info(logger,"Felicitaciones, capturaste el pokemon nro %d \n",k);
