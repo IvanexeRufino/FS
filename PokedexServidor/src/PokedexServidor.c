@@ -219,15 +219,11 @@ void recibirQueSos(int newfd){
 
 int main(void) {
 
-//	t_log* logger;
-//	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
-//	log_info(logger, PROGRAM_DESCRIPTION);
 	int newfd;
 	socketServidor = crearSocketServidor("9999");
 	IniciarSocketServidor(atoi("9999"));
 	puts("conecok");
-	newfd= AceptarConexionCliente(socketServidor);
-
+	reconocerOSADA("/home/utnso/disco.bin");
 	while (1) {
 		newfd = AceptarConexionCliente(socketServidor);
 		recibirQueSos(newfd);

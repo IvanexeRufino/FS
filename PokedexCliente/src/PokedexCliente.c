@@ -32,7 +32,7 @@
 typedef struct {
 	uint16_t codigo;
 	uint16_t tamanio;
-	char* datos;
+	void* datos;
   }__attribute__((__packed__)) t_paquete ;
 
   void* memoria(int cantidad)
@@ -48,17 +48,17 @@ typedef struct {
   	return puntero;
   }
 
-t_paquete* empaquetar(uint16_t codigo, char* datos){
+t_paquete* empaquetar(uint16_t codigo, void* datos, uint16_t size){
 	t_paquete* paquete= malloc(sizeof(t_paquete));
 	paquete->codigo= codigo;
 	paquete->datos= datos;
-	paquete->tamanio= (strlen(datos)+1);
+	paquete->tamanio= size;
 	return paquete;
 }
 
 char* acoplador(t_paquete* paquete) /*transforma una estructura de tipo t_paquete en un stream*/
 {
-	char* paqueteSalida = memoria(size_header + paquete->tamanio);
+	void* paqueteSalida = memoria(size_header + paquete->tamanio);
 	memcpy(paqueteSalida, paquete, size_header);
 	memcpy(paqueteSalida + size_header, paquete->datos, paquete->tamanio);
 	return paqueteSalida;
@@ -95,10 +95,10 @@ int conectarConServer()
 
 void enviarQueSos(uint16_t nroop, char* path){
 	int socket= conectarConServer();
-	t_paquete* paquete= empaquetar(nroop,path);
-	char* cosaparaenviar= acoplador(paquete);
+	t_paquete* paquete= empaquetar(nroop,path,strlen(path) + 1);
+	void* cosaparaenviar= acoplador(paquete);
 
-	if(send(socket,cosaparaenviar,paquete->tamanio+ size_header ,0)<0)
+	if(send(socket,cosaparaenviar,paquete->tamanio + size_header ,0)<0)
 		{
 			puts("ERROR ENVIO");
 //			log_error(logDelPersonaje,"Error al enviar datos del cliente \n");
@@ -247,8 +247,8 @@ static struct fuse_operations ejemplo_oper = {
 
 int main(int argc, char *argv[]) {
 
-	system("truncate -s 100k disco.bin");
-	system("./osada-format /home/utnso/disco.bin");
+//	system("truncate -s 100k disco.bin");
+//	system("./osada-format /home/utnso/disco.bin");
 	reconocerOSADA("/home/utnso/disco.bin");
 
 	return fuse_main(argc, argv, &ejemplo_oper, NULL );
