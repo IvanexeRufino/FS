@@ -569,38 +569,28 @@ void planificarNuevo()
 
 //			sem_init(&(entrenador->ejecutar1),1,0);
 //			sem_init(&(entrenador->ejecutar2),1,0);
-
+			j=0;
 			if(!strcmp(infoMapa->algoritmo,"RR"))
 			{
 					pthread_mutex_lock(&mutex_EntrenadoresActivos);
 					entrenador = list_remove(entrenadores_listos,0);
 					pthread_mutex_unlock(&mutex_EntrenadoresActivos);
-				for(j=0;j<infoMapa->quantum;j++)
+				for(i=0;i!=infoMapa->quantum && j == 0;i++)
 				{
-					if(entrenador->estado != 'T')
-					{
-
-					recibirQueHacer(entrenador);
-					i++;
-
-					}
-					else{
-						sem_post(&entrenador->finTurno);
-						j = 7; // es para que salga del for
-
-					}
-
-
+						recibirQueHacer(entrenador);
+						if(entrenador->estado == 'T')
+							j = 1;
 
 				}
-				if (i==infoMapa->quantum)
-								{	i=0;
-									pthread_mutex_lock(&mutex_EntrenadoresActivos);
-														list_add(entrenadores_listos,entrenador);
-														pthread_mutex_unlock(&mutex_EntrenadoresActivos);
-														sem_post(&colaDeListos);
-								}
+				if(entrenador->estado != 'T'){
+						pthread_mutex_lock(&mutex_EntrenadoresActivos);
+						list_add(entrenadores_listos,entrenador);
+						pthread_mutex_unlock(&mutex_EntrenadoresActivos);
+						sem_post(&colaDeListos);
+				}
 
+
+			//	sem_post(&entrenador->finTurno);
 			}
 			if(strcmp(infoMapa->algoritmo,"RR"))  //NOT RR
 					{
