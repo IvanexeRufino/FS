@@ -137,8 +137,8 @@ static int ejemplo_getattr(char *path, struct stat *stbuf) {
 		stbuf->st_mode = S_IFDIR | 0755;
 		stbuf->st_nlink = 2;
 	} else {
-		osada_file* archivo = obtenerArchivo(path);
-		if(archivo == NULL || archivo->state == 0) {
+		osada_file* archivo = paquete->datos;
+		if(paquete->codigo == 100 || archivo->state == 0) {
 		return -ENOENT;
 	} else if (archivo->state == 2) {
 		stbuf->st_mode = S_IFDIR | 0755;
@@ -180,7 +180,11 @@ static int ejemplo_create (char* path, mode_t modo, struct fuse_file_info * info
 }
 
 static int ejemplo_open(char * path, int info) {
-	enviarQueSos(1, path, strlen(path) + 1);
+	t_paquete* paquete = enviarQueSos(5, path, strlen(path) + 1);
+	osada_file* archivo = paquete->datos;
+	if(paquete->codigo == 100 || archivo->state == 0) {
+		return -ENOENT;
+	}
 	return 0;
 }
 
@@ -197,21 +201,11 @@ static int ejemplo_write (char *path, char *buf, size_t size, off_t offset, stru
 }
 
 static int ejemplo_remove (char* path) {
-	enviarQueSos(8, path, strlen(path) + 1);
-	osada_file* archivo = obtenerArchivo(path);
-	if (archivo == NULL) {
+	t_paquete* paquete = enviarQueSos(8, path, strlen(path) + 1);
+	if(strcmp(paquete->datos,"error")) {
 		return -ENOENT;
 	}
-
-	if(archivo->state == 1) {
-		return borrar_archivo(path);
-	}
-	else if(archivo->state == 2) {
-		return borrar_directorio_vacio(path);
-	}
-	else {
-		return -ENOENT;
-	}
+	return 0;
 }
 
 static int ejemplo_utimens (char * param1, const struct timespec tv[2] ){

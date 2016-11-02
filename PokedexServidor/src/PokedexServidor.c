@@ -173,47 +173,67 @@ void recibirQueSos(int newfd){
 		exit(1);
 	}
 	printf("El cliente me envía un paquete \n");
-	t_paquete* paquete = desacoplador(buffer,sizebytes);
+	t_paquete* paqueterecv = desacoplador(buffer,sizebytes);
 
-	printf("el codigo es %d \n", paquete->codigo);
-	printf("los datos son %s \n",paquete->datos);
-	printf("el tamaño es %d \n", paquete->tamanio);
+	printf("el codigo es %d \n", paqueterecv->codigo);
+	printf("los datos son %s \n",paqueterecv->datos);
+	printf("el tamaño es %d \n", paqueterecv->tamanio);
 	osada_file* archivo;
 	void* enviar;
-	int codigo;
-		switch(paquete->codigo){
+	t_paquete* paqueteSend = malloc(sizeof(t_paquete));
+		switch(paqueterecv->codigo){
 		case 1:
-			archivo = obtenerArchivo(paquete->datos);
+			archivo = obtenerArchivo(paqueterecv->datos);
 			if(archivo == NULL || archivo->state == 0) {
-				t_paquete* paquete = empaquetar(-1,"error",6);
-				enviar = acoplador(paquete);
+				paqueteSend = empaquetar(100,"error",6);
+				printf("los datos a enviar son %s \n",paqueteSend->datos);
+				enviar = acoplador(paqueteSend);
 			}
 			else {
-				t_paquete* paquete = empaquetar(1,archivo,sizeof(osada_file));
-				enviar = acoplador(paquete);
+				paqueteSend = empaquetar(1,archivo,sizeof(osada_file));
+				enviar = acoplador(paqueteSend);
 			}
 			break;
 	//		case 2:
 	//			readdir(paquete->datos);
 	//			break;
 			case 3:
-				crear_archivo(paquete->datos,2);
+				crear_archivo(paqueterecv->datos,2);
 				break;
 			case 4:
-				crear_archivo(paquete->datos,1);
+				crear_archivo(paqueterecv->datos,1);
 				break;
-	//		case 5:
-	//			open_callback(paquete->datos);
-	//			break;
+			case 5:
+				archivo = obtenerArchivo(paqueterecv->datos);
+				if(archivo == NULL || archivo->state == 0) {
+					paqueteSend = empaquetar(100,"error",6);
+					printf("los datos a enviar son %s \n",paqueteSend->datos);
+					enviar = acoplador(paqueteSend);
+				}
+				else {
+					paqueteSend = empaquetar(1,archivo,sizeof(osada_file));
+					enviar = acoplador(paqueteSend);
+				}
+				break;
 	//		case 6:
 	//			read_callback(paquete->datos);
 	//			break;
 	//		case 7:
 	//			write_callback(paquete->datos);
 	//			break;
-	//		case 8:
-	//			remove_callback(paquete->datos);
-	//			break;
+			case 8:
+				archivo = obtenerArchivo(paqueterecv->datos);
+				if(archivo->state == 1) {
+					borrar_archivo(paqueterecv->datos);
+				}
+				else if(archivo->state == 2) {
+					borrar_directorio_vacio(paqueterecv->datos);
+				}
+				if(archivo == NULL || archivo->state == 0) {
+					paqueteSend = empaquetar(100,"error",6);
+					enviar = acoplador(paqueteSend);
+				}
+				break;
 	//		case 9:
 	//			utimens_callback(paquete->datos);
 	//			break;
@@ -228,7 +248,7 @@ void recibirQueSos(int newfd){
 	//			break;
 			}
 
-		if(send(newfd,enviar,paquete->tamanio + size_header ,0)<0) {
+		if(send(newfd,enviar,paqueteSend->tamanio + size_header ,0)<0) {
 					puts("ERROR ENVIO");
 					exit(1);
 		}
