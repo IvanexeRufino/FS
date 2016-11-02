@@ -296,8 +296,11 @@ void liberarBloquesDeBitmap(osada_file* archivo) {
 	int puntero = archivo->first_block;
 	int tamanioLeido = 0;
 	while(tamanioLeido<size) {
-		tamanioLeido = OSADA_BLOCK_SIZE;
-		if(tamanioLeido + OSADA_BLOCK_SIZE > size) {tamanioLeido = size;}
+		if(tamanioLeido + OSADA_BLOCK_SIZE > size) {
+			tamanioLeido = size;
+		} else {
+			tamanioLeido += OSADA_BLOCK_SIZE;
+		}
 		borrarDelBitmap(puntero);
 		puntero = tablaDeAsignaciones[puntero];
 	}
