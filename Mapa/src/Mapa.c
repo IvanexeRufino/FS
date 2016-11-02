@@ -592,7 +592,7 @@ void planificarNuevo()
 
 			//	sem_post(&entrenador->finTurno);
 			}
-			if(strcmp(infoMapa->algoritmo,"RR"))  //NOT RR
+			else  //NOT RR
 					{
 						int k=0;
 						while(k<list_size(entrenadores_listos)){
