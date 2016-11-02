@@ -106,7 +106,7 @@ int obtenerIndice(char* path) {
 osada_file* obtenerArchivo(char* path) {
 	int indice = obtenerIndice(path);
 
-	if (indice == -1) {
+	if (indice == -1 || indice == 65535) {
 		return NULL;
 	} else {
 		return &tablaDeArchivos[indice];
