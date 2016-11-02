@@ -129,29 +129,6 @@ t_paquete* enviarQueSos(uint16_t nroop, void* path, uint16_t size){
 }
 
 static int ejemplo_getattr(char *path, struct stat *stbuf) {
-//	int res = 0;
-//	if (strcmp(path, "/") == 0) {
-//		stbuf->st_mode = S_IFDIR | 0755;
-//		stbuf->st_nlink = 2;
-//		return res;
-//	}
-//	t_paquete* pack = enviarQueSos(1, path, strlen(path) + 1);
-//	memset(stbuf, 0, sizeof(struct stat));
-//	if(strcmp(pack->datos,"error")) {
-//		return -ENOENT;
-//	}else {
-//		osada_file* archivo = pack->datos;
-//		if (archivo->state == 2) {
-//			stbuf->st_mode = S_IFDIR | 0755;
-//			stbuf->st_nlink = 2;
-//		} 	else {
-//			stbuf->st_mode = S_IFREG | 0666;
-//			stbuf->st_nlink = 1;
-//			stbuf->st_size = archivo->file_size;
-//		}
-//	}
-//	return res;
-//
 	t_paquete* paquete = enviarQueSos(1,path, strlen(path) + 1);
 	int res = 0;
 	memset(stbuf, 0, sizeof(struct stat));
@@ -194,22 +171,16 @@ static int ejemplo_readdir(char *path, void *buf, fuse_fill_dir_t filler,
 
 static int ejemplo_mkdir(char* filename, mode_t modo){
 	enviarQueSos(3, filename, strlen(filename) + 1);
-	crear_archivo(filename,2);
 	return 0;
 }
 
 static int ejemplo_create (char* path, mode_t modo, struct fuse_file_info * info) {
 	enviarQueSos(4, path, strlen(path) + 1);
-	crear_archivo(path,1);
 	return 0;
 }
 
 static int ejemplo_open(char * path, int info) {
-	enviarQueSos(5, path, strlen(path) + 1);
-	osada_file* archivo = obtenerArchivo (path);
-	if(archivo == NULL || archivo->state == 0) {
-		return -ENOENT;
-	}
+	enviarQueSos(1, path, strlen(path) + 1);
 	return 0;
 }
 

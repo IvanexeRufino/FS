@@ -180,19 +180,28 @@ void recibirQueSos(int newfd){
 	printf("el tamaño es %d \n", paquete->tamanio);
 	osada_file* archivo;
 	void* enviar;
+	int codigo;
 		switch(paquete->codigo){
-//			case 1:
-	//			getattr(paquete->datos);
-	//			break;
+		case 1:
+			archivo = obtenerArchivo(paquete->datos);
+			if(archivo == NULL || archivo->state == 0) {
+				t_paquete* paquete = empaquetar(-1,"error",6);
+				enviar = acoplador(paquete);
+			}
+			else {
+				t_paquete* paquete = empaquetar(1,archivo,sizeof(osada_file));
+				enviar = acoplador(paquete);
+			}
+			break;
 	//		case 2:
 	//			readdir(paquete->datos);
 	//			break;
-	//		case 3:
-	//			mkdir_callback(paquete->datos);
-	//			break;
-	//		case 4:
-	//			create_callback(paquete->datos);
-	//			break;
+			case 3:
+				crear_archivo(paquete->datos,2);
+				break;
+			case 4:
+				crear_archivo(paquete->datos,1);
+				break;
 	//		case 5:
 	//			open_callback(paquete->datos);
 	//			break;
@@ -217,17 +226,6 @@ void recibirQueSos(int newfd){
 	//		case 12:
 	//			link_callback(paquete->datos);
 	//			break;
-			case 1:
-				archivo = obtenerArchivo(paquete->datos);
-				if(archivo == NULL || archivo->state == 0) {
-					t_paquete* paquete = empaquetar(-1,"error",6);
-					enviar = acoplador(paquete);
-				}
-				else {
-					t_paquete* paquete = empaquetar(1,archivo,sizeof(osada_file));
-					enviar = acoplador(paquete);
-				}
-				break;
 			}
 
 		if(send(newfd,enviar,paquete->tamanio + size_header ,0)<0) {
