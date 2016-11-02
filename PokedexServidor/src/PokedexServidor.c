@@ -7,48 +7,55 @@
 
 #include "pokedexservidor.h"
 #include <errno.h>
+#include "FileSysOSADA/osada.h"
 
 #define PORT "9999"
 #define size_header  sizeof(uint16_t) * 2
 #define MAX_BUFFERSIZE 1024
 
-int socketServidor;
-
 typedef struct {
 	uint16_t codigo;
 	uint16_t tamanio;
 	char* datos;
-  }__attribute__((__packed__)) t_paquete;
+}__attribute__((__packed__)) t_paquete;
 
-  void* memoria(int cantidad)
-  {
-  	void* puntero = NULL;
-  	if (cantidad !=0)
-  	{
-  		while (puntero == NULL)
-  		{
+void* memoria(int cantidad) {
+	void* puntero = NULL;
+  	if (cantidad !=0) {
+  		while (puntero == NULL) {
   			puntero= malloc(cantidad);
   		}
   	}
   	return puntero;
-  }
-  void desacoplador(char* buffer,int sizeBuffer, t_list* paquetes)/*transforma multiples streams en estructuras de t_paquete y los agrega a una lista*/
-  {
-  	int desacoplado = 0;
-  	t_paquete* paquete;
-  	while (sizeBuffer!= desacoplado)
-  	{
-  		paquete= memoria(sizeof(t_paquete));
-  		paquete->codigo= (uint16_t)*(buffer + desacoplado);
-  		paquete->tamanio= (uint16_t)* (buffer + sizeof(uint16_t) + desacoplado);
-  		paquete->datos= memoria(paquete->tamanio);
-  		memcpy(paquete->datos, buffer + desacoplado + size_header, paquete->tamanio);
-  		list_add(paquetes, paquete);
-  		desacoplado += (size_header + paquete->tamanio);
+}
 
-  	}
-  	return;
+t_paquete* empaquetar(uint16_t codigo, void* datos, uint16_t size){
+  	t_paquete* paquete= malloc(sizeof(t_paquete));
+  	paquete->codigo= codigo;
+  	paquete->datos= datos;
+  	paquete->tamanio= size;
+  	return paquete;
+}
+
+char* acoplador(t_paquete* paquete) /*transforma una estructura de tipo t_paquete en un stream*/
+{
+  	void* paqueteSalida = memoria(size_header + paquete->tamanio);
+  	memcpy(paqueteSalida, paquete, size_header);
+  	memcpy(paqueteSalida + size_header, paquete->datos, paquete->tamanio);
+  	return paqueteSalida;
+}
+
+t_paquete* desacoplador(char* buffer,int sizeBuffer)/*transforma multiples streams en estructuras de t_paquete y los agrega a una lista*/
+  {
+  	t_paquete* paquete;
+  	paquete= memoria(sizeof(t_paquete));
+  	paquete->codigo= (uint16_t)*(buffer);
+  	paquete->tamanio= (uint16_t)* (buffer + sizeof(uint16_t));
+  	paquete->datos= memoria(paquete->tamanio);
+  	memcpy(paquete->datos, buffer + size_header, paquete->tamanio);
+  	return paquete;
   }
+
 int crearSocketServidor(char *puerto) {
 	int BACKLOOG = 5;
 	struct addrinfo hints;
@@ -158,9 +165,7 @@ int AceptarConexionCliente(int socketServer) {
 
 void recibirQueSos(int newfd){
 	char buffer[MAX_BUFFERSIZE];
-	t_paquete* paquete;
 	int sizebytes;
-	t_list* paquetes= malloc(sizeof(t_list*));
 	if((sizebytes = recv(newfd, &buffer, MAX_BUFFERSIZE - 1,0)) <= 0)
 	{
 		puts("ERROR RECIBIR");
@@ -168,62 +173,76 @@ void recibirQueSos(int newfd){
 		exit(1);
 	}
 	printf("El cliente me envía un paquete \n");
-	desacoplador(buffer,sizebytes,paquetes);
-	paquete = list_remove(paquetes, 0);
+	t_paquete* paquete = desacoplador(buffer,sizebytes);
 
 	printf("el codigo es %d \n", paquete->codigo);
 	printf("los datos son %s \n",paquete->datos);
 	printf("el tamaño es %d \n", paquete->tamanio);
+	osada_file* archivo;
+	void* enviar;
+		switch(paquete->codigo){
+//			case 1:
+	//			getattr(paquete->datos);
+	//			break;
+	//		case 2:
+	//			readdir(paquete->datos);
+	//			break;
+	//		case 3:
+	//			mkdir_callback(paquete->datos);
+	//			break;
+	//		case 4:
+	//			create_callback(paquete->datos);
+	//			break;
+	//		case 5:
+	//			open_callback(paquete->datos);
+	//			break;
+	//		case 6:
+	//			read_callback(paquete->datos);
+	//			break;
+	//		case 7:
+	//			write_callback(paquete->datos);
+	//			break;
+	//		case 8:
+	//			remove_callback(paquete->datos);
+	//			break;
+	//		case 9:
+	//			utimens_callback(paquete->datos);
+	//			break;
+	//		case 10:
+	//			truncate_callback(paquete->datos);
+	//			break;
+	//		case 11:
+	//			rename_callback(paquete->datos);
+	//			break;
+	//		case 12:
+	//			link_callback(paquete->datos);
+	//			break;
+			case 1:
+				archivo = obtenerArchivo(paquete->datos);
+				if(archivo == NULL || archivo->state == 0) {
+					t_paquete* paquete = empaquetar(-1,"error",6);
+					enviar = acoplador(paquete);
+				}
+				else {
+					t_paquete* paquete = empaquetar(1,archivo,sizeof(osada_file));
+					enviar = acoplador(paquete);
+				}
+				break;
+			}
 
-//	switch(paquete->codigo){
-//		case 1:
-//			getattr(paquete->datos);
-//			break;
-//		case 2:
-//			readdir(paquete->datos);
-//			break;
-//		case 3:
-//			mkdir_callback(paquete->datos);
-//			break;
-//		case 4:
-//			create_callback(paquete->datos);
-//			break;
-//		case 5:
-//			open_callback(paquete->datos);
-//			break;
-//		case 6:
-//			read_callback(paquete->datos);
-//			break;
-//		case 7:
-//			write_callback(paquete->datos);
-//			break;
-//		case 8:
-//			remove_callback(paquete->datos);
-//			break;
-//		case 9:
-//			utimens_callback(paquete->datos);
-//			break;
-//		case 10:
-//			truncate_callback(paquete->datos);
-//			break;
-//		case 11:
-//			rename_callback(paquete->datos);
-//			break;
-//		case 12:
-//			link_callback(paquete->datos);
-//			break;
-//		}
-
-//	free(buffer);
+		if(send(newfd,enviar,paquete->tamanio + size_header ,0)<0) {
+					puts("ERROR ENVIO");
+					exit(1);
+		}
 }
 
 int main(void) {
 
 	int newfd;
-	socketServidor = crearSocketServidor("9999");
+	int socketServidor = crearSocketServidor("9999");
 	IniciarSocketServidor(atoi("9999"));
-	puts("conecok");
 	reconocerOSADA("/home/utnso/disco.bin");
+	puts("conecok");
 	while (1) {
 		newfd = AceptarConexionCliente(socketServidor);
 		recibirQueSos(newfd);

@@ -56,13 +56,24 @@ t_paquete* empaquetar(uint16_t codigo, void* datos, uint16_t size){
 	return paquete;
 }
 
-char* acoplador(t_paquete* paquete) /*transforma una estructura de tipo t_paquete en un stream*/
+void* acoplador(t_paquete* paquete) /*transforma una estructura de tipo t_paquete en un stream*/
 {
 	void* paqueteSalida = memoria(size_header + paquete->tamanio);
 	memcpy(paqueteSalida, paquete, size_header);
 	memcpy(paqueteSalida + size_header, paquete->datos, paquete->tamanio);
 	return paqueteSalida;
 }
+
+t_paquete* desacoplador(char* buffer,int sizeBuffer)/*transforma multiples streams en estructuras de t_paquete y los agrega a una lista*/
+  {
+  	t_paquete* paquete;
+  	paquete= memoria(sizeof(t_paquete));
+  	paquete->codigo= (uint16_t)*(buffer);
+  	paquete->tamanio= (uint16_t)* (buffer + sizeof(uint16_t));
+  	paquete->datos= memoria(paquete->tamanio);
+  	memcpy(paquete->datos, buffer + size_header, paquete->tamanio);
+  	return paquete;
+  }
 
 int conectarConServer()
   {
@@ -93,9 +104,9 @@ int conectarConServer()
   	return nuevoSocket;
 };
 
-void enviarQueSos(uint16_t nroop, char* path){
+t_paquete* enviarQueSos(uint16_t nroop, void* path, uint16_t size){
 	int socket= conectarConServer();
-	t_paquete* paquete= empaquetar(nroop,path,strlen(path) + 1);
+	t_paquete* paquete= empaquetar(nroop, path, size);
 	void* cosaparaenviar= acoplador(paquete);
 
 	if(send(socket,cosaparaenviar,paquete->tamanio + size_header ,0)<0)
@@ -105,19 +116,52 @@ void enviarQueSos(uint16_t nroop, char* path){
 			exit(1);
 		}
 	free(cosaparaenviar);
+
+	char buffer[MAX_BUFFERSIZE];
+	int sizebytes;
+	if((sizebytes = recv(socket, &buffer, MAX_BUFFERSIZE - 1,0)) <= 0)
+	{
+		puts("ERROR RECIBIR");
+		//log_error(logDelPersonaje, "Error al recibir paquete del cliente \n");
+		exit(1);
+	}
+	return paquete = desacoplador(buffer,sizebytes);
 }
 
 static int ejemplo_getattr(char *path, struct stat *stbuf) {
-	enviarQueSos(1,path);
+//	int res = 0;
+//	if (strcmp(path, "/") == 0) {
+//		stbuf->st_mode = S_IFDIR | 0755;
+//		stbuf->st_nlink = 2;
+//		return res;
+//	}
+//	t_paquete* pack = enviarQueSos(1, path, strlen(path) + 1);
+//	memset(stbuf, 0, sizeof(struct stat));
+//	if(strcmp(pack->datos,"error")) {
+//		return -ENOENT;
+//	}else {
+//		osada_file* archivo = pack->datos;
+//		if (archivo->state == 2) {
+//			stbuf->st_mode = S_IFDIR | 0755;
+//			stbuf->st_nlink = 2;
+//		} 	else {
+//			stbuf->st_mode = S_IFREG | 0666;
+//			stbuf->st_nlink = 1;
+//			stbuf->st_size = archivo->file_size;
+//		}
+//	}
+//	return res;
+//
+	t_paquete* paquete = enviarQueSos(1,path, strlen(path) + 1);
 	int res = 0;
 	memset(stbuf, 0, sizeof(struct stat));
-
-	osada_file* archivo = obtenerArchivo(path);
 
 	if (strcmp(path, "/") == 0) {
 		stbuf->st_mode = S_IFDIR | 0755;
 		stbuf->st_nlink = 2;
-	} else if(archivo == NULL || archivo->state == 0) {
+	} else {
+		osada_file* archivo = obtenerArchivo(path);
+		if(archivo == NULL || archivo->state == 0) {
 		return -ENOENT;
 	} else if (archivo->state == 2) {
 		stbuf->st_mode = S_IFDIR | 0755;
@@ -127,12 +171,13 @@ static int ejemplo_getattr(char *path, struct stat *stbuf) {
 		stbuf->st_nlink = 1;
 		stbuf->st_size = archivo->file_size;
 	}
+	}
 	return res;
 }
 
 static int ejemplo_readdir(char *path, void *buf, fuse_fill_dir_t filler,
 		off_t offset, struct fuse_file_info *fi) {
-	enviarQueSos(2, path);
+	enviarQueSos(2, path, strlen(path) + 1);
 	int res = 0;
 	int i;
 	int indice = obtenerIndice(path);
@@ -148,19 +193,19 @@ static int ejemplo_readdir(char *path, void *buf, fuse_fill_dir_t filler,
 }
 
 static int ejemplo_mkdir(char* filename, mode_t modo){
-	enviarQueSos(3, filename);
+	enviarQueSos(3, filename, strlen(filename) + 1);
 	crear_archivo(filename,2);
 	return 0;
 }
 
 static int ejemplo_create (char* path, mode_t modo, struct fuse_file_info * info) {
-	enviarQueSos(4, path);
+	enviarQueSos(4, path, strlen(path) + 1);
 	crear_archivo(path,1);
 	return 0;
 }
 
 static int ejemplo_open(char * path, int info) {
-	enviarQueSos(5, path);
+	enviarQueSos(5, path, strlen(path) + 1);
 	osada_file* archivo = obtenerArchivo (path);
 	if(archivo == NULL || archivo->state == 0) {
 		return -ENOENT;
@@ -170,18 +215,18 @@ static int ejemplo_open(char * path, int info) {
 
 static int ejemplo_read(char *path, char *buf, size_t size, off_t offset,
 		struct fuse_file_info *fi) {
-	enviarQueSos(6, path);
+	enviarQueSos(6, path, strlen(path) + 1);
 	return leer_archivo(path,offset,size,buf);
 }
 
 
 static int ejemplo_write (char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
-	enviarQueSos(7, path);
+	enviarQueSos(7, path, strlen(path) + 1);
 	return escribir_archivo(path,offset,size,buf);
 }
 
 static int ejemplo_remove (char* path) {
-	enviarQueSos(8, path);
+	enviarQueSos(8, path, strlen(path) + 1);
 	osada_file* archivo = obtenerArchivo(path);
 	if (archivo == NULL) {
 		return -ENOENT;
@@ -199,12 +244,12 @@ static int ejemplo_remove (char* path) {
 }
 
 static int ejemplo_utimens (char * param1, const struct timespec tv[2] ){
-	enviarQueSos(9, param1);
+	enviarQueSos(9, param1, strlen(param1) + 1);
 	return 0;
 }
 
 static int ejemplo_truncate(char* path, off_t size) {
-	enviarQueSos(10, path);
+	enviarQueSos(10, path, strlen(path) + 1);
 	osada_file* archivo = obtenerArchivo(path);
 	if(archivo == NULL) {
 		return -ENOENT;
@@ -217,13 +262,13 @@ static int ejemplo_truncate(char* path, off_t size) {
 }
 
 static int ejemplo_rename(char *nombreViejo, char *nombreNuevo){
-	enviarQueSos(11, nombreViejo);
+	enviarQueSos(11, nombreViejo, strlen(nombreViejo) + 1);
 	renombrar_archivo(nombreViejo,nombreNuevo);
 	return 0;
 }
 
 static int ejemplo_link (char *archivoOrigen, char *archivoDestino){
-	enviarQueSos(12, archivoOrigen);
+	enviarQueSos(12, archivoOrigen, strlen(archivoOrigen) + 1);
 	copiar_archivo(archivoOrigen, archivoDestino);
 	return 0;
 }
