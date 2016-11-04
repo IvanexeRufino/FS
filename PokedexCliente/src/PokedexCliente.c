@@ -159,6 +159,22 @@ static int ejemplo_getattr(char *path, struct stat *stbuf) {
 
 static int ejemplo_readdir(char *path, void *buf, fuse_fill_dir_t filler,
 		off_t offset, struct fuse_file_info *fi) {
+//	memset(buf,0,sizeof(void*));
+//	int res=0;
+//	int i=0;
+//	t_paquete* paquete= enviarQueSos(2,path,strlen(path)+1);
+//
+//	filler(buf,".",NULL,0);
+//	filler(buf,"..",NULL,0);
+//
+//	char* buforecibido= paquete->datos;
+//	char** bufonuevo= string_split(buforecibido,"/");
+//	while(bufonuevo[i]!=NULL){
+//		filler(buf,bufonuevo[i],NULL,0);
+//		i++;
+//	}
+//	return res;
+
 	enviarQueSos(2, path, strlen(path) + 1);
 	int res = 0;
 	int i;
