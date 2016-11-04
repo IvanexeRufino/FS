@@ -1,5 +1,5 @@
-nombre=Red
-simbolo=@
+nombre=Test
+simbolo=?
 hojaDeViaje=[CiudadTest, PuebloPaleta,CiudadVerde,CiudadPlateada]
 obj[CiudadTest]=[C,S]
 obj[PuebloPaleta]=[P,B,G]

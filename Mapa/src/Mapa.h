@@ -56,6 +56,7 @@ typedef struct
 	int socket;
 	int x;
 	int y;
+	bool marcado;
 	int distanciaARecurso;
 	bool posicionPedida;
 	int threadId;
