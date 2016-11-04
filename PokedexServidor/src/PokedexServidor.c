@@ -206,23 +206,22 @@ void recibirQueSos(int newfd){
 				enviar = acoplador(paqueteSend);
 			}
 			break;
-//			case 2:
-//				readdir
-//			indice= obtenerIndice(paqueterecv->datos);
-//			t_list* listaDeHijos= listaDeHijosDelArchivo(indice);
-//			char* bufo= memoria(17*list_size(listaDeHijos));
-//			int i;
-//
-//			for(i=0;i<list_size(listaDeHijos);i++){
-//				osada_file* archivoHijo= list_get(listaDeHijos,i);
-//				strcat(bufo,archivoHijo->fname);
-//				strcat(bufo, "/");
-//			}
-//
-//			paqueteSend= empaquetar(2,bufo,strlen(bufo)+1);
-//			enviar= acoplador(paqueteSend);
-//
-//			break;
+			case 2:
+			indice= obtenerIndice(paqueterecv->datos);
+			t_list* listaDeHijos= listaDeHijosDelArchivo(indice);
+			char* bufo= memoria(17*list_size(listaDeHijos));
+			int i;
+
+			for(i=0;i<list_size(listaDeHijos);i++){
+				osada_file* archivoHijo= list_get(listaDeHijos,i);
+				strcat(bufo,archivoHijo->fname);
+				strcat(bufo, "/");
+			}
+
+			paqueteSend= empaquetar(2,bufo,strlen(bufo)+1);
+			enviar= acoplador(paqueteSend);
+
+			break;
 			case 3:
 				printf("los datos son %s \n",paqueterecv->datos);
 				crear_archivo(paqueterecv->datos,2);
