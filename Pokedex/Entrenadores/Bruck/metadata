@@ -1,6 +1,7 @@
 nombre=Bruck
 simbolo=/
-hojaDeViaje=[PuebloPaleta,CiudadPlateada,CiudadVerde]
+hojaDeViaje=[CiudadTest,PuebloPaleta,CiudadPlateada,CiudadVerde]
+obj[CiudadTest]=[C,S,B,S]
 obj[PuebloPaleta]=[G,P,B,G]
 obj[CiudadVerde]=[C,Z,C,Z]
 obj[CiudadPlateada]=[P,M,P,M,S,P]

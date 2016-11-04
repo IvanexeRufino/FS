@@ -258,7 +258,7 @@ int atraparPokemon(t_nivel *mapa,char objetivo)
 	char* recibo = string_new();
 	recv(mapa->socketMapa, recibo, sizeof(recibo),0);
 
-	if(!strcmp(buffer,"1"))
+	if(!strcmp(recibo,"1"))
 		{
 		return 1;
 		}
@@ -366,7 +366,12 @@ int main(int argc, char **argv)
 
 						if(infoEntrenador->posicionEnX == mapa->pokemonActualPosicionEnX && infoEntrenador->posicionEnY == mapa->pokemonActualPosicionEnY)
 							{
-							int atrapado = atraparPokemon(mapa,objetivos[k]);  								//Le envio en el header el ID 3
+							int atrapado = 0;
+							while(atrapado == 0){
+
+								atrapado = atraparPokemon(mapa,objetivos[k]);  								//Le envio en el header el ID 3
+								log_info(logger,"%d",atrapado);
+							}
 							if (atrapado == 1)
 								{
 								log_info(logger,"Felicitaciones, capturaste el pokemon nro %d \n",k);
