@@ -26,34 +26,40 @@
 #define PACKAGESIZE 1024
 
 #include "FileSysOSADA/osada.h"
-#define size_header  sizeof(uint16_t) * 2
 #define MAX_BUFFERSIZE 1024
+
+#define size_header  sizeof(uint16_t) * 2
 
 typedef struct {
 	uint16_t codigo;
 	uint16_t tamanio;
 	void* datos;
-  }__attribute__((__packed__)) t_paquete ;
+}__attribute__((__packed__)) t_paquete ;
 
-  void* memoria(int cantidad)
-  {
-  	void* puntero = NULL;
-  	if (cantidad !=0)
-  	{
-  		while (puntero == NULL)
-  		{
+void* memoria(int cantidad) {
+	void* puntero = NULL;
+	if (cantidad !=0) {
+		while (puntero == NULL) {
   			puntero= malloc(cantidad);
   		}
   	}
   	return puntero;
-  }
+}
 
-t_paquete* empaquetar(uint16_t codigo, void* datos, uint16_t size){
+t_paquete* empaquetar(int codigo, void* datos, int size){
 	t_paquete* paquete= malloc(sizeof(t_paquete));
 	paquete->codigo= codigo;
 	paquete->datos= datos;
 	paquete->tamanio= size;
 	return paquete;
+}
+
+void* acoplador1(t_paquete* paquete) /*transforma una estructura de tipo t_paquete en un stream*/
+{
+	void* paqueteSalida = memoria(size_header + strlen(paquete->datos) + 1);
+	memcpy(paqueteSalida, paquete, size_header);
+	memcpy(paqueteSalida + size_header, paquete->datos, strlen(paquete->datos) + 1);
+	return paqueteSalida;
 }
 
 void* acoplador(t_paquete* paquete) /*transforma una estructura de tipo t_paquete en un stream*/
@@ -64,12 +70,11 @@ void* acoplador(t_paquete* paquete) /*transforma una estructura de tipo t_paquet
 	return paqueteSalida;
 }
 
-t_paquete* desacoplador(char* buffer,int sizeBuffer)/*transforma multiples streams en estructuras de t_paquete y los agrega a una lista*/
+t_paquete* desacoplador(char* buffer)/*transforma multiples streams en estructuras de t_paquete y los agrega a una lista*/
   {
   	t_paquete* paquete;
   	paquete= memoria(sizeof(t_paquete));
-  	paquete->codigo= (uint16_t)*(buffer);
-  	paquete->tamanio= (uint16_t)* (buffer + sizeof(uint16_t));
+  	memcpy(paquete,buffer,size_header);
   	paquete->datos= memoria(paquete->tamanio);
   	memcpy(paquete->datos, buffer + size_header, paquete->tamanio);
   	return paquete;
@@ -104,10 +109,10 @@ int conectarConServer()
   	return nuevoSocket;
 };
 
-t_paquete* enviarQueSos(uint16_t nroop, void* path, uint16_t size){
+t_paquete* enviarQueSos(int nroop, void* path, int size){
 	int socket= conectarConServer();
-	t_paquete* paquete= empaquetar(nroop, path, size);
-	void* cosaparaenviar= acoplador(paquete);
+	t_paquete* paquete = empaquetar(nroop,path,size);
+	void* cosaparaenviar = acoplador(paquete);
 
 	if(send(socket,cosaparaenviar,paquete->tamanio + size_header ,0)<0)
 		{
@@ -125,7 +130,7 @@ t_paquete* enviarQueSos(uint16_t nroop, void* path, uint16_t size){
 		//log_error(logDelPersonaje, "Error al recibir paquete del cliente \n");
 		exit(1);
 	}
-	return paquete = desacoplador(buffer,sizebytes);
+	return paquete = desacoplador(buffer);
 }
 
 static int ejemplo_getattr(char *path, struct stat *stbuf) {
@@ -188,11 +193,18 @@ static int ejemplo_open(char * path, int info) {
 	return 0;
 }
 
+///////////////////////ESPACIO PUBLICITARIO //////////////////////////////////////////
+
 static int ejemplo_read(char *path, char *buf, size_t size, off_t offset,
 		struct fuse_file_info *fi) {
-	enviarQueSos(6, path, strlen(path) + 1);
-	return leer_archivo(path,offset,size,buf);
+	t_paquete* paqueteRead1 = empaquetar(offset, path, size);
+	void* streamRead1 = acoplador1(paqueteRead1);
+	t_paquete* paqueteRec = enviarQueSos(6, streamRead1, strlen(path) + 1 + size_header);
+	memcpy(buf,paqueteRec->datos,paqueteRec->tamanio);
+	return paqueteRec->tamanio;
 }
+
+///////////////////////FIN DEL ESPACIO PUBLICITARIO //////////////////////////////////
 
 
 static int ejemplo_write (char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {

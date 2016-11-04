@@ -10,47 +10,56 @@
 #include "FileSysOSADA/osada.h"
 
 #define PORT "9999"
-#define size_header  sizeof(uint16_t) * 2
 #define MAX_BUFFERSIZE 1024
+#define size_header  sizeof(uint16_t) * 2
 
 typedef struct {
 	uint16_t codigo;
 	uint16_t tamanio;
-	char* datos;
-}__attribute__((__packed__)) t_paquete;
+	void* datos;
+}__attribute__((__packed__)) t_paquete ;
 
 void* memoria(int cantidad) {
 	void* puntero = NULL;
-  	if (cantidad !=0) {
-  		while (puntero == NULL) {
+	if (cantidad !=0) {
+		while (puntero == NULL) {
   			puntero= malloc(cantidad);
   		}
   	}
   	return puntero;
 }
 
-t_paquete* empaquetar(uint16_t codigo, void* datos, uint16_t size){
-  	t_paquete* paquete= malloc(sizeof(t_paquete));
-  	paquete->codigo= codigo;
-  	paquete->datos= datos;
-  	paquete->tamanio= size;
-  	return paquete;
+t_paquete* empaquetar(int codigo, void* datos, int size){
+	t_paquete* paquete= malloc(sizeof(t_paquete));
+	paquete->codigo= codigo;
+	paquete->datos= datos;
+	paquete->tamanio= size;
+	return paquete;
 }
 
-char* acoplador(t_paquete* paquete) /*transforma una estructura de tipo t_paquete en un stream*/
+
+void* acoplador(t_paquete* paquete) /*transforma una estructura de tipo t_paquete en un stream*/
 {
-  	void* paqueteSalida = memoria(size_header + paquete->tamanio);
-  	memcpy(paqueteSalida, paquete, size_header);
-  	memcpy(paqueteSalida + size_header, paquete->datos, paquete->tamanio);
-  	return paqueteSalida;
+	void* paqueteSalida = memoria(size_header + paquete->tamanio);
+	memcpy(paqueteSalida, paquete, size_header);
+	memcpy(paqueteSalida + size_header, paquete->datos, paquete->tamanio);
+	return paqueteSalida;
 }
 
-t_paquete* desacoplador(char* buffer,int sizeBuffer)/*transforma multiples streams en estructuras de t_paquete y los agrega a una lista*/
+t_paquete* desacoplador1(char* buffer,int sizeBuffer) {
+    	t_paquete* paquete;
+    	paquete= memoria(sizeof(t_paquete));
+    	memcpy(paquete,buffer,size_header);
+    	paquete->datos = memoria(sizeBuffer);
+    	memcpy(paquete->datos, buffer + size_header, sizeBuffer);
+    	return paquete;
+}
+
+t_paquete* desacoplador(char* buffer)/*transforma multiples streams en estructuras de t_paquete y los agrega a una lista*/
   {
   	t_paquete* paquete;
   	paquete= memoria(sizeof(t_paquete));
-  	paquete->codigo= (uint16_t)*(buffer);
-  	paquete->tamanio= (uint16_t)* (buffer + sizeof(uint16_t));
+  	memcpy(paquete,buffer,size_header);
   	paquete->datos= memoria(paquete->tamanio);
   	memcpy(paquete->datos, buffer + size_header, paquete->tamanio);
   	return paquete;
@@ -164,6 +173,10 @@ int AceptarConexionCliente(int socketServer) {
 //}
 
 void recibirQueSos(int newfd){
+	osada_file* archivo;
+	void* enviar;
+	t_paquete* paqueteSend = malloc(sizeof(t_paquete));
+	t_paquete* paqueteRead;
 	char buffer[MAX_BUFFERSIZE];
 	int sizebytes;
 	if((sizebytes = recv(newfd, &buffer, MAX_BUFFERSIZE - 1,0)) <= 0)
@@ -173,16 +186,14 @@ void recibirQueSos(int newfd){
 		exit(1);
 	}
 	printf("El cliente me envía un paquete \n");
-	t_paquete* paqueterecv = desacoplador(buffer,sizebytes);
+	t_paquete* paqueterecv = desacoplador(buffer);
 
 	printf("el codigo es %d \n", paqueterecv->codigo);
-	printf("los datos son %s \n",paqueterecv->datos);
 	printf("el tamaño es %d \n", paqueterecv->tamanio);
-	osada_file* archivo;
-	void* enviar;
-	t_paquete* paqueteSend = malloc(sizeof(t_paquete));
+
 		switch(paqueterecv->codigo){
 		case 1:
+			printf("los datos son %s \n",paqueterecv->datos);
 			archivo = obtenerArchivo(paqueterecv->datos);
 			if(archivo == NULL || archivo->state == 0) {
 				paqueteSend = empaquetar(100,"error",6);
@@ -198,12 +209,15 @@ void recibirQueSos(int newfd){
 	//			readdir(paquete->datos);
 	//			break;
 			case 3:
+				printf("los datos son %s \n",paqueterecv->datos);
 				crear_archivo(paqueterecv->datos,2);
 				break;
 			case 4:
+				printf("los datos son %s \n",paqueterecv->datos);
 				crear_archivo(paqueterecv->datos,1);
 				break;
 			case 5:
+				printf("los datos son %s \n",paqueterecv->datos);
 				archivo = obtenerArchivo(paqueterecv->datos);
 				if(archivo == NULL || archivo->state == 0) {
 					paqueteSend = empaquetar(100,"error",6);
@@ -215,13 +229,21 @@ void recibirQueSos(int newfd){
 					enviar = acoplador(paqueteSend);
 				}
 				break;
-	//		case 6:
-	//			read_callback(paquete->datos);
-	//			break;
-	//		case 7:
-	//			write_callback(paquete->datos);
-	//			break;
+			case 6:
+				paqueteRead = desacoplador1(paqueterecv->datos,paqueterecv->tamanio);
+				printf("el offset es %d \n", paqueteRead->codigo);
+				printf("el size es %d \n", paqueteRead->tamanio);
+				archivo = obtenerArchivo(paqueteRead->datos);
+				char* buf = malloc(archivo->file_size);
+				int size = leer_archivo(paqueteRead->datos,0,archivo->file_size,buf);
+				paqueteSend = empaquetar(6,buf,size);
+				enviar = acoplador(paqueteSend);
+				break;
+//			case 7:
+//				write_callback(paquete->datos);
+//				break;
 			case 8:
+				printf("los datos son %s \n",paqueterecv->datos);
 				archivo = obtenerArchivo(paqueterecv->datos);
 				if(archivo->state == 1) {
 					borrar_archivo(paqueterecv->datos);
