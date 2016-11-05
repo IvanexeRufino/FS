@@ -37,88 +37,70 @@ sem_t turnoMain;
 
 int threadAEjecutar;
 
-t_pokemon* pokemonMasFuerteDe(t_registroPersonaje *personaje)
-{
+
+void sumarRecurso(t_list* items, char id) {
+    ITEM_NIVEL* item = _search_item_by_id(items, id);
+
+    if (item != NULL) {
+        item->quantity++;
+    } else {
+        printf("WARN: Item %c no existente\n", id);
+    }
+}
+t_pokemon* pokemonMasFuerteDe(t_registroPersonaje *personaje){
 	t_pokemon* masFuerte = malloc(sizeof(t_pokemon));
-	//t_pokemon* masFuerte;
-	t_pokemon* actual = malloc(sizeof(t_pokemon));
-	//t_pokemon* actual;
-	//masFuerte = NULL;
-	masFuerte->level=0;
+	//t_pokemon* actual = malloc(sizeof(t_pokemon));
+	int nivel;
 	char ruta[300];
-	char aux[300];
 	strcpy(ruta,rutaArgv);
 	strcat(ruta,"/Entrenadores/");
 	strcat(ruta,personaje->nombre);
 	strcat(ruta,"/DirdeBill/");
-	strcpy(aux,ruta);
+	masFuerte->level = 0;
 	DIR *dp;
-	struct dirent *ep;
-	dp = opendir (ruta);
-	if (dp != NULL)
-	{
-
-		ep = readdir (dp);
-		while (ep)
-		{
-			strcpy(aux,ruta);
-			if(ep->d_name[0]!='.' && ep->d_name[0]!='m')
-			{
-				puts(ep->d_name);
-				actual = leerDatosBill(ep->d_name , aux);
-				puts(actual->species);
-				printf("nivel del actual %d \n",actual->level);
-				printf("nivel del mas Fuerte %d \n",masFuerte->level);
-//
-//				if(masFuerte == NULL || actual->level > masFuerte->level)
-//				{
-//					masFuerte = actual;
-//				}
-
-				if(actual->level > masFuerte->level)
+			struct dirent *ep;
+			dp = opendir (ruta);
+				if (dp != NULL)
 				{
-					masFuerte = actual;
+					ep = readdir (dp);
+				while (ep){
+					  if(ep->d_name[0]!='.' && ep->d_name[0]!='m'){
+						  nivel = leerDatosBill(ep->d_name , ruta);
+						  int i = strlen(ep->d_name) -7; //Si tengo Charmander002.dat, le saco el 002.dat que son 7 caracteres justos y me queda el nombre Charmander en limpio
+						  ep->d_name[i] ='\0';
+						  log_info(logger,"El pokemon %s de %s Tiene un nivel %d \n",ep->d_name ,personaje->nombre ,nivel);
+						  if(nivel > masFuerte->level)
+						  {
+							  masFuerte->level = nivel ;
+							  strcpy(masFuerte->species , ep->d_name);
+						  }
+
+					  }
+					  ep = readdir (dp);
 				}
-			}
-			ep = readdir (dp);
-		}
-		(void) closedir (dp);
-	}
-	else perror ("Couldn't open the directory");
-	log_info(logger,"El pokemon mas fuerte de %s es : %s %d",personaje->nombre,masFuerte->species,masFuerte->level);
+					  (void) closedir (dp);
+
+				}
+
+			else
+				perror ("Couldn't open the directory");
+		log_info(logger,"El pokemon mas fuerte de %s es : %s %d",personaje->nombre,masFuerte->species,masFuerte->level);
 	return masFuerte;
 }
-
-t_pokemon* leerDatosBill(char* nombre , char* ruta)
-{
-	char* pokemonNombre = string_new();
-	puts("hola1");
-	string_append(&pokemonNombre,nombre);
-	//strcpy(pokemonNombre,nombre);
-	int i = strlen(pokemonNombre) -7; //Si tengo Charmander002.dat, le saco el 002.dat que son 7 caracteres justos y me queda el nombre Charmander en limpio
-	puts("hola2");
-	pokemonNombre[i] ='\0';
-	puts("hola4");
-	t_pokemon* actual = malloc(sizeof(t_pokemon));
-	//t_pokemon* actual;
-	puts("hola3");
-	strcat(ruta,nombre);
-	puts(ruta);
-	t_config* config = config_create(ruta);
-	if (config_has_property(config, "Nivel"))
-	{
-		actual->level = config_get_int_value(config, "Nivel");
-		//strcpy(actual->species,pokemonNombre);
-		string_append(&actual->species,pokemonNombre);
+int leerDatosBill(char* nombre , char* ruta){
+	char aux[300];
+	strcpy (aux,ruta);
+	strcat(aux,nombre);
+	t_config* config = config_create(aux);
+	if (config_has_property(config, "Nivel")) {
+		int nivel = config_get_int_value(config, "Nivel");
+	//	printf("%d",nivel);
+		return nivel;
 	}
 	else
-	{
-		actual->level =0;
-	}
-
-	puts(actual->species);
-	return actual;
+			return 0;
 }
+
 
 void recuperarPokemonDeEntrenador(t_registroPersonaje *personaje)
 {
@@ -532,7 +514,7 @@ void envioQueSeAtrapoPokemon (t_registroPersonaje *personaje, t_registroPokenest
 		send(personaje->socket,buffer, sizeof(buffer), 0);
 		personaje->distanciaARecurso = -1;
 		restarRecurso(items, pokenest->identificador);
-		pokemonMasFuerteDe(personaje);////////////////////////////////////////////ACA!
+	//	pokemonMasFuerteDe(personaje);////////////////////////////////////////////ACA! Solo esta para probar que capture
 	} else {
 		personaje->estado = 'B';
 		char* buffer = string_new();
