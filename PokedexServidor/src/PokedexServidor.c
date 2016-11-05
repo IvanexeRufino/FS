@@ -277,12 +277,21 @@ void recibirQueSos(int newfd){
 				break;
 			case 9:
 				break;
-	//		case 10:
-	//			truncate_callback(paquete->datos);
-	//			break;
-	//		case 11:
-	//			rename_callback(paquete->datos);
-	//			break;
+//			case 10:
+//				paqueteRead = desacoplador1(paqueterecv->datos,paqueterecv->tamanio);
+//				osada_file* truncado= truncar_archivo(paqueteRead->datos,paqueterecv->tamanio);
+//				char* buff = malloc(paqueteRead->tamanio);
+//				strcpy(buff,truncado);
+//				paqueteSend = empaquetar(6,buf,truncado->file_size);
+//				enviar = acoplador(paqueteSend);
+//				break;
+			case 11:
+				printf("los datos son %s \n",paqueterecv->datos);
+				char* buforecibido= malloc(paqueterecv->tamanio);
+				buforecibido= paqueterecv->datos;
+				char** bufonuevo= string_split(buforecibido,"-");
+				renombrar_archivo(bufonuevo[0],bufonuevo[1]);
+				break;
 	//		case 12:
 	//			link_callback(paquete->datos);
 	//			break;

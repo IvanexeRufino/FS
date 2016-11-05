@@ -245,8 +245,11 @@ static int ejemplo_truncate(char* path, off_t size) {
 }
 
 static int ejemplo_rename(char *nombreViejo, char *nombreNuevo){
-	enviarQueSos(11, nombreViejo, strlen(nombreViejo) + 1);
-	renombrar_archivo(nombreViejo,nombreNuevo);
+	char* bufo=malloc(strlen(nombreViejo)+strlen(nombreNuevo));
+	strcpy(bufo,nombreViejo);
+	strcat(bufo,"-");
+	strcat(bufo,nombreNuevo);
+	enviarQueSos(11, bufo, strlen(bufo) + 1);
 	return 0;
 }
 
