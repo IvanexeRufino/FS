@@ -20,10 +20,10 @@ pthread_mutex_t mutex_siguienteQuantum = PTHREAD_MUTEX_INITIALIZER;
 t_dictionary *available;
 t_dictionary *request;
 t_dictionary *alloc;
+
 //detección de deadlock
 int systemInDeadlock = false;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-
 
 t_registroPersonaje *hiloEscucha;
 mapa_datos* infoMapa;
@@ -37,16 +37,14 @@ sem_t turnoMain;
 
 int threadAEjecutar;
 
-
-void liberar_recurso(char*, char*, int);
-char *liberar_recursos(char*);
-int asignar_recurso(char*, char*, int);
-t_pokemon* leerDatosBill(char* , char*);
-
-t_pokemon* pokemonMasFuerteDe(t_registroPersonaje *personaje){
+t_pokemon* pokemonMasFuerteDe(t_registroPersonaje *personaje)
+{
 	t_pokemon* masFuerte = malloc(sizeof(t_pokemon));
+	//t_pokemon* masFuerte;
 	t_pokemon* actual = malloc(sizeof(t_pokemon));
-	masFuerte = NULL;
+	//t_pokemon* actual;
+	//masFuerte = NULL;
+	masFuerte->level=0;
 	char ruta[300];
 	char aux[300];
 	strcpy(ruta,rutaArgv);
@@ -55,52 +53,69 @@ t_pokemon* pokemonMasFuerteDe(t_registroPersonaje *personaje){
 	strcat(ruta,"/DirdeBill/");
 	strcpy(aux,ruta);
 	DIR *dp;
-			struct dirent *ep;
-			dp = opendir (ruta);
-				if (dp != NULL)
+	struct dirent *ep;
+	dp = opendir (ruta);
+	if (dp != NULL)
+	{
+
+		ep = readdir (dp);
+		while (ep)
+		{
+			strcpy(aux,ruta);
+			if(ep->d_name[0]!='.' && ep->d_name[0]!='m')
+			{
+				puts(ep->d_name);
+				actual = leerDatosBill(ep->d_name , aux);
+				puts(actual->species);
+				printf("nivel del actual %d \n",actual->level);
+				printf("nivel del mas Fuerte %d \n",masFuerte->level);
+//
+//				if(masFuerte == NULL || actual->level > masFuerte->level)
+//				{
+//					masFuerte = actual;
+//				}
+
+				if(actual->level > masFuerte->level)
 				{
-					ep = readdir (dp);
-				while (ep){
-
-					  if(ep->d_name[0]!='.' && ep->d_name[0]!='m'){
-						puts(ep->d_name);
-						  actual = leerDatosBill(ep->d_name , ruta);
-						  puts(actual->species);
-						  if(masFuerte == NULL || actual->level > masFuerte->level)
-						  {
-
-							  masFuerte = actual;
-						  }
-
-					  }
-					  ep = readdir (dp);
+					masFuerte = actual;
 				}
-					  (void) closedir (dp);
-
-				}
-
-			else
-				perror ("Couldn't open the directory");
+			}
+			ep = readdir (dp);
+		}
+		(void) closedir (dp);
+	}
+	else perror ("Couldn't open the directory");
 	log_info(logger,"El pokemon mas fuerte de %s es : %s %d",personaje->nombre,masFuerte->species,masFuerte->level);
 	return masFuerte;
 }
-t_pokemon* leerDatosBill(char* nombre , char* ruta){
+
+t_pokemon* leerDatosBill(char* nombre , char* ruta)
+{
 	char* pokemonNombre = string_new();
 	puts("hola1");
-	strcpy(pokemonNombre,nombre);
-	int i = strlen(pokemonNombre) -7;
+	string_append(&pokemonNombre,nombre);
+	//strcpy(pokemonNombre,nombre);
+	int i = strlen(pokemonNombre) -7; //Si tengo Charmander002.dat, le saco el 002.dat que son 7 caracteres justos y me queda el nombre Charmander en limpio
 	puts("hola2");
-	pokemonNombre[i] = '\0';
+	pokemonNombre[i] ='\0';
 	puts("hola4");
 	t_pokemon* actual = malloc(sizeof(t_pokemon));
+	//t_pokemon* actual;
 	puts("hola3");
 	strcat(ruta,nombre);
 	puts(ruta);
 	t_config* config = config_create(ruta);
-	if (config_has_property(config, "Nivel")) {
+	if (config_has_property(config, "Nivel"))
+	{
 		actual->level = config_get_int_value(config, "Nivel");
-		strcpy(actual->species,pokemonNombre);
+		//strcpy(actual->species,pokemonNombre);
+		string_append(&actual->species,pokemonNombre);
 	}
+	else
+	{
+		actual->level =0;
+	}
+
 	puts(actual->species);
 	return actual;
 }
@@ -128,39 +143,38 @@ void recuperarPokemonDeEntrenador(t_registroPersonaje *personaje)
 	struct dirent *ep;
 	dp = opendir (origen);
 	if (dp != NULL)
-	  {
+	{
 		ep = readdir (dp);
-			while (ep)
+		while (ep)
+		{
+			if(ep->d_name[0]!='.' && ep->d_name[0]!='m' )
 			{
-			    if(ep->d_name[0]!='.' && ep->d_name[0]!='m' ){
-			    	strcpy(pokemon,ep->d_name);
-			    	int i = strlen(ep->d_name) -7;
-			    	ep->d_name[i] = '\0';
-//			    	puts(ep->d_name);
-			    	strcpy(comando,"cp -r ");
-			    	strcat(comando,  origen);
-			    	strcat(comando,  pokemon);
-			    	strcat(comando,  " ");
-			    	strcat(comando, destino);
-			    	strcat(comando, ep->d_name);
-			    	strcat(comando, "/");
-//			    	puts(comando);
-			    	system(comando);
-			    	strcpy(comando, "rm ");
-			    	strcat(comando, origen);
-			    	strcat(comando, pokemon);
-//			    	puts(comando);
-			    	system(comando);
-			    }
-			    ep = readdir (dp);
+				strcpy(pokemon,ep->d_name);
+				int i = strlen(ep->d_name) -7;
+				ep->d_name[i] = '\0';
+	//			puts(ep->d_name);
+				strcpy(comando,"cp -r ");
+				strcat(comando,  origen);
+				strcat(comando,  pokemon);
+				strcat(comando,  " ");
+				strcat(comando, destino);
+				strcat(comando, ep->d_name);
+				strcat(comando, "/");
+	//			puts(comando);
+				system(comando);
+				strcpy(comando, "rm ");
+				strcat(comando, origen);
+				strcat(comando, pokemon);
+	//			puts(comando);
+				system(comando);
 			}
+			ep = readdir (dp);
+		}
 	(void) closedir (dp);
-	  }
-		else
-			perror ("Couldn't open the directory");
+	}
+	else	perror ("Couldn't open the directory");
 	log_info(logger,"Pokemons Recuperados");
 }
-
 
 void copiarPokemonAEntrenador(t_registroPersonaje *personaje, t_registroPokenest* pokenest)
 {
@@ -173,7 +187,6 @@ void copiarPokemonAEntrenador(t_registroPersonaje *personaje, t_registroPokenest
 	strcat(origen, infoMapa->nombre);
 	strcat(origen, "/PokeNests/");
 	strcat(origen, pokenest->nombre);
-
 //	puts(personaje->nombre);
 	strcpy(destino,rutaArgv);
 	strcat(destino,"/Entrenadores/");
@@ -184,34 +197,33 @@ void copiarPokemonAEntrenador(t_registroPersonaje *personaje, t_registroPokenest
 	struct dirent *ep;
 	dp = opendir (origen);
 	if (dp != NULL)
-	  {
+	{
 		ep = readdir (dp);
-			while (ep)
+		while (ep)
+		{
+			if(ep->d_name[0]!='.' && ep->d_name[0]!='m' )
 			{
-			    if(ep->d_name[0]!='.' && ep->d_name[0]!='m' ){
-//   puts(ep->d_name);
-			    	break;
-			    }
-			    ep = readdir (dp);
+//   		puts(ep->d_name);
+			break;
 			}
+			ep = readdir (dp);
+		}
 	strcat(origen,"/");
 	strcat(origen, ep->d_name);
 	(void) closedir (dp);
-	  }
-		else
-			perror ("Couldn't open the directory");
+	}
+	else	perror ("Couldn't open the directory");
 
-		strcpy(comando, "cp -r ");
-		strcat(comando,origen);
-		strcat(comando, " ");
-		strcat(comando, destino);
-//		puts(comando);
-		system(comando);
-
-		strcpy(comando, "rm ");
-		strcat(comando, origen);
-//		puts(comando);
-		system(comando);
+	strcpy(comando, "cp -r ");
+	strcat(comando,origen);
+	strcat(comando, " ");
+	strcat(comando, destino);
+//	puts(comando);
+	system(comando);
+	strcpy(comando, "rm ");
+	strcat(comando, origen);
+//	puts(comando);
+	system(comando);
 }
 
 int leerConfiguracionMapa()
@@ -327,7 +339,6 @@ int reLeerConfiguracionMapa()
 void leerConfiguracionPokenest(char mapa[20], char pokemon[256])
 {
 	int cantidadPokemon = 0;
-
 	char pathpokenestMetadata[256] ;
 	strcpy(pathpokenestMetadata, rutaArgv);
 	strcat(pathpokenestMetadata, "/Mapas/");
@@ -343,27 +354,26 @@ void leerConfiguracionPokenest(char mapa[20], char pokemon[256])
 	t_registroPokenest* pokenest = malloc(sizeof(t_registroPokenest));
 
 	//puts(path);
-		DIR *dp;
-		  struct dirent *ep;
-		  dp = opendir (path);
-
-		  if (dp != NULL)
-		  {
-			  ep = readdir (dp);
-		    while (ep){
-		    	 if(ep->d_name[0]!='.' && ep->d_name[0]!='m' ){
-		    		 cantidadPokemon ++;
-//				      puts (ep->d_name);
-		    	 }
-		    	 ep = readdir (dp);
+	DIR *dp;
+	struct dirent *ep;
+	dp = opendir (path);
+	if (dp != NULL)
+	{
+		ep = readdir (dp);
+		while (ep)
+		{
+			if(ep->d_name[0]!='.' && ep->d_name[0]!='m' )
+			{
+				cantidadPokemon ++;
+//				puts (ep->d_name);
 		    }
+		    ep = readdir (dp);
+		}
+		(void) closedir (dp);
+	}
+	else	perror ("Couldn't open the directory");
 
-		    (void) closedir (dp);
-		  }
-		  else
-		    perror ("Couldn't open the directory");
-
-		  pokenest->cantidadDisp = cantidadPokemon;
+	pokenest->cantidadDisp = cantidadPokemon;
 
 	if (config_has_property(configNest, "Tipo") && config_has_property(configNest, "Identificador")){
 		strcpy(pokenest->tipo,(config_get_string_value(configNest, "Tipo")));
@@ -397,12 +407,9 @@ void leerConfiguracionPokenest(char mapa[20], char pokemon[256])
 			exit(1);
 		}
 
-
 	CrearCaja(items, config_get_string_value(configNest, "Identificador")[0] , pokenest->x , pokenest->y ,pokenest->cantidadDisp);
 	list_add(listaPokenest,pokenest);
-
 	}
-
 }
 
 char recibirBienvenidaEntrenador(int newfd,t_registroPersonaje *nuevoPersonaje)
@@ -440,18 +447,18 @@ void cargoDatosPokemonActual(char pokemonQueRecibo,t_registroPokenest* pokemonAc
 	int j;
 	char pok= pokemonQueRecibo;
 	for(j = 0 ; j< list_size(listaPokenest); j++)
+	{
+		t_registroPokenest* pokenest = list_get(listaPokenest,j);
+		if (pokenest->identificador == pok)
 		{
-			t_registroPokenest* pokenest = list_get(listaPokenest,j);
-			if (pokenest->identificador == pok)
-				{
-					strcpy(pokemonActual->nombre, pokenest->nombre);
-					pokemonActual->identificador=pokenest->identificador;
-					strcpy(pokemonActual->tipo,pokenest->tipo);
-					pokemonActual->x=pokenest->x;
-					pokemonActual->y=pokenest->y;
-					pokemonActual->cantidadDisp=pokenest->cantidadDisp;
-				}
+			strcpy(pokemonActual->nombre, pokenest->nombre);
+			pokemonActual->identificador=pokenest->identificador;
+			strcpy(pokemonActual->tipo,pokenest->tipo);
+			pokemonActual->x=pokenest->x;
+			pokemonActual->y=pokenest->y;
+			pokemonActual->cantidadDisp=pokenest->cantidadDisp;
 		}
+	}
 }
 
 int distanciaAProxObjetivo(t_registroPersonaje* pj, char obj)
@@ -510,12 +517,14 @@ void envioQueSeAtrapoPokemon (t_registroPersonaje *personaje, t_registroPokenest
 {
 	log_info(logger, "El personaje %s solicitó el recurso %c", personaje->nombre, pokemonActual->identificador);
 	printf("%d",personaje->pokemonActual->cantidadDisp);
-	int _has_symbol(t_registroPokenest *r) {
+	int _has_symbol(t_registroPokenest *r)
+	{
 		return (r->identificador == personaje->proximoObjetivo);
 	}
 	t_registroPokenest *pokenest = list_find(listaPokenest, (void*) _has_symbol);
 	int cant = 1;
-	if(asignar_recurso(pokenest->nombre, personaje->nombre, cant) == true) {
+	if(asignar_recurso(pokenest->nombre, personaje->nombre, cant) == true)
+	{
 		log_info(logger, "/*--------------------El Personaje: %c , atrapo al pokemon %c --------------------*/ \n",personaje->identificador, personaje->pokemonActual->identificador);
 		copiarPokemonAEntrenador(personaje,personaje->pokemonActual);
 		char* buffer = string_new();
@@ -533,10 +542,8 @@ void envioQueSeAtrapoPokemon (t_registroPersonaje *personaje, t_registroPokenest
 	}
 }
 
-
 void recibirQueHacer(t_registroPersonaje *nuevoPersonaje)
 {
-
 	char* buffer = string_new();
 	recv(nuevoPersonaje->socket,buffer,sizeof(buffer),0);
 	char bufferConAccion;        //Vendria a ser el header
@@ -562,7 +569,6 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje)
 		nuevoPersonaje->distanciaARecurso = 1;
 		break;
 
-
 	case ('2'):
 
 		mover(nuevoPersonaje,nuevoPersonaje->pokemonActual);
@@ -587,11 +593,8 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje)
 		//sem_wait(&nuevoPersonaje->finTurno);
 		//pthread_exit(0);
 		break;
-
 	}
-
 }
-
 
 void ejecutar_Entrenador(parametros_entrenador* param)
 {
@@ -626,99 +629,78 @@ void ejecutar_Entrenador(parametros_entrenador* param)
 
 void planificarNuevo()
 {
-	int i,j;
-	i=0;
+	int i=0;
+	int j;
 
 	while(1)
-
-
 	{
-//		int cantidadEntrenadores = entrenadores_listos->elements_count;
-//		for(i=0;i<cantidadEntrenadores;i++)
-//		{
-//
-//			cantidadEntrenadores = entrenadores_listos->elements_count;
-			sem_wait(&colaDeListos);
-			t_registroPersonaje* entrenador = malloc(sizeof(t_registroPersonaje));
-
-//			sem_init(&(entrenador->ejecutar1),1,0);
-//			sem_init(&(entrenador->ejecutar2),1,0);
-			j=0;
-			if(!strcmp(infoMapa->algoritmo,"RR"))
+		sem_wait(&colaDeListos);
+		t_registroPersonaje* entrenador = malloc(sizeof(t_registroPersonaje));
+		j=0;
+		if(!strcmp(infoMapa->algoritmo,"RR"))
+		{
+			pthread_mutex_lock(&mutex_EntrenadoresActivos);
+			int e;
+			for(e=0;list_size(entrenadores_listos)>e;e++)
 			{
-					pthread_mutex_lock(&mutex_EntrenadoresActivos);
-					int e;
-					for(e=0;list_size(entrenadores_listos)>e;e++){
-						entrenador = list_remove(entrenadores_listos,0);
-						if(entrenador->estado == 'B')
-							list_add(entrenadores_listos,entrenador);
-						else break;
-					}
-					pthread_mutex_unlock(&mutex_EntrenadoresActivos);
-				for(i=0;i!=infoMapa->quantum && j == 0 && entrenador->estado == 'L' ;i++)
+			entrenador = list_remove(entrenadores_listos,0);
+			if(entrenador->estado == 'B') list_add(entrenadores_listos,entrenador);
+			else break;
+			}
+			pthread_mutex_unlock(&mutex_EntrenadoresActivos);
+			for(i=0;i!=infoMapa->quantum && j == 0 && entrenador->estado == 'L' ;i++)
+			{
+				recibirQueHacer(entrenador);
+				if(entrenador->estado == 'T') j = 1;
+			}
+		}
+			else  //NOT RR
+		{
+			int k=0;
+			while(k<list_size(entrenadores_listos))
+			{
+				pthread_mutex_lock(&mutex_EntrenadoresActivos);
+				entrenador =  list_get(entrenadores_listos,k);
+				if(entrenador->distanciaARecurso == -1)
 				{
-						recibirQueHacer(entrenador);
-						if(entrenador->estado == 'T')
-							j = 1;
+					entrenador =  list_remove(entrenadores_listos,k);
+					recibirQueHacer(entrenador);
+					list_add(entrenadores_listos,entrenador);
+				}
+				pthread_mutex_unlock(&mutex_EntrenadoresActivos);
+				k++;
+			}
+
+			int pos;
+			pthread_mutex_lock(&mutex_EntrenadoresActivos);
+			pos = calcularMasCercanoASuObjetivo();
+			entrenador =  list_remove(entrenadores_listos,pos);
+			log_info(logger,"El entrenador mas cercano es %c" , entrenador->identificador);
+			pthread_mutex_unlock(&mutex_EntrenadoresActivos);
+			char objetivoActual = entrenador->proximoObjetivo;
+			while(objetivoActual == entrenador->proximoObjetivo && entrenador->estado == 'L')
+			{
+				if(entrenador->estado != 'T')
+				{
+					recibirQueHacer(entrenador);
 				}
 			}
-			else  //NOT RR
-					{
-						int k=0;
-						while(k<list_size(entrenadores_listos)){
-							pthread_mutex_lock(&mutex_EntrenadoresActivos);
-							entrenador =  list_get(entrenadores_listos,k);
-							if(entrenador->distanciaARecurso == -1){
-								entrenador =  list_remove(entrenadores_listos,k);
-								recibirQueHacer(entrenador);
-								list_add(entrenadores_listos,entrenador);
-							}
-							pthread_mutex_unlock(&mutex_EntrenadoresActivos);
-							k++;
-						}
-
-						int pos;
-						pthread_mutex_lock(&mutex_EntrenadoresActivos);
-						pos = calcularMasCercanoASuObjetivo();
-						entrenador =  list_remove(entrenadores_listos,pos);
-						log_info(logger,"El entrenador mas cercano es %c" , entrenador->identificador);
-						pthread_mutex_unlock(&mutex_EntrenadoresActivos);
-						char objetivoActual = entrenador->proximoObjetivo;
-						while(objetivoActual == entrenador->proximoObjetivo && entrenador->estado == 'L')
-						{
-							if(entrenador->estado != 'T')
-							{
-								recibirQueHacer(entrenador);
-							}
-						}
-					}
-				if(entrenador->estado!='T')
-					{
-						pthread_mutex_lock(&mutex_EntrenadoresActivos);
-						list_add(entrenadores_listos,entrenador);
-						pthread_mutex_unlock(&mutex_EntrenadoresActivos);
-						if(entrenador->estado == 'L')
-							sem_post(&colaDeListos);  //Agrego este if para que el mapa no se quede loopeando si estan bloqueados los entrenadores
-					}															//el sem_post deberia llamarse cuando el deadlock lo diga;
-	}
+		}
+		if(entrenador->estado!='T')
+		{
+			pthread_mutex_lock(&mutex_EntrenadoresActivos);
+			list_add(entrenadores_listos,entrenador);
+			pthread_mutex_unlock(&mutex_EntrenadoresActivos);
+			if(entrenador->estado == 'L') sem_post(&colaDeListos);  //Agrego este if para que el mapa no se quede loopeando si estan bloqueados los entrenadores
+		}															//el sem_post deberia llamarse cuando el deadlock lo diga;
+	}	//Aca termina y  vuelve al while(1)
 }
-
 
 void releerconfig(int aSignal)
 {
 	 reLeerConfiguracionMapa();
 	 signal(SIGUSR2,releerconfig);
 	 return ;
-}
-
-void sumarRecurso(t_list* items, char id) {
-    ITEM_NIVEL* item = _search_item_by_id(items, id);
-
-    if (item != NULL) {
-        item->quantity = item->quantity > 0 ? item->quantity + 1 : 0;
-    } else {
-        printf("WARN: Item %c no existente\n", id);
-    }
 }
 
 char *liberar_recursos(char *nombre_personaje){
@@ -779,7 +761,6 @@ void liberar_recurso(char *recurso, char *personaje, int cant) {
 	dictionary_remove(dictionary_get(request, recurso), personaje);
 
 }
-
 
 int asignar_recurso(char *pokenest, char *personaje, int cant) {
 	int asignados = 0, availables = 0, requested = 0, rc;
@@ -949,12 +930,12 @@ int main(int argc, char **argv)
 {
 	filas = 30;
 	columnas =30;
-	items = list_create();									//Para usar despues en las cajas
+	items = list_create();	//Para usar despues en las cajas
 	sem_init(&(pasoDeEntrenador),1,0);
 	/* Inicializacion y registro inicial de ejecucion */
 	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
 	log_info(logger, PROGRAM_DESCRIPTION);
-	  infoMapa = malloc(sizeof(mapa_datos));
+	infoMapa = malloc(sizeof(mapa_datos));
 	if(argc == 1)
 	{
 		log_info(logger, "Cantidad de parametros incorrectos, Aplicando por defecto");
@@ -990,23 +971,21 @@ int main(int argc, char **argv)
     request = dictionary_create();
     alloc = dictionary_create();
 
-	  if (leerConfiguracionMapa () == 1)
-		  		  log_info(logger, "Archivo de configuracion leido correctamente");
-			  else
-				  log_error(logger,"Error la leer archivo de configuracion");
+	if (leerConfiguracionMapa () == 1) log_info(logger, "Archivo de configuracion leido correctamente");
+	else log_error(logger,"Error la leer archivo de configuracion");
 
-	  //pokenests
-	  		void _list_elements(t_registroPokenest *r) {
-	  			dictionary_put(available, r->nombre, (void*)r->cantidadDisp);
-	  			dictionary_put(request, r->nombre, dictionary_create());
-	  			dictionary_put(alloc, r->nombre, dictionary_create());
-	  		}
+	//pokenests
+	void _list_elements(t_registroPokenest *r)
+	{
+		dictionary_put(available, r->nombre, (void*)r->cantidadDisp);
+	  	dictionary_put(request, r->nombre, dictionary_create());
+	  	dictionary_put(alloc, r->nombre, dictionary_create());
+	}
+	list_iterate(listaPokenest, (void*) _list_elements);
 
-	  		list_iterate(listaPokenest, (void*) _list_elements);
-
-	  //nivel_gui_inicializar();
-		//nivel_gui_get_area_nivel(&filas, &columnas);
-		//nivel_gui_dibujar(items,infoMapa->nombre);
+	//nivel_gui_inicializar();
+	//nivel_gui_get_area_nivel(&filas, &columnas);
+	//nivel_gui_dibujar(items,infoMapa->nombre);
 
 // ------------------- Descomentar para probar si cargaron bien las nests -------------------------//
 //	  t_registroPokenest* pokenestPrueba = malloc(sizeof(t_registroPokenest));
@@ -1027,50 +1006,39 @@ int main(int argc, char **argv)
 //	  list_add(entrenadores_listos, hiloEscucha);
 //	  sem_post(&colaDeListos);
 
-
-
 	  int socketServidor;
 	  int newfd;
-	      socketServidor = crearSocketServidor(infoMapa->puertoEscucha);
-	      IniciarSocketServidor(atoi(infoMapa->puertoEscucha));
-	      pthread_t hiloPlanificador;
+	  socketServidor = crearSocketServidor(infoMapa->puertoEscucha);
+	  IniciarSocketServidor(atoi(infoMapa->puertoEscucha));
+	  pthread_t hiloPlanificador;
 
-	      // Creo hilo para chequeo de Interbloqueo
-	     	pthread_t hiloDeadlock;
-	     	int milis = infoMapa->tiempoChequeoDeadlock;
-     		pthread_create(&hiloDeadlock, NULL, detectar_interbloqueo, (void *) milis);
+	  // Creo hilo para chequeo de Interbloqueo
+	  pthread_t hiloDeadlock;
+	  int milis = infoMapa->tiempoChequeoDeadlock;
+	  pthread_create(&hiloDeadlock, NULL, detectar_interbloqueo, (void *) milis);
+	  pthread_create (&hiloPlanificador,NULL,(void*)planificarNuevo,NULL);
 
+	  //Hacemos un while 1 porque siempre queremos recibir conexiones entrantes
+	  //Y ademas creamos un hilo para que mientras que escuche conexiones nuevas, me delegue lo que llego para trabajar
+	  while(1)
+	  {
+		  //sem_wait(&hiloEscucha->comienzoTurno);
 
-	      pthread_create (&hiloPlanificador,NULL,(void*)planificarNuevo,NULL);
+		  newfd = AceptarConexionCliente(socketServidor);
 
-	     //Hacemos un while 1 porque siempre queremos recibir conexiones entrantes
-	     //Y ademas creamos un hilo para que mientras que escuche conexiones nuevas, me delegue lo que llego para trabajar
+		  //No quiero quedarme esperando a que termine de hacer lo del hilo, por eso no pongo el join
+		  //Quiero seguir escuchando conexiones entrantes,por eso el hilo finaliza por si solo cuando termina
+		  pthread_t idHilo;
 
-	     while(1)
-	     {
-	    	 //sem_wait(&hiloEscucha->comienzoTurno);
+		  parametros_entrenador* param = malloc(sizeof(parametros_entrenador));
+		  param->idHilo = idHilo;
+		  param->newfd = newfd;
+		  pthread_create (&idHilo,NULL,(void*)ejecutar_Entrenador,param);
+		  //sem_post(&hiloEscucha->finTurno);
+		  //pthread_join(&idHilo,0);
+	  }
 
-	    	 newfd = AceptarConexionCliente(socketServidor);
-
-
-
-
-	    	 //No quiero quedarme esperando a que termine de hacer lo del hilo, por eso no pongo el join
-	    	 //Quiero seguir escuchando conexiones entrantes
-
-	    		 	 	 pthread_t idHilo;
-
-	    		 	 	 parametros_entrenador* param = malloc(sizeof(parametros_entrenador));
-	    		 	 	 param->idHilo = idHilo;
-	    		 	 	 param->newfd = newfd;
-	    		 	 	 pthread_create (&idHilo,NULL,(void*)ejecutar_Entrenador,param);
-	    		 	 	 //sem_post(&hiloEscucha->finTurno);
-	    	  //pthread_join(&idHilo,0);
-
-
-
-	     }
 log_info(logger, "Se finalizaron las operaciones con todos los entrenadores que estaban conectados");
 log_info(logger, "-----El proceso mapa se cerrara, gracias por jugar-----");
- return 0;
+return 0;
 }

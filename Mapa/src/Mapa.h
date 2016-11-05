@@ -116,6 +116,10 @@ typedef struct
 
 /*----------------------- Declaraciones de Prototipos ---------------------------------*/
 
-		void leerConfiguracionPokenest(char*, char*);
+void leerConfiguracionPokenest(char*, char*);
+void liberar_recurso(char*, char*, int);
+char *liberar_recursos(char*);
+int asignar_recurso(char*, char*, int);
+t_pokemon* leerDatosBill(char* , char*);
 
 #endif /* MAPA_H_ */
