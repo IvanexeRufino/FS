@@ -167,6 +167,10 @@ static int ejemplo_readdir(char *path, void *buf, fuse_fill_dir_t filler,
 	filler(buf,".",NULL,0);
 	filler(buf,"..",NULL,0);
 
+	if(paquete->codigo == 100){
+		return res;
+	}
+
 	char* buforecibido= paquete->datos;
 	char** bufonuevo= string_split(buforecibido,"/");
 	while(bufonuevo[i]!=NULL){

@@ -218,8 +218,13 @@ void recibirQueSos(int newfd){
 				strcat(bufo, "/");
 			}
 
-			paqueteSend= empaquetar(2,bufo,strlen(bufo)+1);
-			enviar= acoplador(paqueteSend);
+			if(list_size(listaDeHijos) != NULL){
+				paqueteSend= empaquetar(2,bufo,strlen(bufo)+1);
+				enviar= acoplador(paqueteSend);
+			} else {
+				paqueteSend= empaquetar(100,"error",6);
+				enviar= acoplador(paqueteSend);
+			}
 
 			break;
 			case 3:
