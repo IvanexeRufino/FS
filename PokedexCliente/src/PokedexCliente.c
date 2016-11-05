@@ -254,9 +254,15 @@ static int ejemplo_rename(char *nombreViejo, char *nombreNuevo){
 }
 
 static int ejemplo_link (char *archivoOrigen, char *archivoDestino){
-	enviarQueSos(12, archivoOrigen, strlen(archivoOrigen) + 1);
-	copiar_archivo(archivoOrigen, archivoDestino);
+	char* bufo=malloc(strlen(archivoOrigen)+strlen(archivoDestino));
+	strcpy(bufo,archivoOrigen);
+	strcat(bufo,"-");
+	strcat(bufo,archivoDestino);
+	enviarQueSos(11, bufo, strlen(bufo) + 1);
 	return 0;
+//	enviarQueSos(12, archivoOrigen, strlen(archivoOrigen) + 1);
+//	copiar_archivo(archivoOrigen, archivoDestino);
+//	return 0;
 }
 
 static struct fuse_operations ejemplo_oper = {

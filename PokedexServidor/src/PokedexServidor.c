@@ -292,9 +292,13 @@ void recibirQueSos(int newfd){
 				char** bufonuevo= string_split(buforecibido,"-");
 				renombrar_archivo(bufonuevo[0],bufonuevo[1]);
 				break;
-	//		case 12:
-	//			link_callback(paquete->datos);
-	//			break;
+			case 12:
+				printf("los datos son %s \n",paqueterecv->datos);
+				char* buforecibidox= malloc(paqueterecv->tamanio);
+				buforecibidox= paqueterecv->datos;
+				char** bufonuevox= string_split(buforecibidox,"-");
+				copiar_archivo(bufonuevox[0],bufonuevox[1]);
+				break;
 			}
 
 		if(send(newfd,enviar,paqueteSend->tamanio + size_header ,0)<0) {
