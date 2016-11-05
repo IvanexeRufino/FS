@@ -232,16 +232,13 @@ static int ejemplo_utimens (char * param1, const struct timespec tv[2] ){
 }
 
 static int ejemplo_truncate(char* path, off_t size) {
-	enviarQueSos(10, path, strlen(path) + 1);
-	osada_file* archivo = obtenerArchivo(path);
-	if(archivo == NULL) {
-		return -ENOENT;
-	}
-	else {
-		truncar_archivo(archivo,(uint32_t)size);
+	t_paquete* paquetet = empaquetar(0, path, size);
+	void* streamtrun = acoplador1(paquetet);
+	t_paquete* paqueterecv= enviarQueSos(10, streamtrun, strlen(path) + 1 + size_header);
+	if(paqueterecv->codigo == 100 ) {
 		return 0;
 	}
-
+	return 0;
 }
 
 static int ejemplo_rename(char *nombreViejo, char *nombreNuevo){
@@ -260,9 +257,6 @@ static int ejemplo_link (char *archivoOrigen, char *archivoDestino){
 	strcat(bufo,archivoDestino);
 	enviarQueSos(11, bufo, strlen(bufo) + 1);
 	return 0;
-//	enviarQueSos(12, archivoOrigen, strlen(archivoOrigen) + 1);
-//	copiar_archivo(archivoOrigen, archivoDestino);
-//	return 0;
 }
 
 static struct fuse_operations ejemplo_oper = {

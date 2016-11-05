@@ -277,14 +277,16 @@ void recibirQueSos(int newfd){
 				break;
 			case 9:
 				break;
-//			case 10:
-//				paqueteRead = desacoplador1(paqueterecv->datos,paqueterecv->tamanio);
-//				osada_file* truncado= truncar_archivo(paqueteRead->datos,paqueterecv->tamanio);
-//				char* buff = malloc(paqueteRead->tamanio);
-//				strcpy(buff,truncado);
-//				paqueteSend = empaquetar(6,buf,truncado->file_size);
-//				enviar = acoplador(paqueteSend);
-//				break;
+			case 10:
+				paqueteRead = desacoplador1(paqueterecv->datos,paqueterecv->tamanio);
+				indice = obtenerArchivo(paqueterecv->datos);
+				if(indice == NULL) {
+					paqueteSend = empaquetar(100,"error",6);
+					enviar = acoplador(paqueteSend);
+				} else {
+					truncar_archivo(archivo,(uint32_t)size);
+				}
+				break;
 			case 11:
 				printf("los datos son %s \n",paqueterecv->datos);
 				char* buforecibido= malloc(paqueterecv->tamanio);
