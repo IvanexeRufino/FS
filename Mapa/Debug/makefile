@@ -32,7 +32,7 @@ dependents:
 Mapa: $(OBJS) $(USER_OBJS) /home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Debug/libBibliotecaCompartida.so
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C Linker'
-	gcc -L"/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Debug" -o "Mapa" $(OBJS) $(USER_OBJS) $(LIBS)
+	gcc -L"/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Debug" -L/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/so-pkmn-utils -o "Mapa" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 

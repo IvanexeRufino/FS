@@ -1,4 +1,5 @@
 #include "Mapa.h"
+
 char rutaArgv[100];
 pid_t pid;
 
@@ -39,6 +40,70 @@ int threadAEjecutar;
 
 void liberar_recurso(char*, char*, int);
 char *liberar_recursos(char*);
+int asignar_recurso(char*, char*, int);
+t_pokemon* leerDatosBill(char* , char*);
+
+t_pokemon* pokemonMasFuerteDe(t_registroPersonaje *personaje){
+	t_pokemon* masFuerte = malloc(sizeof(t_pokemon));
+	t_pokemon* actual = malloc(sizeof(t_pokemon));
+	masFuerte = NULL;
+	char ruta[300];
+	char aux[300];
+	strcpy(ruta,rutaArgv);
+	strcat(ruta,"/Entrenadores/");
+	strcat(ruta,personaje->nombre);
+	strcat(ruta,"/DirdeBill/");
+	strcpy(aux,ruta);
+	DIR *dp;
+			struct dirent *ep;
+			dp = opendir (ruta);
+				if (dp != NULL)
+				{
+					ep = readdir (dp);
+				while (ep){
+
+					  if(ep->d_name[0]!='.' && ep->d_name[0]!='m'){
+						puts(ep->d_name);
+						  actual = leerDatosBill(ep->d_name , ruta);
+						  puts(actual->species);
+						  if(masFuerte == NULL || actual->level > masFuerte->level)
+						  {
+
+							  masFuerte = actual;
+						  }
+
+					  }
+					  ep = readdir (dp);
+				}
+					  (void) closedir (dp);
+
+				}
+
+			else
+				perror ("Couldn't open the directory");
+	log_info(logger,"El pokemon mas fuerte de %s es : %s %d",personaje->nombre,masFuerte->species,masFuerte->level);
+	return masFuerte;
+}
+t_pokemon* leerDatosBill(char* nombre , char* ruta){
+	char* pokemonNombre = string_new();
+	puts("hola1");
+	strcpy(pokemonNombre,nombre);
+	int i = strlen(pokemonNombre) -7;
+	puts("hola2");
+	pokemonNombre[i] = '\0';
+	puts("hola4");
+	t_pokemon* actual = malloc(sizeof(t_pokemon));
+	puts("hola3");
+	strcat(ruta,nombre);
+	puts(ruta);
+	t_config* config = config_create(ruta);
+	if (config_has_property(config, "Nivel")) {
+		actual->level = config_get_int_value(config, "Nivel");
+		strcpy(actual->species,pokemonNombre);
+	}
+	puts(actual->species);
+	return actual;
+}
 
 void recuperarPokemonDeEntrenador(t_registroPersonaje *personaje)
 {
@@ -458,6 +523,7 @@ void envioQueSeAtrapoPokemon (t_registroPersonaje *personaje, t_registroPokenest
 		send(personaje->socket,buffer, sizeof(buffer), 0);
 		personaje->distanciaARecurso = -1;
 		restarRecurso(items, pokenest->identificador);
+		pokemonMasFuerteDe(personaje);////////////////////////////////////////////ACA!
 	} else {
 		personaje->estado = 'B';
 		char* buffer = string_new();
@@ -556,12 +622,6 @@ void ejecutar_Entrenador(parametros_entrenador* param)
  	return;
  	sem_wait(&nuevoPersonaje->finTurno);
  	pthread_exit(0);
-}
-
-void ejecutarTrainer(t_registroPersonaje* entrenador)
-{
-
-
 }
 
 void planificarNuevo()
@@ -861,7 +921,12 @@ void *detectar_interbloqueo(void *milis) {
 			if (bloqueados > 1) {
 				//Batalla pokemon---------------------------------------------------------//
 				log_info(logger,"Se ha detectado un interbloqueo! %s", str);
-
+				void pokemonsDeBloqueados(t_registroPersonaje *p) {
+						if (p->marcado == false) {
+							pokemonMasFuerteDe(p);
+					}
+				}
+				list_iterate(entrenadores_listos, (void*) pokemonsDeBloqueados);
 			}
 			else{
 				void desbloquear(t_registroPersonaje *p) {
@@ -886,7 +951,6 @@ int main(int argc, char **argv)
 	columnas =30;
 	items = list_create();									//Para usar despues en las cajas
 	sem_init(&(pasoDeEntrenador),1,0);
-
 	/* Inicializacion y registro inicial de ejecucion */
 	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
 	log_info(logger, PROGRAM_DESCRIPTION);

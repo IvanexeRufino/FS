@@ -2,7 +2,8 @@
 #define MAPA_H_
 
 /*----------------------- Declaraciones de Bibliotecas ---------------------------------*/
-
+#include <pkmn/battle.h>
+#include <pkmn/factory.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -46,6 +47,8 @@ typedef struct
 	int y;
 	int cantidadDisp;
 }t_registroPokenest;
+
+
 
 typedef struct
 {
