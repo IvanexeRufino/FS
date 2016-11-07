@@ -117,7 +117,6 @@ t_paquete* enviarQueSos(int nroop, void* path, int size){
 	if(send(socket,cosaparaenviar,paquete->tamanio + size_header ,0)<0)
 		{
 			puts("ERROR ENVIO");
-//			log_error(logDelPersonaje,"Error al enviar datos del cliente \n");
 			exit(1);
 		}
 	free(cosaparaenviar);
@@ -127,7 +126,6 @@ t_paquete* enviarQueSos(int nroop, void* path, int size){
 	if((sizebytes = recv(socket, &buffer, MAX_BUFFERSIZE - 1,0)) <= 0)
 	{
 		puts("ERROR RECIBIR");
-		//log_error(logDelPersonaje, "Error al recibir paquete del cliente \n");
 		exit(1);
 	}
 	return paquete = desacoplador(buffer);
@@ -199,7 +197,6 @@ static int ejemplo_open(char * path, int info) {
 	return 0;
 }
 
-///////////////////////ESPACIO PUBLICITARIO //////////////////////////////////////////
 
 static int ejemplo_read(char *path, char *buf, size_t size, off_t offset,
 		struct fuse_file_info *fi) {
@@ -210,12 +207,14 @@ static int ejemplo_read(char *path, char *buf, size_t size, off_t offset,
 	return paqueteRec->tamanio;
 }
 
-///////////////////////FIN DEL ESPACIO PUBLICITARIO //////////////////////////////////
-
-
 static int ejemplo_write (char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
-	enviarQueSos(7, path, strlen(path) + 1);
-	return escribir_archivo(path,offset,size,buf);
+	char* bufosend= malloc(strlen(path) + size + 1);
+	memcpy(bufosend,path,strlen(path) + 1);
+	memcpy(bufosend + strlen(path), buf, size);
+	t_paquete* paquetewrite= empaquetar(offset,bufosend,size);
+	void* streamwrite= acoplador1(paquetewrite);
+	t_paquete* paqueterec= enviarQueSos(7,streamwrite,strlen(path) + 1 + size + size_header);
+	return paqueterec->tamanio;
 }
 
 static int ejemplo_remove (char* path) {
@@ -242,20 +241,20 @@ static int ejemplo_truncate(char* path, off_t size) {
 }
 
 static int ejemplo_rename(char *nombreViejo, char *nombreNuevo){
-	char* bufo=malloc(strlen(nombreViejo)+strlen(nombreNuevo));
+	char* bufo=malloc(strlen(nombreViejo)+strlen(nombreNuevo)+1);
 	strcpy(bufo,nombreViejo);
-	strcat(bufo,"-");
+	strcat(bufo,"%");
 	strcat(bufo,nombreNuevo);
 	enviarQueSos(11, bufo, strlen(bufo) + 1);
 	return 0;
 }
 
 static int ejemplo_link (char *archivoOrigen, char *archivoDestino){
-	char* bufo=malloc(strlen(archivoOrigen)+strlen(archivoDestino));
+	char* bufo=malloc(strlen(archivoOrigen)+strlen(archivoDestino)+1);
 	strcpy(bufo,archivoOrigen);
-	strcat(bufo,"-");
+	strcat(bufo,"%");
 	strcat(bufo,archivoDestino);
-	enviarQueSos(11, bufo, strlen(bufo) + 1);
+	enviarQueSos(12, bufo, strlen(bufo) + 1);
 	return 0;
 }
 

@@ -135,44 +135,9 @@ int AceptarConexionCliente(int socketServer) {
 
 }
 
-//int getattr(char* bufpath){
-//	osada_file* archivo = obtenerArchivo (bufpath);
-//	if(archivo == NULL || archivo->state == 0) {
-//		return -ENOENT;
-//	}
-//
-//	send(socketServidor,archivo,sizeof(archivo),0);
-//	return 0;
-//}
-//
-//int readdir(char* bufpath){
-//	int i;
-//	int indice = obtenerIndice(bufpath);
-//	if(indice == -1) {
-//		return -ENOENT;
-//	}
-//	t_list* listaDeHijos = listaDeHijosDelArchivo(indice);
-//	send(socketServidor,listaDeHijos,sizeof(listaDeHijos),0);
-//
-//	return 0;
-//}
-//
-//int open_callback(char* path) {
-//	osada_file* archivo = obtenerArchivo (path);
-//	if(archivo == NULL || archivo->state == 0) {
-//		return -ENOENT;
-//	}
-//
-//	send(socketServidor,archivo,sizeof(archivo),0);
-//	return 0;
-//}
-//
-//int mkdir_callback(char* nombreNuevo) {
-//	crear_archivo(nombreNuevo, 2);
-//	return 0;
-//}
-
 void recibirQueSos(int newfd){
+	char* buforecibidox;
+	char* buforecibido;
 	osada_file* archivo;
 	void* enviar;
 	t_paquete* paqueteSend = malloc(sizeof(t_paquete));
@@ -194,11 +159,9 @@ void recibirQueSos(int newfd){
 
 		switch(paqueterecv->codigo){
 		case 1:
-			printf("los datos son %s \n",paqueterecv->datos);
 			archivo = obtenerArchivo(paqueterecv->datos);
 			if(archivo == NULL || archivo->state == 0) {
 				paqueteSend = empaquetar(100,"error",6);
-				printf("los datos a enviar son %s \n",paqueteSend->datos);
 				enviar = acoplador(paqueteSend);
 			}
 			else {
@@ -228,19 +191,15 @@ void recibirQueSos(int newfd){
 
 			break;
 			case 3:
-				printf("los datos son %s \n",paqueterecv->datos);
 				crear_archivo(paqueterecv->datos,2);
 				break;
 			case 4:
-				printf("los datos son %s \n",paqueterecv->datos);
 				crear_archivo(paqueterecv->datos,1);
 				break;
 			case 5:
-				printf("los datos son %s \n",paqueterecv->datos);
 				archivo = obtenerArchivo(paqueterecv->datos);
 				if(archivo == NULL || archivo->state == 0) {
 					paqueteSend = empaquetar(100,"error",6);
-					printf("los datos a enviar son %s \n",paqueteSend->datos);
 					enviar = acoplador(paqueteSend);
 				}
 				else {
@@ -250,19 +209,23 @@ void recibirQueSos(int newfd){
 				break;
 			case 6:
 				paqueteRead = desacoplador1(paqueterecv->datos,paqueterecv->tamanio);
-				printf("el offset es %d \n", paqueteRead->codigo);
-				printf("el size es %d \n", paqueteRead->tamanio);
 				archivo = obtenerArchivo(paqueteRead->datos);
-				char* buf = malloc(archivo->file_size);
+				char* buf = malloc(minimoEntre(archivo->file_size, paqueteRead->tamanio));
 				int size = leer_archivo(paqueteRead->datos,0,archivo->file_size,buf);
 				paqueteSend = empaquetar(6,buf,size);
 				enviar = acoplador(paqueteSend);
 				break;
-//			case 7:
-//				write_callback(paquete->datos);
-//				break;
+			case 7:
+				paqueteRead = desacoplador1(paqueterecv->datos,paqueterecv->tamanio);
+				char* bufpath = malloc(paqueterecv->tamanio - size_header - paqueteRead->tamanio -1);
+				char* bufbuf = malloc(paqueterecv->tamanio);
+				memcpy(bufpath, paqueteRead->datos, paqueterecv->tamanio -size_header - paqueteRead->tamanio -1);
+				memcpy(bufbuf,paqueteRead->datos + strlen(bufpath), paqueteRead->tamanio);
+				int tam = escribir_archivo(bufpath,paqueteRead->codigo,paqueteRead->tamanio,bufbuf);
+				paqueteSend = empaquetar(7,bufbuf,tam);
+				enviar = acoplador(paqueteSend);
+				break;
 			case 8:
-				printf("los datos son %s \n",paqueterecv->datos);
 				archivo = obtenerArchivo(paqueterecv->datos);
 				if(archivo->state == 1) {
 					borrar_archivo(paqueterecv->datos);
@@ -288,17 +251,15 @@ void recibirQueSos(int newfd){
 				}
 				break;
 			case 11:
-				printf("los datos son %s \n",paqueterecv->datos);
-				char* buforecibido= malloc(paqueterecv->tamanio);
+				buforecibido= malloc(paqueterecv->tamanio);
 				buforecibido= paqueterecv->datos;
-				char** bufonuevo= string_split(buforecibido,"-");
+				char** bufonuevo= string_split(buforecibido,"%");
 				renombrar_archivo(bufonuevo[0],bufonuevo[1]);
 				break;
 			case 12:
-				printf("los datos son %s \n",paqueterecv->datos);
-				char* buforecibidox= malloc(paqueterecv->tamanio);
+				buforecibidox= malloc(paqueterecv->tamanio);
 				buforecibidox= paqueterecv->datos;
-				char** bufonuevox= string_split(buforecibidox,"-");
+				char** bufonuevox= string_split(buforecibidox,"%");
 				copiar_archivo(bufonuevox[0],bufonuevox[1]);
 				break;
 			}
