@@ -5,36 +5,7 @@
  *      Author: utnso
  */
 
-#include <stdio.h>
-#include <fuse.h>
-#include <sys/mman.h>
-#include <errno.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <signal.h>
-#include <stdio.h>
-
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <stdbool.h>
-
-
-#define IP "127.0.0.1"
-#define PUERTO "9999"
-#define PACKAGESIZE 1024
-
-#include "FileSysOSADA/osada.h"
-#define MAX_BUFFERSIZE 1024
-
-#define size_header  sizeof(uint16_t) * 2
-
-typedef struct {
-	uint16_t codigo;
-	uint16_t tamanio;
-	void* datos;
-}__attribute__((__packed__)) t_paquete ;
+#include "pokedexcliente.h"
 
 void* memoria(int cantidad) {
 	void* puntero = NULL;

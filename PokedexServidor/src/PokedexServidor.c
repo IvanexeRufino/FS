@@ -6,18 +6,6 @@
  */
 
 #include "pokedexservidor.h"
-#include <errno.h>
-#include "FileSysOSADA/osada.h"
-
-#define PORT "9999"
-#define MAX_BUFFERSIZE 1024
-#define size_header  sizeof(uint16_t) * 2
-
-typedef struct {
-	uint16_t codigo;
-	uint16_t tamanio;
-	void* datos;
-}__attribute__((__packed__)) t_paquete ;
 
 void* memoria(int cantidad) {
 	void* puntero = NULL;
@@ -36,7 +24,6 @@ t_paquete* empaquetar(int codigo, void* datos, int size){
 	paquete->tamanio= size;
 	return paquete;
 }
-
 
 void* acoplador(t_paquete* paquete) /*transforma una estructura de tipo t_paquete en un stream*/
 {

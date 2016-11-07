@@ -22,13 +22,28 @@
 #include <commons/config.h>
 #include <commons/collections/list.h>
 #include <stdbool.h>
+#include <sys/mman.h>
+#include <errno.h>
+#include <unistd.h>
+#include <signal.h>
+
+#include "FileSysOSADA/osada.h"
+
+/* -- declaraciones de estructuras -- */
+
+typedef struct {
+	uint16_t codigo;
+	uint16_t tamanio;
+	void* datos;
+}__attribute__((__packed__)) t_paquete ;
 
 typedef unsigned char osada_block[64];
 typedef uint32_t osada_block_pointer;
 
-/* -- declaraciones de estructuras -- */
-
 /* -- declaraciones de constantes -- */
+
+#define MAX_BUFFERSIZE 1024
+#define size_header  sizeof(uint16_t) * 2
 
 /* -- configuracion de sockets -- */
 
