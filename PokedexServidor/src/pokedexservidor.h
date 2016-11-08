@@ -24,6 +24,9 @@
 #include <commons/collections/list.h>
 #include <stdbool.h>
 #include <errno.h>
+    #include <sys/wait.h>
+    #include <signal.h>
+#include <pthread.h>
 
 #include "FileSysOSADA/osada.h"
 
@@ -42,8 +45,8 @@ typedef struct {
 
 /* -- configuracion de sockets -- */
 
-#define PORT "9999"
-
+#define PORT 9999
+#define BACKLOG 10
 /* -- configuracion de log -- */
 
 #define LOG_FILE "pokedexservidor.log"

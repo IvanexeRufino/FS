@@ -6,6 +6,7 @@
  */
 
 #include "pokedexcliente.h"
+int sockfd;
 
 void* memoria(int cantidad) {
 	void* puntero = NULL;
@@ -81,22 +82,23 @@ int conectarConServer()
 };
 
 t_paquete* enviarQueSos(int nroop, void* path, int size){
-	int socket= conectarConServer();
 	t_paquete* paquete = empaquetar(nroop,path,size);
 	void* cosaparaenviar = acoplador(paquete);
 
-	if(send(socket,cosaparaenviar,paquete->tamanio + size_header ,0)<0)
+	if(send(sockfd,cosaparaenviar,paquete->tamanio + size_header ,0)<0)
 		{
 			puts("ERROR ENVIO");
+//			log_error(logDelPersonaje,"Error al enviar datos del cliente \n");
 			exit(1);
 		}
 	free(cosaparaenviar);
 
 	char buffer[MAX_BUFFERSIZE];
 	int sizebytes;
-	if((sizebytes = recv(socket, &buffer, MAX_BUFFERSIZE - 1,0)) <= 0)
+	if((sizebytes = recv(sockfd, &buffer, MAX_BUFFERSIZE - 1,0)) <= 0)
 	{
 		puts("ERROR RECIBIR");
+		//log_error(logDelPersonaje, "Error al recibir paquete del cliente \n");
 		exit(1);
 	}
 	return paquete = desacoplador(buffer);
@@ -248,9 +250,28 @@ static struct fuse_operations ejemplo_oper = {
 
 int main(int argc, char *argv[]) {
 
-//	system("truncate -s 100k disco.bin");
-//	system("./osada-format /home/utnso/disco.bin");
-	reconocerOSADA("/home/utnso/disco.bin");
+	struct sockaddr_in socket_info;
+	  	// Se carga informacion del socket
+	socket_info.sin_family = AF_INET;
+	socket_info.sin_addr.s_addr = inet_addr("127.0.0.1");
+	socket_info.sin_port = htons(9999);
+
+	  	// Crear un socket:
+	  	// AF_INET, SOCK_STREM, 0
+	sockfd = socket (AF_INET, SOCK_STREAM, 0);
+	if (sockfd < 0)
+		return -1;
+	// Conectar el socket con la direccion 'socketInfo'.
+	int conecto = connect (sockfd,(struct sockaddr *)&socket_info,sizeof (socket_info));
+	int mostrarEsperaAconectar=0;
+	while (conecto != 0){
+		mostrarEsperaAconectar++;
+		if (mostrarEsperaAconectar == 1){
+			printf("Esperando...\n");
+		}
+		conecto = connect (sockfd,(struct sockaddr *)&socket_info,sizeof (socket_info));
+		printf("Conectado");
+	}
 
 	return fuse_main(argc, argv, &ejemplo_oper, NULL );
 
