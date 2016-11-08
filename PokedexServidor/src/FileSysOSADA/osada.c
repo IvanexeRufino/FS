@@ -263,8 +263,7 @@ int buscarBloqueVacio() {
 	return -1;
 }
 
-int crear_archivo(char* path, int direcOArch)
-{
+int crear_archivo(char* path, int direcOArch) {
 	pthread_mutex_lock(&semaforoTablaDeArchivos);
 	int posicionEnLaTabla = buscarArchivoVacio();
 	osada_file* archivoNuevo = &tablaDeArchivos[posicionEnLaTabla];
