@@ -806,6 +806,7 @@ int asignar_recurso(char *pokenest, char *personaje, int cant) {
 void batallaPokemon(){
 	t_registroPersonaje* actual = malloc(sizeof(t_registroPersonaje));
 	int i;
+	int j;
 	for(i=0; list_size(entrenadores_listos)!=i;i++){
 		actual = list_get(entrenadores_listos,i);
 		if(actual->marcado == false){
@@ -814,40 +815,43 @@ void batallaPokemon(){
 		}
 	}
 	t_pokEn* pokEn = malloc(sizeof(pokEn));
+	t_pokEn* aux = malloc(sizeof(pokEn));
 	t_pokEn* pokEn2 = malloc(sizeof(pokEn));
 	t_pokemon* pokPerdedor = malloc(sizeof(t_pokemon));
 	pokEn = list_remove(listapokEn,0);
 	while(list_size(listapokEn)!=0){
-			pokEn2 = list_remove(listapokEn,0);
-			pokPerdedor = pkmn_battle(pokEn->pok , pokEn2->pok);
-			log_info(logger,"El perdedor de la pelea entre %s y %s, es %s %d",pokEn->entrenador->nombre,pokEn2->entrenador->nombre,pokPerdedor->species, pokPerdedor->level);
-			if(pokPerdedor == pokEn2->pok){
-			//Si gana el pokEn1
+				pokEn2 = list_remove(listapokEn,0);
+				pokPerdedor = pkmn_battle(pokEn->pok , pokEn2->pok);
+				log_info(logger,"El perdedor de la pelea entre %s y %s, es %s %d",pokEn->entrenador->nombre,pokEn2->entrenador->nombre,pokPerdedor->species, pokPerdedor->level);
+				if(pokPerdedor == pokEn2->pok){
+				//Si gana el pokEn1
 
-			}
-			else
-			{
-					//Si gana el pokEn2
-					pokEn = pokEn2;
-			}
-	}
-	//Ahora tengo que borrar de la cola de listos a los entrenadores perdedores
-	t_registroPersonaje* entrenador;
-	int rc;
-	int j = 0;
 
-	while(j<list_size(entrenadores_listos)){
-		entrenador = list_get(entrenadores_listos,j);
-		if(pokEn->entrenador->identificador != entrenador->identificador && entrenador->marcado == false){
-			liberar_recursos(entrenador->nombre);
-			actual = list_remove(entrenadores_listos,j);
-			free(actual);
-		}
-		j++;
-	}
+				}
+				else
+				{
+						//Si gana el pokEn2
+						aux = pokEn;
+						pokEn = pokEn2;
+						pokEn2 = aux;
+				}
+
+				int i = 0;
+				void eliminar(t_registroPersonaje* entrenador) {
+							if(entrenador->identificador == pokEn2->entrenador->identificador){
+								liberar_recursos(entrenador->nombre);
+								entrenador->proximoObjetivo = '0';
+								recuperarPokemonDeEntrenador(entrenador);
+								entrenador->estado='T';
+								close(entrenador->socket);
+								list_remove(entrenadores_listos,i);
+							 }
+						i++;
+				}
+				list_iterate(entrenadores_listos, (void*) eliminar);
+			}
 
 	log_info(logger,"El ganador de todas las batallas es:%s", pokEn->entrenador->nombre);
-
 }
 // Funcion que detecta si existen personajes interbloqueados
 void *detectar_interbloqueo(void *milis) {
@@ -953,24 +957,17 @@ void *detectar_interbloqueo(void *milis) {
 
 
 			}
-			else
-				log_info(logger,"no hay interbloqueo!");
+			else   log_info(logger,"no hay interbloqueo!");
 
 			log_info(logger,"Desbloqueando entrenadores bloqueados");
-			t_registroPersonaje* entrenador = malloc(sizeof(t_registroPersonaje));
-			int l = 0 ;
-			while ( l<list_size(entrenadores_listos))
-			{
-				rc = pthread_mutex_lock(&mutex);
-				entrenador = list_get(entrenadores_listos,l);
-				printf("desbloquenaod a: %s", entrenador->nombre);
-				if(entrenador->estado == 'B'){
-					entrenador->estado = 'L';
-					sem_post(&colaDeListos);
-					}
-				l++;
-				rc = pthread_mutex_unlock(&mutex);
-			}
+
+			void desbloquear(t_registroPersonaje *p) {
+			 if(p->estado == 'B'){
+					 p->estado = 'L';
+					 sem_post(&colaDeListos);
+					 }
+			 }
+			 list_iterate(entrenadores_listos, (void*) desbloquear);
 
 			log_info(logger,"puto el que lee");
 			dictionary_destroy(copiaAvailable);
