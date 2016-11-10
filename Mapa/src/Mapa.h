@@ -48,8 +48,6 @@ typedef struct
 	int cantidadDisp;
 }t_registroPokenest;
 
-
-
 typedef struct
 {
 	char nombre[40];
@@ -72,6 +70,10 @@ typedef struct
 
 }t_registroPersonaje;
 
+typedef struct{
+	t_registroPersonaje* entrenador;
+	t_pokemon* pok;
+}t_pokEn;
 
 
 typedef struct
