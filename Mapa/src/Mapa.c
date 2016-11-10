@@ -8,7 +8,8 @@ t_list* items;
 
 t_list* entrenadores_listos;
 t_list* entrenadores_bloqueados;
-
+t_pkmn_factory* fabricaPokemon;
+t_list* listapokEn;
 pthread_mutex_t mutex_EntrenadoresActivos = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutex_threadAEjecutar = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutex_bloqPlanificador = PTHREAD_MUTEX_INITIALIZER;
@@ -47,8 +48,8 @@ void sumarRecurso(t_list* items, char id) {
         printf("WARN: Item %c no existente\n", id);
     }
 }
-void pokemonMasFuerteDe(t_registroPersonaje *personaje, t_list* listaPokEn){
-	t_pokemon* masFuerte = malloc(sizeof(t_pokemon));
+void pokemonMasFuerteDe(t_registroPersonaje *personaje){
+	//t_pokemon* masFuerte = malloc(sizeof(t_pokemon));
 	//t_pokemon* actual = malloc(sizeof(t_pokemon));
 	int nivel;
 	char ruta[300];
@@ -56,7 +57,8 @@ void pokemonMasFuerteDe(t_registroPersonaje *personaje, t_list* listaPokEn){
 	strcat(ruta,"/Entrenadores/");
 	strcat(ruta,personaje->nombre);
 	strcat(ruta,"/DirdeBill/");
-	masFuerte->level = 0;
+	int nivelAlto = 0;
+	char* nombreFuerte = string_new();
 	DIR *dp;
 			struct dirent *ep;
 			dp = opendir (ruta);
@@ -69,30 +71,26 @@ void pokemonMasFuerteDe(t_registroPersonaje *personaje, t_list* listaPokEn){
 						  int i = strlen(ep->d_name) -7; //Si tengo Charmander002.dat, le saco el 002.dat que son 7 caracteres justos y me queda el nombre Charmander en limpio
 						  ep->d_name[i] ='\0';
 						  log_info(logger,"El pokemon %s de %s Tiene un nivel %d \n",ep->d_name ,personaje->nombre ,nivel);
-						  if(nivel > masFuerte->level)
+						  if(nivel > nivelAlto)
 						  {
-							  masFuerte->level = nivel ;
-							  strcpy(masFuerte->species , ep->d_name);
+							  nivelAlto = nivel ;
+							 nombreFuerte = string_duplicate(ep->d_name);
 						  }
 
 					  }
 					  ep = readdir (dp);
 				}
 					  (void) closedir (dp);
-
 				}
 			else
 				perror ("Couldn't open the directory");
 
-		log_info(logger,"El pokemon mas fuerte de %s es : %s %d",personaje->nombre,masFuerte->species,masFuerte->level);
-		t_pkmn_factory* fabricaPokemon = create_pkmn_factory();
-		masFuerte = create_pokemon(fabricaPokemon, masFuerte->species, masFuerte->level);
-		destroy_pkmn_factory(fabricaPokemon);
+		t_pokemon* pokemonNuevo =  create_pokemon(fabricaPokemon, nombreFuerte,nivelAlto);
 		t_pokEn* pokEn = malloc(sizeof(pokEn));
 		pokEn->entrenador=personaje;
-		pokEn->pok=masFuerte;
-		list_add(listaPokEn,pokEn);
-		log_info(logger,"El pokemon mas fuerte de %s es : %s %d",personaje->nombre,masFuerte->species,masFuerte->level);
+		pokEn->pok = pokemonNuevo;
+		list_add(listapokEn,pokEn);
+		log_info(logger,"El pokemon mas fuerte de %s es : %s nivel %d, de tipo %d y segundo tipo %d",personaje->nombre,nombreFuerte,nivelAlto,pokEn->pok->type,pokEn->pok->second_type);
 
 }
 int leerDatosBill(char* nombre , char* ruta){
@@ -805,25 +803,55 @@ int asignar_recurso(char *pokenest, char *personaje, int cant) {
 	return pudo_asignar;
 }
 
-void batallaPokemon(t_list* listaPokEntrenador){
+void batallaPokemon(){
 	t_registroPersonaje* actual = malloc(sizeof(t_registroPersonaje));
 	int i;
 	for(i=0; list_size(entrenadores_listos)!=i;i++){
 		actual = list_get(entrenadores_listos,i);
 		if(actual->marcado == false){
-			pokemonMasFuerteDe(actual,listaPokEntrenador);
+			pokemonMasFuerteDe(actual);
 
 		}
 	}
 	t_pokEn* pokEn = malloc(sizeof(pokEn));
-	for(i=0; list_size(listaPokEntrenador)!=i;i++){
-			pokEn = list_get(listaPokEntrenador,i);
-			log_info(logger,"El Pokemon mas fuerte de %s es: %s %d",pokEn->entrenador->nombre, pokEn->pok->species,pokEn->pok->level);
+	t_pokEn* pokEn2 = malloc(sizeof(pokEn));
+	t_pokemon* pokPerdedor = malloc(sizeof(t_pokemon));
+	pokEn = list_remove(listapokEn,0);
+	while(list_size(listapokEn)!=0){
+			pokEn2 = list_remove(listapokEn,0);
+			pokPerdedor = pkmn_battle(pokEn->pok , pokEn2->pok);
+			log_info(logger,"El perdedor de la pelea entre %s y %s, es %s %d",pokEn->entrenador->nombre,pokEn2->entrenador->nombre,pokPerdedor->species, pokPerdedor->level);
+			if(pokPerdedor == pokEn2->pok){
+			//Si gana el pokEn1
+
+			}
+			else
+			{
+					//Si gana el pokEn2
+					pokEn = pokEn2;
+			}
 	}
+	//Ahora tengo que borrar de la cola de listos a los entrenadores perdedores
+	t_registroPersonaje* entrenador;
+	int rc;
+	int j = 0;
+
+	while(j<list_size(entrenadores_listos)){
+		entrenador = list_get(entrenadores_listos,j);
+		if(pokEn->entrenador->identificador != entrenador->identificador && entrenador->marcado == false){
+			liberar_recursos(entrenador->nombre);
+			actual = list_remove(entrenadores_listos,j);
+			free(actual);
+		}
+		j++;
+	}
+
+	log_info(logger,"El ganador de todas las batallas es:%s", pokEn->entrenador->nombre);
 
 }
 // Funcion que detecta si existen personajes interbloqueados
 void *detectar_interbloqueo(void *milis) {
+
 	t_dictionary *copiaAvailable;
 	int rc;
 	/*
@@ -921,20 +949,30 @@ void *detectar_interbloqueo(void *milis) {
 				//Batalla pokemon---------------------------------------------------------//
 				log_info(logger,"Se ha detectado un interbloqueo! %s", str);
 
-				t_list* listaPokEntrenador = list_create();
-			//	batallaPokemon(listaPokEntrenador);
+				batallaPokemon();
+
+
 			}
-			else{
-				void desbloquear(t_registroPersonaje *p) {
-					if(p->estado == 'B'){
-						p->estado = 'L';
-						sem_post(&colaDeListos);
-					}
-				}
-				list_iterate(entrenadores_listos, (void*) desbloquear);
+			else
 				log_info(logger,"no hay interbloqueo!");
+
+			log_info(logger,"Desbloqueando entrenadores bloqueados");
+			t_registroPersonaje* entrenador = malloc(sizeof(t_registroPersonaje));
+			int l = 0 ;
+			while ( l<list_size(entrenadores_listos))
+			{
+				rc = pthread_mutex_lock(&mutex);
+				entrenador = list_get(entrenadores_listos,l);
+				printf("desbloquenaod a: %s", entrenador->nombre);
+				if(entrenador->estado == 'B'){
+					entrenador->estado = 'L';
+					sem_post(&colaDeListos);
+					}
+				l++;
+				rc = pthread_mutex_unlock(&mutex);
 			}
 
+			log_info(logger,"puto el que lee");
 			dictionary_destroy(copiaAvailable);
 		usleep(((int)milis*1000));
 	}
@@ -953,7 +991,7 @@ int main(int argc, char **argv)
 	if(argc == 1)
 	{
 		log_info(logger, "Cantidad de parametros incorrectos, Aplicando por defecto");
-		strcpy(infoMapa->nombre,"PuebloPaleta");
+		strcpy(infoMapa->nombre,"CiudadTest");
 		strcpy(rutaArgv, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Pokedex");
 	}
 	else if(argc==3)
@@ -969,8 +1007,11 @@ int main(int argc, char **argv)
 		strcpy(rutaArgv, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Pokedex");
 	}
 	log_info(logger, "Nombre Mapa: %s Ruta: %s", infoMapa->nombre, rutaArgv);
+	listapokEn = malloc(sizeof(t_pokEn));
+	listapokEn = list_create();
 	listaPokenest = malloc(sizeof(t_registroPokenest));
 	listaPokenest = list_create();
+	fabricaPokemon = create_pkmn_factory();
 	pid = getpid();
 	log_info(logger, "El PID del proceso Mapa es %d\n", pid);
 	signal(SIGUSR2,releerconfig);//Por consola kill -SIGUSR2 -PID
