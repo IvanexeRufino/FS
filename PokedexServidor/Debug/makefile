@@ -9,6 +9,7 @@ RM := rm -rf
 # All of the sources participating in the build are defined here
 -include sources.mk
 -include src/FileSysOSADA/subdir.mk
+-include src/subdir.mk
 -include subdir.mk
 -include objects.mk
 
@@ -35,7 +36,7 @@ PokedexServidor: $(OBJS) $(USER_OBJS)
 
 # Other Targets
 clean:
-	-$(RM) $(OBJS)$(C_DEPS)$(EXECUTABLES) PokedexServidor
+	-$(RM) $(EXECUTABLES)$(OBJS)$(C_DEPS) PokedexServidor
 	-@echo ' '
 
 .PHONY: all clean dependents

@@ -152,18 +152,12 @@ static int ejemplo_readdir(char *path, void *buf, fuse_fill_dir_t filler,
 }
 
 static int ejemplo_mkdir(char* filename, mode_t modo){
-	t_paquete* paquete = enviarQueSos(3, filename, strlen(filename) + 1);
-	if(paquete->codigo == 100) {
-		return -ENOENT;
-	}
+	enviarQueSos(3, filename, strlen(filename) + 1);
 	return 0;
 }
 
 static int ejemplo_create (char* path, mode_t modo, struct fuse_file_info * info) {
-	t_paquete* paquete = enviarQueSos(4, path, strlen(path) + 1);
-	if(paquete->codigo == 100) {
-		return -ENOENT;
-	}
+	enviarQueSos(4, path, strlen(path) + 1);
 	return 0;
 }
 
