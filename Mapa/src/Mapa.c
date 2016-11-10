@@ -47,7 +47,7 @@ void sumarRecurso(t_list* items, char id) {
         printf("WARN: Item %c no existente\n", id);
     }
 }
-t_pokemon* pokemonMasFuerteDe(t_registroPersonaje *personaje){
+void pokemonMasFuerteDe(t_registroPersonaje *personaje, t_list* listaPokEn){
 	t_pokemon* masFuerte = malloc(sizeof(t_pokemon));
 	//t_pokemon* actual = malloc(sizeof(t_pokemon));
 	int nivel;
@@ -81,11 +81,19 @@ t_pokemon* pokemonMasFuerteDe(t_registroPersonaje *personaje){
 					  (void) closedir (dp);
 
 				}
-
 			else
 				perror ("Couldn't open the directory");
+
 		log_info(logger,"El pokemon mas fuerte de %s es : %s %d",personaje->nombre,masFuerte->species,masFuerte->level);
-	return masFuerte;
+		t_pkmn_factory* fabricaPokemon = create_pkmn_factory();
+		masFuerte = create_pokemon(fabricaPokemon, masFuerte->species, masFuerte->level);
+		destroy_pkmn_factory(fabricaPokemon);
+		t_pokEn* pokEn = malloc(sizeof(pokEn));
+		pokEn->entrenador=personaje;
+		pokEn->pok=masFuerte;
+		list_add(listaPokEn,pokEn);
+		log_info(logger,"El pokemon mas fuerte de %s es : %s %d",personaje->nombre,masFuerte->species,masFuerte->level);
+
 }
 int leerDatosBill(char* nombre , char* ruta){
 	char aux[300];
@@ -452,15 +460,26 @@ int distanciaAProxObjetivo(t_registroPersonaje* pj, char obj)
 
 int calcularMasCercanoASuObjetivo ()
 {
-	t_registroPersonaje* entrenador = (t_registroPersonaje*)list_get(entrenadores_listos, 0);
-	t_registroPersonaje* entrenadorMinimo = entrenador;
-	int distanciaMinima= distanciaAProxObjetivo(entrenador,entrenador->proximoObjetivo);
+	t_registroPersonaje* entrenador;
+	t_registroPersonaje* aux;
+	t_registroPersonaje* entrenadorMinimo;
 	int i;
+	int flag = 0;
+	for(i=0; i < list_size(entrenadores_listos); i++)
+			{
+				aux = list_get(entrenadores_listos,i);
+				if(aux->estado == 'L' && flag == 0){
+					entrenador = list_get(entrenadores_listos,i);
+					flag = 1;
+				}
+			}
+
+	int distanciaMinima = distanciaAProxObjetivo(entrenador,entrenador->proximoObjetivo);
 	int indice = 0;
 	for(i=0; i < list_size(entrenadores_listos); i++)
 	{
 		entrenador = list_get(entrenadores_listos,i);
-		if(distanciaAProxObjetivo(entrenador,entrenador->proximoObjetivo)<distanciaMinima && entrenador->estado == 'L')
+		if(distanciaAProxObjetivo(entrenador,entrenador->proximoObjetivo)<=distanciaMinima && entrenador->estado == 'L')
 		{
 			entrenadorMinimo = entrenador;
 			distanciaMinima = distanciaAProxObjetivo(entrenador,entrenador->proximoObjetivo);
@@ -469,6 +488,7 @@ int calcularMasCercanoASuObjetivo ()
 	}
 	return indice;
 }
+
 void mover (t_registroPersonaje *personaje, t_registroPokenest* pokemonActual)
 {
 	if(personaje->ultimoRecurso == 1) //ultimo movimiento fue en Y => me muevo en X
@@ -785,9 +805,26 @@ int asignar_recurso(char *pokenest, char *personaje, int cant) {
 	return pudo_asignar;
 }
 
+void batallaPokemon(t_list* listaPokEntrenador){
+	t_registroPersonaje* actual = malloc(sizeof(t_registroPersonaje));
+	int i;
+	for(i=0; list_size(entrenadores_listos)!=i;i++){
+		actual = list_get(entrenadores_listos,i);
+		if(actual->marcado == false){
+			pokemonMasFuerteDe(actual,listaPokEntrenador);
+
+		}
+	}
+	t_pokEn* pokEn = malloc(sizeof(pokEn));
+	for(i=0; list_size(listaPokEntrenador)!=i;i++){
+			pokEn = list_get(listaPokEntrenador,i);
+			log_info(logger,"El Pokemon mas fuerte de %s es: %s %d",pokEn->entrenador->nombre, pokEn->pok->species,pokEn->pok->level);
+	}
+
+}
 // Funcion que detecta si existen personajes interbloqueados
 void *detectar_interbloqueo(void *milis) {
-	t_dictionary *W;
+	t_dictionary *copiaAvailable;
 	int rc;
 	/*
 	 * Loop principal del hilo. Ejecuta el algoritmo para detectar deadlock entre personajes
@@ -795,8 +832,7 @@ void *detectar_interbloqueo(void *milis) {
 	 */
 	while (1) {
 		log_info(logger,"Detectando interbloqueo");
-		//hago el chequeo solo si no está en deadlock. Si lo está espero a que se resuelva.
-	//	if (!systemInDeadlock) {
+
 
 			//lockeo el mutex
 		   rc = pthread_mutex_lock(&mutex);
@@ -820,10 +856,10 @@ void *detectar_interbloqueo(void *milis) {
 			}
 			list_iterate(entrenadores_listos, (void*) _list_personajes);
 
-			//Inicializo el vector W, copia de available.
-			W = dictionary_create();
+			//Inicializo el vector copiaAvailable, copia de available.
+			copiaAvailable = dictionary_create();
 			void _list_recursos4(t_registroPokenest *r) {
-				dictionary_put(W, r->nombre, (void*)dictionary_get(available, r->nombre));
+				dictionary_put(copiaAvailable, r->nombre, (void*)dictionary_get(available, r->nombre));
 			}
 			list_iterate(listaPokenest, (void*) _list_recursos4);
 
@@ -834,7 +870,7 @@ void *detectar_interbloqueo(void *milis) {
 
 				if (p->marcado == false) {
 					void _list_recursos2(t_registroPokenest *r) {
-						if ((int)dictionary_get(dictionary_get(request, r->nombre), p->nombre) > (int)dictionary_get(W, r->nombre)) {
+						if ((int)dictionary_get(dictionary_get(request, r->nombre), p->nombre) > (int)dictionary_get(copiaAvailable, r->nombre)) {
 							disponible = false;
 
 						}
@@ -845,12 +881,12 @@ void *detectar_interbloqueo(void *milis) {
 					if (disponible == true) {
 						p->marcado = true;
 
-						// W + allocated para ese personaje
+						// copiaAvailable + allocated para ese personaje
 						int nueva_cantidad = 0;
 						void _list_recursos3(t_registroPokenest *r) {
-							nueva_cantidad = (int)dictionary_get(W, r->nombre) + (int)dictionary_get(dictionary_get((t_dictionary*)alloc, r->nombre), p->nombre);
-							dictionary_remove(W, r->nombre);
-							dictionary_put(W, r->nombre, (void*)nueva_cantidad);
+							nueva_cantidad = (int)dictionary_get(copiaAvailable, r->nombre) + (int)dictionary_get(dictionary_get((t_dictionary*)alloc, r->nombre), p->nombre);
+							dictionary_remove(copiaAvailable, r->nombre);
+							dictionary_put(copiaAvailable, r->nombre, (void*)nueva_cantidad);
 						}
 						list_iterate(listaPokenest, (void*) _list_recursos3);
 
@@ -884,12 +920,9 @@ void *detectar_interbloqueo(void *milis) {
 			if (bloqueados > 1) {
 				//Batalla pokemon---------------------------------------------------------//
 				log_info(logger,"Se ha detectado un interbloqueo! %s", str);
-				void pokemonsDeBloqueados(t_registroPersonaje *p) {
-						if (p->marcado == false) {
-							pokemonMasFuerteDe(p);
-					}
-				}
-				list_iterate(entrenadores_listos, (void*) pokemonsDeBloqueados);
+
+				t_list* listaPokEntrenador = list_create();
+			//	batallaPokemon(listaPokEntrenador);
 			}
 			else{
 				void desbloquear(t_registroPersonaje *p) {
@@ -902,8 +935,7 @@ void *detectar_interbloqueo(void *milis) {
 				log_info(logger,"no hay interbloqueo!");
 			}
 
-			dictionary_destroy(W);
-//		}
+			dictionary_destroy(copiaAvailable);
 		usleep(((int)milis*1000));
 	}
 }
