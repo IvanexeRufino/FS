@@ -425,8 +425,8 @@ char recibirBienvenidaEntrenador(int newfd,t_registroPersonaje *nuevoPersonaje)
 	nuevoPersonaje->identificador=buffer[1];	// Lleno con el campo con el identificador
 	nuevoPersonaje->distanciaARecurso = -1;
 	log_info(logger,"*BIENVENIDA* Recibi de %s: %s,con ID %c y accion: %c",nuevoPersonaje->nombre,buffer,nuevoPersonaje->identificador,bufferConAccion);
-	//CrearPersonaje(items, nuevoPersonaje->identificador , nuevoPersonaje->x, nuevoPersonaje->y);
-	//nivel_gui_dibujar(items,infoMapa->nombre);
+	CrearPersonaje(items, nuevoPersonaje->identificador , nuevoPersonaje->x, nuevoPersonaje->y);
+	nivel_gui_dibujar(items,infoMapa->nombre);
 	return (buffer[0]);
 }
 
@@ -506,8 +506,8 @@ void mover (t_registroPersonaje *personaje, t_registroPokenest* pokemonActual)
 	}
 	if(personaje->x == personaje->pokemonActual->x) personaje->ultimoRecurso = 0;
 	if(personaje->y == personaje->pokemonActual->y) personaje->ultimoRecurso = 1;
-	//MoverPersonaje(items, personaje->identificador, personaje->x, personaje->y );
-	//nivel_gui_dibujar(items,infoMapa->nombre);
+	MoverPersonaje(items, personaje->identificador, personaje->x, personaje->y );
+	nivel_gui_dibujar(items,infoMapa->nombre);
 	enviarCoordenada(personaje->x,personaje->socket);
 	enviarCoordenada(personaje->y,personaje->socket);
 	log_info(logger, "*MOVER* Se mueve %c (%s) por la coordenada X: %d Y: %d para llegar a: %c \n",personaje->identificador,personaje->nombre,personaje->x,personaje->y,pokemonActual->identificador);
@@ -516,7 +516,6 @@ void mover (t_registroPersonaje *personaje, t_registroPokenest* pokemonActual)
 void envioQueSeAtrapoPokemon (t_registroPersonaje *personaje, t_registroPokenest* pokemonActual)
 {
 	log_info(logger, "El personaje %s solicitó el recurso %c", personaje->nombre, pokemonActual->identificador);
-	printf("%d",personaje->pokemonActual->cantidadDisp);
 	int _has_symbol(t_registroPokenest *r)
 	{
 		return (r->identificador == personaje->proximoObjetivo);
@@ -532,7 +531,6 @@ void envioQueSeAtrapoPokemon (t_registroPersonaje *personaje, t_registroPokenest
 		send(personaje->socket,buffer, sizeof(buffer), 0);
 		personaje->distanciaARecurso = -1;
 		restarRecurso(items, pokenest->identificador);
-	//	pokemonMasFuerteDe(personaje);////////////////////////////////////////////ACA! Solo esta para probar que capture
 	} else {
 		personaje->estado = 'B';
 		char* buffer = string_new();
@@ -586,12 +584,12 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje)
 	case ('\0'):
 	case ('4'):
 		nuevoPersonaje->proximoObjetivo = '0';
+		BorrarItem(items, nuevoPersonaje->identificador);
+
 		recuperarPokemonDeEntrenador(nuevoPersonaje);
 		nuevoPersonaje->estado='T';
 		liberar_recursos(nuevoPersonaje->nombre);
 		close(nuevoPersonaje->socket);
-		//sem_wait(&nuevoPersonaje->finTurno);
-		//pthread_exit(0);
 		break;
 	}
 }
@@ -705,10 +703,10 @@ void releerconfig(int aSignal)
 
 char *liberar_recursos(char *nombre_personaje){
 	char *recursosString = string_new();
-	int liberados = 0, rc, totalLiberados = 0;
+	int liberados = 0, totalLiberados = 0;
 
 	 //lockeo el mutex
-	 rc = pthread_mutex_lock(&mutex);
+	 pthread_mutex_lock(&mutex);
 
 	/********** Critical Section *******************/
 
@@ -729,7 +727,7 @@ char *liberar_recursos(char *nombre_personaje){
 	list_iterate(listaPokenest, (void*) _list_recursos);
 
 	/********** end Critical Section *******************/
-    rc = pthread_mutex_unlock(&mutex);
+    pthread_mutex_unlock(&mutex);
    	char *str = string_new();
 
    	if (strlen(recursosString) > 0) {
@@ -763,11 +761,11 @@ void liberar_recurso(char *recurso, char *personaje, int cant) {
 }
 
 int asignar_recurso(char *pokenest, char *personaje, int cant) {
-	int asignados = 0, availables = 0, requested = 0, rc;
+	int asignados = 0, availables = 0, requested = 0;
 	int pudo_asignar = 0;
 
    //lockeo el mutex
-   rc = pthread_mutex_lock(&mutex);
+   pthread_mutex_lock(&mutex);
 
     /********** Critical Section *******************/
 
@@ -798,7 +796,7 @@ int asignar_recurso(char *pokenest, char *personaje, int cant) {
 	}
 
 	/********** end Critical Section *******************/
-    rc = pthread_mutex_unlock(&mutex);
+     pthread_mutex_unlock(&mutex);
 
 	return pudo_asignar;
 }
@@ -806,7 +804,6 @@ int asignar_recurso(char *pokenest, char *personaje, int cant) {
 void batallaPokemon(){
 	t_registroPersonaje* actual = malloc(sizeof(t_registroPersonaje));
 	int i;
-	int j;
 	for(i=0; list_size(entrenadores_listos)!=i;i++){
 		actual = list_get(entrenadores_listos,i);
 		if(actual->marcado == false){
@@ -839,12 +836,33 @@ void batallaPokemon(){
 				int i = 0;
 				void eliminar(t_registroPersonaje* entrenador) {
 							if(entrenador->identificador == pokEn2->entrenador->identificador){
+								char* buffer = string_new();
+								string_append(&buffer,string_itoa(2)); 	//El 2 que mando es el de muerte por deadlock
+								send(entrenador->socket,buffer, sizeof(buffer), 0);
+								//Quiero escuchar cuantas vidas tiene
+								char* buffer2 = string_new();
+								recv(entrenador->socket,buffer2,sizeof(buffer),0);
+								log_info(logger,"845 Al entrenador le quedan %s vidas",buffer);
+
 								liberar_recursos(entrenador->nombre);
-								entrenador->proximoObjetivo = '0';
 								recuperarPokemonDeEntrenador(entrenador);
-								entrenador->estado='T';
-								close(entrenador->socket);
-								list_remove(entrenadores_listos,i);
+
+								if(!strcmp(buffer,"0")){
+									BorrarItem(items, entrenador->identificador);
+
+									close(entrenador->socket);
+									list_remove(entrenadores_listos,i);
+								}else
+								{
+									MoverPersonaje(items, entrenador->identificador, entrenador->x, entrenador->y );
+
+									entrenador->proximoObjetivo = '0';
+									entrenador->x = 0;
+									entrenador->y = 0;
+									entrenador->distanciaARecurso = -1 ;
+									entrenador->estado='B';
+
+								}
 							 }
 						i++;
 				}
@@ -857,7 +875,6 @@ void batallaPokemon(){
 void *detectar_interbloqueo(void *milis) {
 
 	t_dictionary *copiaAvailable;
-	int rc;
 	/*
 	 * Loop principal del hilo. Ejecuta el algoritmo para detectar deadlock entre personajes
 	 * Envia un mensaje al proceso en caso de detectarlo.
@@ -867,47 +884,47 @@ void *detectar_interbloqueo(void *milis) {
 
 
 			//lockeo el mutex
-		   rc = pthread_mutex_lock(&mutex);
+		   pthread_mutex_lock(&mutex);
 
 		   /********** Critical Section *******************/
 
 			// Inicializo todos los personajes como no marcados y
 			// marco todos los personajes que no tengan alocado ningun recurso
-			void _list_personajes(t_registroPersonaje *p) {
+			void marcarEntrenadores(t_registroPersonaje *p) {
 				p->marcado = false;
 				int cant_recursos = 0;
 
-				void _list_recursos1(t_registroPokenest *r) {
+				void cuentoRecursosDisp(t_registroPokenest *r) {
 					cant_recursos += (int)dictionary_get(dictionary_get(alloc, r->nombre), p->nombre);
 				}
-				list_iterate(listaPokenest, (void*) _list_recursos1);
+				list_iterate(listaPokenest, (void*) cuentoRecursosDisp);
 
 				if (cant_recursos == 0) {
 					p->marcado = true;
 				}
 			}
-			list_iterate(entrenadores_listos, (void*) _list_personajes);
+			list_iterate(entrenadores_listos, (void*) marcarEntrenadores);
 
 			//Inicializo el vector copiaAvailable, copia de available.
 			copiaAvailable = dictionary_create();
-			void _list_recursos4(t_registroPokenest *r) {
+			void copioDiccionario(t_registroPokenest *r) {
 				dictionary_put(copiaAvailable, r->nombre, (void*)dictionary_get(available, r->nombre));
 			}
-			list_iterate(listaPokenest, (void*) _list_recursos4);
+			list_iterate(listaPokenest, (void*) copioDiccionario);
 
 
 			bool disponible;
-			void _list_personajes2(t_registroPersonaje *p) {
+			void filtroPersonaje2(t_registroPersonaje *p) {
 				disponible = true;
 
 				if (p->marcado == false) {
-					void _list_recursos2(t_registroPokenest *r) {
+					void recursosDisp(t_registroPokenest *r) {
 						if ((int)dictionary_get(dictionary_get(request, r->nombre), p->nombre) > (int)dictionary_get(copiaAvailable, r->nombre)) {
 							disponible = false;
 
 						}
 					}
-					list_iterate(listaPokenest, (void*) _list_recursos2);
+					list_iterate(listaPokenest, (void*) recursosDisp);
 
 
 					if (disponible == true) {
@@ -915,25 +932,25 @@ void *detectar_interbloqueo(void *milis) {
 
 						// copiaAvailable + allocated para ese personaje
 						int nueva_cantidad = 0;
-						void _list_recursos3(t_registroPokenest *r) {
+						void recursosDisp2(t_registroPokenest *r) {
 							nueva_cantidad = (int)dictionary_get(copiaAvailable, r->nombre) + (int)dictionary_get(dictionary_get((t_dictionary*)alloc, r->nombre), p->nombre);
 							dictionary_remove(copiaAvailable, r->nombre);
 							dictionary_put(copiaAvailable, r->nombre, (void*)nueva_cantidad);
 						}
-						list_iterate(listaPokenest, (void*) _list_recursos3);
+						list_iterate(listaPokenest, (void*) recursosDisp2);
 
 					}
 				}
 			}
 
-			list_iterate(entrenadores_listos, (void*) _list_personajes2);
+			list_iterate(entrenadores_listos, (void*) filtroPersonaje2);
 
 
 
 			// chequeo si existen personajes sin marcar == interbloqueo y envio señal al proceso
 			int bloqueados = 0;
 			char *str = string_new();
-			void _list_personajes3(t_registroPersonaje *p) {
+			void contarBloqueados(t_registroPersonaje *p) {
 					if (p->marcado == false) {
 						bloqueados++;
 						string_append(&str, p->nombre);
@@ -942,10 +959,10 @@ void *detectar_interbloqueo(void *milis) {
 					}
 			}
 
-			list_iterate(entrenadores_listos, (void*) _list_personajes3);
+			list_iterate(entrenadores_listos, (void*) contarBloqueados);
 
 			/********** end Critical Section *******************/
-		    rc = pthread_mutex_unlock(&mutex);
+		    pthread_mutex_unlock(&mutex);
 
 			str[strlen(str)-1] = '\0';
 
@@ -954,8 +971,6 @@ void *detectar_interbloqueo(void *milis) {
 				log_info(logger,"Se ha detectado un interbloqueo! %s", str);
 
 				batallaPokemon();
-
-
 			}
 			else   log_info(logger,"no hay interbloqueo!");
 
@@ -1035,28 +1050,9 @@ int main(int argc, char **argv)
 	}
 	list_iterate(listaPokenest, (void*) _list_elements);
 
-	//nivel_gui_inicializar();
-	//nivel_gui_get_area_nivel(&filas, &columnas);
-	//nivel_gui_dibujar(items,infoMapa->nombre);
-
-// ------------------- Descomentar para probar si cargaron bien las nests -------------------------//
-//	  t_registroPokenest* pokenestPrueba = malloc(sizeof(t_registroPokenest));
-//	  int ii = 0;
-//	  while(ii!= list_size(listaPokenest)){
-//		  pokenestPrueba = list_get(listaPokenest,ii);
-//		   printf("%d",pokenestPrueba->cantidadDisp);
-//		   puts(pokenestPrueba->nombre);
-//		  ii++;
-//	  }
-
-    // bucle principal
-//	  hiloEscucha = malloc(sizeof(t_registroPersonaje));
-//	  hiloEscucha->estado = 'M';
-//	  sem_init(&colaDeListos, 1,0);
-//	  sem_init(&hiloEscucha->comienzoTurno,1,0);
-//	  sem_init(&hiloEscucha->finTurno,1,0);
-//	  list_add(entrenadores_listos, hiloEscucha);
-//	  sem_post(&colaDeListos);
+	nivel_gui_inicializar();
+	nivel_gui_get_area_nivel(&filas, &columnas);
+	nivel_gui_dibujar(items,infoMapa->nombre);
 
 	  int socketServidor;
 	  int newfd;
@@ -1086,8 +1082,6 @@ int main(int argc, char **argv)
 		  param->idHilo = idHilo;
 		  param->newfd = newfd;
 		  pthread_create (&idHilo,NULL,(void*)ejecutar_Entrenador,param);
-		  //sem_post(&hiloEscucha->finTurno);
-		  //pthread_join(&idHilo,0);
 	  }
 
 log_info(logger, "Se finalizaron las operaciones con todos los entrenadores que estaban conectados");
