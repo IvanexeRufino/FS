@@ -265,6 +265,7 @@ int buscarBloqueVacio() {
 
 int crear_archivo(char* path, int direcOArch)
 {
+	char* buffer = malloc(17);
 	pthread_mutex_lock(&semaforoTablaDeArchivos);
 	int posicionEnLaTabla = buscarArchivoVacio();
 	osada_file* archivoNuevo = &tablaDeArchivos[posicionEnLaTabla];
@@ -274,7 +275,8 @@ int crear_archivo(char* path, int direcOArch)
 		//tabla de archivos lleno
 		return -1;
 	}
-	strcpy(archivoNuevo->fname,adquirirNombre(path));
+	memcpy(buffer, adquirirNombre(path), 17);
+	memcpy(archivoNuevo->fname,buffer,17);
 	archivoNuevo->parent_directory = buscarArchivoDelPadre(path);
 	archivoNuevo->file_size = 0;
 	archivoNuevo->lastmod = time(NULL);
