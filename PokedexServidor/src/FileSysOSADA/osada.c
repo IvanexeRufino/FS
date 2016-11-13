@@ -290,6 +290,8 @@ int crear_archivo(char* path, int direcOArch)
 	}
 	pthread_mutex_unlock(&semaforoTablaDeArchivos);
 
+	free(buffer);
+
 	return posicionEnLaTabla;
 }
 

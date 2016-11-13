@@ -6,6 +6,7 @@
  */
 
 #include "pokedexservidor.h"
+#include <commons/collections/list.h>
 
 void* memoria(int cantidad) {
 	void* puntero = NULL;
@@ -264,8 +265,8 @@ void sigchld_handler(int s){
 
 int main(void) {
 
-	system("truncate -s 100k disco.bin");
-	system("./osada-format disco.bin");
+//	system("truncate -s 100k disco.bin");
+//	system("./osada-format disco.bin");
 	reconocerOSADA("disco.bin");
 
 	int sockfd, new_fd;  // Escuchar sobre sock_fd, nuevas conexiones sobre new_fd
