@@ -59,11 +59,11 @@ void gameOver()
 	printf("GAME OVER!!! Parece que el personaje %s ha muerto y se ha quedado sin vidas,¿Desea continuar?(S/n).\n",infoEntrenador->nombre);
 	scanf("%c", &respuesta);
 
-	while (respuesta != 'S' && respuesta != 'n' && respuesta != 'N' && respuesta != 's')
-	{
-		printf("Por favor responda si desea continuar solamente con (S/n).\n");
-		scanf("%c", &respuesta);
-	}
+//	while (respuesta != 'S' && respuesta != 'n' && respuesta != 'N' && respuesta != 's')
+//	{
+//		printf("Por favor responda si desea continuar solamente con (S/n).\n");
+//		scanf("%c", &respuesta);
+//	}
 	if (respuesta == 'n' || respuesta == 'N')
 	{
 		log_info(logger, "Gracias por jugar! Vuelva Pronto!\n");
@@ -71,6 +71,9 @@ void gameOver()
 	}
 	else if (respuesta == 'S' ||respuesta == 's' )
 	{
+		char* buffer = string_new();
+		string_append(&buffer,string_itoa(4));
+		send(mapa->socketMapa,buffer,sizeof(buffer),0);
 		reinicio = 1;
 		contadorMapa = -1;
 		contadorObjetivo = 99;
@@ -404,12 +407,12 @@ int main(int argc, char **argv)
 						if(infoEntrenador->posicionEnX == mapa->pokemonActualPosicionEnX && infoEntrenador->posicionEnY == mapa->pokemonActualPosicionEnY)
 							{
 							int atrapado = 0;
-							while(atrapado == 0){
+							while(atrapado == 0 && reinicio != 1){
 
 								atrapado = atraparPokemon(mapa,objetivos[contadorObjetivo]);  								//Le envio en el header el ID 3
 								log_info(logger,"%d",atrapado);
 							}
-							if (atrapado == 1)
+							if (atrapado == 1 && reinicio != 1)
 								{
 									atrapados ++;
 									log_info(logger,"Felicitaciones, capturaste el pokemon nro %d \n",contadorObjetivo);
@@ -427,6 +430,7 @@ int main(int argc, char **argv)
 
 							}
 					}
+
 		}
 		clock_t fin=clock();
 

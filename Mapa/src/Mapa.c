@@ -585,7 +585,6 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje)
 	case ('4'):
 		nuevoPersonaje->proximoObjetivo = '0';
 		BorrarItem(items, nuevoPersonaje->identificador);
-
 		recuperarPokemonDeEntrenador(nuevoPersonaje);
 		nuevoPersonaje->estado='T';
 		liberar_recursos(nuevoPersonaje->nombre);
@@ -848,14 +847,13 @@ void batallaPokemon(){
 								recuperarPokemonDeEntrenador(entrenador);
 
 								if(!strcmp(buffer,"0")){
-									BorrarItem(items, entrenador->identificador);
-
-									close(entrenador->socket);
-									list_remove(entrenadores_listos,i);
+//									BorrarItem(items, entrenador->identificador);
+//
+//									close(entrenador->socket);
+//									list_remove(entrenadores_listos,i);
 								}else
 								{
 									MoverPersonaje(items, entrenador->identificador, entrenador->x, entrenador->y );
-
 									entrenador->proximoObjetivo = '0';
 									entrenador->x = 0;
 									entrenador->y = 0;
@@ -1038,6 +1036,9 @@ int main(int argc, char **argv)
     request = dictionary_create();
     alloc = dictionary_create();
 
+    nivel_gui_inicializar();
+    nivel_gui_get_area_nivel(&filas, &columnas);
+
 	if (leerConfiguracionMapa () == 1) log_info(logger, "Archivo de configuracion leido correctamente");
 	else log_error(logger,"Error la leer archivo de configuracion");
 
@@ -1050,8 +1051,7 @@ int main(int argc, char **argv)
 	}
 	list_iterate(listaPokenest, (void*) _list_elements);
 
-	nivel_gui_inicializar();
-	nivel_gui_get_area_nivel(&filas, &columnas);
+
 	nivel_gui_dibujar(items,infoMapa->nombre);
 
 	  int socketServidor;
