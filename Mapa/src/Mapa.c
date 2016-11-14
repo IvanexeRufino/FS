@@ -1,53 +1,15 @@
 #include "Mapa.h"
 
-char rutaArgv[100];
-pid_t pid;
+//void sumarRecurso(t_list* items, char id) {
+//    ITEM_NIVEL* item = _search_item_by_id(items, id);
+//
+//    if (item != NULL) {
+//        item->quantity++;
+//    } else {
+//        printf("WARN: Item %c no existente\n", id);
+//    }
+//}
 
-t_list* listaPokenest;
-t_list* items;
-
-t_list* entrenadores_listos;
-t_list* entrenadores_bloqueados;
-t_pkmn_factory* fabricaPokemon;
-t_list* listapokEn;
-pthread_mutex_t mutex_EntrenadoresActivos = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t mutex_threadAEjecutar = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t mutex_bloqPlanificador = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t mutex_entrenadorEnEjecucion = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t mutex_Ejecucion = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t mutex_siguienteQuantum = PTHREAD_MUTEX_INITIALIZER;
-
-//manejo de pokenests
-t_dictionary *available;
-t_dictionary *request;
-t_dictionary *alloc;
-
-//detección de deadlock
-int systemInDeadlock = false;
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-
-t_registroPersonaje *hiloEscucha;
-mapa_datos* infoMapa;
-
-int filas, columnas;
-t_log* logger;
-
-sem_t colaDeListos;
-sem_t pasoDeEntrenador;
-sem_t turnoMain;
-
-int threadAEjecutar;
-
-
-void sumarRecurso(t_list* items, char id) {
-    ITEM_NIVEL* item = _search_item_by_id(items, id);
-
-    if (item != NULL) {
-        item->quantity++;
-    } else {
-        printf("WARN: Item %c no existente\n", id);
-    }
-}
 void pokemonMasFuerteDe(t_registroPersonaje *personaje){
 	//t_pokemon* masFuerte = malloc(sizeof(t_pokemon));
 	//t_pokemon* actual = malloc(sizeof(t_pokemon));
@@ -602,8 +564,8 @@ void ejecutar_Entrenador(parametros_entrenador* param)
 	 nuevoPersonaje = malloc(sizeof(t_registroPersonaje));
 	 nuevoPersonaje->pokemonActual=malloc(sizeof(t_registroPokenest));
 	 nuevoPersonaje->threadId = param->idHilo;
-	 sem_init(&nuevoPersonaje->comienzoTurno,1,0);
-	 sem_init(&nuevoPersonaje->finTurno,1,0);
+	 //sem_init(&nuevoPersonaje->comienzoTurno,1,0);
+	 //sem_init(&nuevoPersonaje->finTurno,1,0);
 	 char estaListoParaJugar = recibirBienvenidaEntrenador(param->newfd,nuevoPersonaje);	//Realizo el handshake
 
  	if (estaListoParaJugar == '0')
@@ -622,9 +584,10 @@ void ejecutar_Entrenador(parametros_entrenador* param)
 	{
 		log_info(logger, "Nose para que te conectaste si no queres jugar xD ");		// No deberia tirar nunca este printf
 	}
- 	return;
- 	sem_wait(&nuevoPersonaje->finTurno);
  	pthread_exit(0);
+ 	return;
+ 	//sem_wait(&nuevoPersonaje->finTurno);
+ 	//pthread_exit(0);
 }
 
 void planificarNuevo()
@@ -703,6 +666,7 @@ void releerconfig(int aSignal)
 	 return ;
 }
 
+
 char *liberar_recursos(char *nombre_personaje){
 	char *recursosString = string_new();
 	int liberados = 0, totalLiberados = 0;
@@ -755,7 +719,7 @@ void liberar_recurso(char *recurso, char *personaje, int cant) {
 	//Incremento los recursos disponibles.
 	availables = (int)dictionary_get(available, recurso);
 	dictionary_remove(available, recurso);
-	dictionary_put(available,recurso, (availables + liberados));
+	dictionary_put(available,recurso,(void*)(availables + liberados));
 
 	//saco los recursos de request
 	dictionary_remove(dictionary_get(request, recurso), personaje);
@@ -775,18 +739,18 @@ int asignar_recurso(char *pokenest, char *personaje, int cant) {
 		//agrego los pokenests a alloc
 		asignados = (int)dictionary_get(dictionary_get(alloc, pokenest), personaje);
 		dictionary_remove(dictionary_get(alloc, pokenest), personaje);
-		dictionary_put(dictionary_get(alloc, pokenest), personaje, asignados + cant);
+		dictionary_put(dictionary_get(alloc, pokenest), personaje,(void*)(asignados + cant));
 
 		//saco los pokenests de available
 		availables = (int)dictionary_get(available, pokenest);
 		dictionary_remove(available, pokenest);
-		dictionary_put(available, pokenest, availables - cant);
+		dictionary_put(available, pokenest,(void*)(availables - cant));
 
 		//si tenia a ese pokenest en request, lo saco
 		requested = (int)dictionary_get(dictionary_get(request, pokenest), personaje);
 		if (requested > 0) {
 			dictionary_remove(dictionary_get(request, pokenest), personaje);
-			dictionary_put(dictionary_get(request, pokenest), personaje, requested - cant);
+			dictionary_put(dictionary_get(request, pokenest), personaje,(void*)(requested - cant));
 		}
 
 		pudo_asignar = 1;
@@ -794,7 +758,7 @@ int asignar_recurso(char *pokenest, char *personaje, int cant) {
 		//actualizo matriz request
 		requested = (int)dictionary_get(dictionary_get(request, pokenest), personaje);
 		dictionary_remove(dictionary_get(request, pokenest), personaje);
-		dictionary_put(dictionary_get(request, pokenest), personaje, requested + cant);
+		dictionary_put(dictionary_get(request, pokenest), personaje,(void*)(requested + cant));
 	}
 
 	/********** end Critical Section *******************/
@@ -946,17 +910,15 @@ void *detectar_interbloqueo(void *milis) {
 
 			list_iterate(entrenadores_listos, (void*) filtroPersonaje2);
 
-
-
 			// chequeo si existen personajes sin marcar == interbloqueo y envio señal al proceso
 			int bloqueados = 0;
 			char *str = string_new();
+
 			void contarBloqueados(t_registroPersonaje *p) {
 					if (p->marcado == false) {
 						bloqueados++;
 						string_append(&str, p->nombre);
 						string_append(&str, "|");
-
 					}
 			}
 

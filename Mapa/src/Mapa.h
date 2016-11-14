@@ -67,7 +67,6 @@ typedef struct
 	char accion;
 	int quantumFaltante;
 	t_registroPokenest* pokemonActual;
-
 }t_registroPersonaje;
 
 typedef struct{
@@ -89,14 +88,48 @@ typedef struct
 } mapa_datos;
 
 typedef struct
-	{
+{
 	int newfd;
 	pthread_t idHilo;
-
-	} parametros_entrenador;
+} parametros_entrenador;
 
 /*----------------------- Declaraciones de Variables Globales ---------------------------*/
 
+	char rutaArgv[100];
+	pid_t pid;
+	int filas, columnas;
+	t_log* logger;
+	int threadAEjecutar;
+	int systemInDeadlock = false;	//detección de deadlock
+
+	t_registroPersonaje *hiloEscucha;
+	mapa_datos* infoMapa;
+
+	t_list* listaPokenest;
+	t_list* items;
+	t_list* entrenadores_listos;
+	t_list* entrenadores_bloqueados;
+	t_list* listapokEn;
+	t_pkmn_factory* fabricaPokemon;
+
+	//manejo de pokenests
+	t_dictionary *available;
+	t_dictionary *request;
+	t_dictionary *alloc;
+
+/*----------------------- Declaraciones de Semaforos Globales ---------------------------*/
+
+	sem_t colaDeListos;
+	sem_t pasoDeEntrenador;
+	sem_t turnoMain;
+
+	pthread_mutex_t mutex_EntrenadoresActivos = PTHREAD_MUTEX_INITIALIZER;
+	pthread_mutex_t mutex_threadAEjecutar = PTHREAD_MUTEX_INITIALIZER;
+	pthread_mutex_t mutex_bloqPlanificador = PTHREAD_MUTEX_INITIALIZER;
+	pthread_mutex_t mutex_entrenadorEnEjecucion = PTHREAD_MUTEX_INITIALIZER;
+	pthread_mutex_t mutex_Ejecucion = PTHREAD_MUTEX_INITIALIZER;
+	pthread_mutex_t mutex_siguienteQuantum = PTHREAD_MUTEX_INITIALIZER;
+	pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER; //PARA EL DEADLOCK
 
 /*----------------------- Declaraciones de Constantes ----------------------------------*/
 
@@ -118,10 +151,27 @@ typedef struct
 
 /*----------------------- Declaraciones de Prototipos ---------------------------------*/
 
-void leerConfiguracionPokenest(char*, char*);
-void liberar_recurso(char*, char*, int);
-char *liberar_recursos(char*);
-int asignar_recurso(char*, char*, int);
+void pokemonMasFuerteDe(t_registroPersonaje* );
 int leerDatosBill(char* , char*);
+void recuperarPokemonDeEntrenador(t_registroPersonaje* );
+void copiarPokemonAEntrenador(t_registroPersonaje *, t_registroPokenest* );
+int leerConfiguracionMapa();
+int reLeerConfiguracionMapa();
+void leerConfiguracionPokenest(char*, char*);
+char recibirBienvenidaEntrenador(int ,t_registroPersonaje* );
+void cargoDatosPokemonActual(char ,t_registroPokenest* );
+int distanciaAProxObjetivo(t_registroPersonaje* , char );
+int calcularMasCercanoASuObjetivo ();
+void mover (t_registroPersonaje* , t_registroPokenest* );
+void envioQueSeAtrapoPokemon (t_registroPersonaje*, t_registroPokenest* );
+void recibirQueHacer(t_registroPersonaje* );
+void ejecutar_Entrenador(parametros_entrenador* );
+void planificarNuevo();
+void releerconfig(int);
+char *liberar_recursos(char*);
+void liberar_recurso(char*, char*, int);
+int asignar_recurso(char*, char*, int);
+void batallaPokemon();
+void *detectar_interbloqueo(void*);
 
 #endif /* MAPA_H_ */
