@@ -37,9 +37,9 @@ _Static_assert( sizeof(osada_file_state) == 1, "osada_file_state is not a char t
 typedef struct {
 	osada_file_state state;
 	unsigned char fname[OSADA_FILENAME_LENGTH];
-	uint16_t parent_directory;
-	uint32_t file_size;
 	uint32_t lastmod;
+	uint32_t file_size;
+	uint16_t parent_directory;
 	osada_block_pointer first_block;
 } osada_file;
 
@@ -49,7 +49,7 @@ void reconocerOSADA(char* path);
 
 int buscarIndiceConPadre(char* nombreABuscar, int padre);
 
-int obtenerIndice(char* path);
+uint16_t obtenerIndice(char* path);
 
 osada_file* obtenerArchivo(char* path);
 
@@ -65,7 +65,7 @@ char* adquirirNombreAnterior(char* path);
 
 char* adquirirNombre(char* path);
 
-uint32_t buscarArchivoDelPadre(char* path);
+uint16_t buscarArchivoDelPadre(char* path);
 
 int crear_archivo(char* path, int direcOArch);
 
