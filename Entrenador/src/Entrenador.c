@@ -1,5 +1,6 @@
 #include "Entrenador.h"
 
+int conectado;
 t_log* logger;
 entrenador_datos* infoEntrenador;
 pid_t pid;
@@ -54,26 +55,24 @@ void muerteDefinitivaPorSenial(int aSignal)
 void gameOver()
 {
 	devolverMedallas();
-	close(mapa->socketMapa);
-	char respuesta;
+	char* respuesta = malloc(sizeof(char));
 	printf("GAME OVER!!! Parece que el personaje %s ha muerto y se ha quedado sin vidas,¿Desea continuar?(S/n).\n",infoEntrenador->nombre);
-	scanf("%c", &respuesta);
+	scanf("%s", respuesta);
 
 //	while (respuesta != 'S' && respuesta != 'n' && respuesta != 'N' && respuesta != 's')
 //	{
 //		printf("Por favor responda si desea continuar solamente con (S/n).\n");
 //		scanf("%c", &respuesta);
 //	}
-	if (respuesta == 'n' || respuesta == 'N')
+	if (!strcmp(respuesta,"s") || !strcmp(respuesta,"S"))
 	{
-		log_info(logger, "Gracias por jugar! Vuelva Pronto!\n");
-		return;
-	}
-	else if (respuesta == 'S' ||respuesta == 's' )
-	{
-		char* buffer = string_new();
-		string_append(&buffer,string_itoa(4));
-		send(mapa->socketMapa,buffer,sizeof(buffer),0);
+		if(conectado == 1){
+			char* buffer = string_new();
+			string_append(&buffer,string_itoa(4));
+			send(mapa->socketMapa,buffer,sizeof(buffer),0);
+			close(mapa->socketMapa);
+			conectado = 0;
+		}
 		reinicio = 1;
 		contadorMapa = -1;
 		contadorObjetivo = 99;
@@ -81,6 +80,11 @@ void gameOver()
 		infoEntrenador->vidas = 3;
 		log_info(logger, "Gracias por continuar jugando! Se le han otorgado 3 vidas mas!\n");
 	return;
+	}
+	else{
+		close(mapa->socketMapa);
+		log_info(logger, "Gracias por jugar! Vuelva Pronto!\n");
+		return;
 	}
 }
 
@@ -112,12 +116,8 @@ void muertePorDeadlock(){
 	contadorObjetivo = -1;
 	//contadorMapa = contadorMapa-1;
 	atrapados = 0;
-	if(infoEntrenador->vidas>=0)
-		{
-			log_info(logger,"El personaje %s perdio una vida por deadlock y actualmente tiene %d vidas.\n",infoEntrenador->nombre,infoEntrenador->vidas);
-		}
-	else
-		{
+	log_info(logger,"El personaje %s perdio una vida por deadlock y actualmente tiene %d vidas.\n",infoEntrenador->nombre,infoEntrenador->vidas);
+	if(infoEntrenador->vidas<=0){
 			gameOver();
 		}
 }
@@ -333,6 +333,7 @@ void copiarMedalla(char entrenador[20],char* nombre)
 
 int main(int argc, char **argv)
 {
+	conectado = 0;
 	reinicio = 0;
 	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
 	log_info(logger, PROGRAM_DESCRIPTION);
@@ -381,6 +382,7 @@ int main(int argc, char **argv)
 			leerConfiguracionMapa(mapa);				      					   //Busco en los archivos de config la ip y el socket
 			int socketServidor = conectarConServer(mapa->ipMapa, mapa->puertoMapa); //Me conecto con el Mapa
 			mapa->socketMapa = socketServidor;
+			conectado = 1;
 			log_info(logger, "Conectado al servidor");							// Lo reflejo en el log
 			infoEntrenador->posicionEnX = 0;									//Estaria en la posicion 0 en el nuevo mapa
 			infoEntrenador->posicionEnY = 0;
@@ -419,6 +421,7 @@ int main(int argc, char **argv)
 									if(atrapados == list_size(mapa->objetivos)){
 										copiarMedalla(infoEntrenador->nombre, mapa->nivel);
 										log_info(logger, "Felicitaciones, terminaste de capturar todos los pokemons del mapa nro %d \n",contadorMapa);
+										conectado = 0;
 										informarFinalizacion(mapa);
 										close(mapa->socketMapa);
 									}

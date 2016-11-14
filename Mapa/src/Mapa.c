@@ -381,6 +381,7 @@ void leerConfiguracionPokenest(char mapa[20], char pokemon[256])
 		if(pokenest->x> columnas || pokenest->y > filas)
 		{
 			log_error(logger, "La Pokenest %c supera los limites de filas/columnas del nivel. \n", pokenest->identificador);
+			nivel_gui_terminar();
 			exit(1);
 		}
 
@@ -392,6 +393,7 @@ void leerConfiguracionPokenest(char mapa[20], char pokemon[256])
 		if(list_any_satisfy(listaPokenest, (void*) distanciaEntreCajas))
 		{
 			log_error(logger, "La Pokenest %c no respeta las distancias con otra Pokenest. \n", pokenest->identificador);
+			nivel_gui_terminar();
 			exit(1);
 		}
 
@@ -585,6 +587,7 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje)
 	case ('4'):
 		nuevoPersonaje->proximoObjetivo = '0';
 		BorrarItem(items, nuevoPersonaje->identificador);
+		nivel_gui_dibujar(items,infoMapa->nombre);
 		recuperarPokemonDeEntrenador(nuevoPersonaje);
 		nuevoPersonaje->estado='T';
 		liberar_recursos(nuevoPersonaje->nombre);
@@ -1039,8 +1042,10 @@ int main(int argc, char **argv)
     nivel_gui_inicializar();
     nivel_gui_get_area_nivel(&filas, &columnas);
 
-	if (leerConfiguracionMapa () == 1) log_info(logger, "Archivo de configuracion leido correctamente");
-	else log_error(logger,"Error la leer archivo de configuracion");
+	if (leerConfiguracionMapa () == 1)
+		log_info(logger, "Archivo de configuracion leido correctamente");
+	else
+		log_error(logger,"Error la leer archivo de configuracion");
 
 	//pokenests
 	void _list_elements(t_registroPokenest *r)
