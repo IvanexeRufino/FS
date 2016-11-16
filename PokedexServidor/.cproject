@@ -41,7 +41,6 @@
 								</option>
 								<option id="gnu.c.link.option.paths.1915765315" name="Library search path (-L)" superClass="gnu.c.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/BibliotecaCompartida/Debug}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/BibliotecaPayback}&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.linker.input.73522538" superClass="cdt.managedbuild.tool.gnu.c.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>

@@ -3,7 +3,6 @@
 	<name>PokedexCliente</name>
 	<comment></comment>
 	<projects>
-		<project>BibliotecaCompartida</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
