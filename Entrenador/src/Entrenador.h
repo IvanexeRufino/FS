@@ -43,7 +43,6 @@ typedef struct
 	int posicionEnX;
 	int posicionEnY;
 	int reintentos;
-	int nivelActual;
 } entrenador_datos;
 
 typedef struct {

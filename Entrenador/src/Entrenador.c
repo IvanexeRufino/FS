@@ -385,14 +385,14 @@ int main(int argc, char **argv)
 
 		for(contadorMapa = 0 ; contadorMapa< list_size(listaDeNiveles); contadorMapa++)
 		{
-			infoEntrenador->nivelActual = contadorMapa;
+
 			if(reinicio == 1) {
-				infoEntrenador->nivelActual = contadorMapa-1;
+				contadorMapa = 0;
 				reinicio = 0;
 				contadorObjetivo = 0;
 			}
 			atrapados = 0;
-			t_nivel* mapa = list_get(listaDeNiveles,infoEntrenador->nivelActual);
+			t_nivel* mapa = list_get(listaDeNiveles,contadorMapa);
 			leerConfiguracionMapa(mapa);				      					   //Busco en los archivos de config la ip y el socket
 			int socketServidor = conectarConServer(mapa->ipMapa, mapa->puertoMapa); //Me conecto con el Mapa
 			mapa->socketMapa = socketServidor;
@@ -434,7 +434,7 @@ int main(int argc, char **argv)
 									log_info(logger,"Felicitaciones, capturaste el pokemon nro %d \n",contadorObjetivo);
 									if(atrapados == list_size(mapa->objetivos)){
 										copiarMedalla(infoEntrenador->nombre, mapa->nivel);
-										log_info(logger, "Felicitaciones, terminaste de capturar todos los pokemons del mapa nro %d \n",infoEntrenador->nivelActual);
+										log_info(logger, "Felicitaciones, terminaste de capturar todos los pokemons del mapa nro %d \n",contadorMapa);
 										conectado = 0;
 										informarFinalizacion(mapa);
 										close(mapa->socketMapa);
