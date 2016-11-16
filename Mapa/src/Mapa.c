@@ -822,7 +822,12 @@ void batallaPokemon(){
 									liberar_recursos(entrenador->nombre);
 									close(entrenador->socket);
 									free(entrenador);
+									pthread_cancel(entrenador->threadId);
+									pthread_mutex_lock(&mutex_EntrenadoresActivos);
 									list_remove(entrenadores_listos,i);
+									pthread_mutex_unlock(&mutex_EntrenadoresActivos);
+
+
 								}else
 								{
 									entrenador->proximoObjetivo = '0';
