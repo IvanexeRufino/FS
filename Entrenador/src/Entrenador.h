@@ -97,5 +97,6 @@ void informarFinalizacion(t_nivel*);
 void solicitarAvanzar(t_nivel*,char);
 int atraparPokemon(t_nivel*,char);
 void copiarMedalla(char*,char*);
+void desconectar();
 
 #endif /* ENTRENADOR_H_ */

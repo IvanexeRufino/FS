@@ -1,20 +1,20 @@
 #include "Mapa.h"
 
-//void sumarRecurso(t_list* items, char id) {
-//    ITEM_NIVEL* item = _search_item_by_id(items, id);
-//
-//    if (item != NULL) {
-//        item->quantity++;
-//    } else {
-//        printf("WARN: Item %c no existente\n", id);
-//    }
-//}
+void sumarRecurso(t_list* items, char id) {
+    ITEM_NIVEL* item = _search_item_by_id(items, id);
+
+    if (item != NULL) {
+        item->quantity++;
+    } else {
+        printf("WARN: Item %c no existente\n", id);
+    }
+}
 
 void pokemonMasFuerteDe(t_registroPersonaje *personaje){
 	//t_pokemon* masFuerte = malloc(sizeof(t_pokemon));
 	//t_pokemon* actual = malloc(sizeof(t_pokemon));
 	int nivel;
-	char ruta[300];
+	char ruta[400];
 	strcpy(ruta,rutaArgv);
 	strcat(ruta,"/Entrenadores/");
 	strcat(ruta,personaje->nombre);
@@ -542,7 +542,7 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje)
 		//Si hay deadlock lo meto en la entrenadores_bloqueados
 
 		envioQueSeAtrapoPokemon(nuevoPersonaje,nuevoPersonaje->pokemonActual);
-
+		sleep(1);
 		break;
 
 	case ('\0'):
@@ -564,8 +564,7 @@ void ejecutar_Entrenador(parametros_entrenador* param)
 	 nuevoPersonaje = malloc(sizeof(t_registroPersonaje));
 	 nuevoPersonaje->pokemonActual=malloc(sizeof(t_registroPokenest));
 	 nuevoPersonaje->threadId = param->idHilo;
-	 //sem_init(&nuevoPersonaje->comienzoTurno,1,0);
-	 //sem_init(&nuevoPersonaje->finTurno,1,0);
+
 	 char estaListoParaJugar = recibirBienvenidaEntrenador(param->newfd,nuevoPersonaje);	//Realizo el handshake
 
  	if (estaListoParaJugar == '0')
@@ -586,8 +585,7 @@ void ejecutar_Entrenador(parametros_entrenador* param)
 	}
  	pthread_exit(0);
  	return;
- 	//sem_wait(&nuevoPersonaje->finTurno);
- 	//pthread_exit(0);
+
 }
 
 void planificarNuevo()
@@ -688,7 +686,6 @@ char *liberar_recursos(char *nombre_personaje){
 				sumarRecurso(items, r->identificador);
 			}
 		}
-
 	}
 	list_iterate(listaPokenest, (void*) _list_recursos);
 
@@ -710,7 +707,9 @@ char *liberar_recursos(char *nombre_personaje){
 
 void liberar_recurso(char *recurso, char *personaje, int cant) {
 	int liberados = 0, availables = 0;
-
+//	char rec;
+//	rec = recurso[0];
+//	sumarRecurso(items, rec);
 	liberados = (int)dictionary_get(dictionary_get((t_dictionary*)alloc, recurso), personaje);
 
 	//saco los recursos alocados.
@@ -718,6 +717,7 @@ void liberar_recurso(char *recurso, char *personaje, int cant) {
 
 	//Incremento los recursos disponibles.
 	availables = (int)dictionary_get(available, recurso);
+
 	dictionary_remove(available, recurso);
 	dictionary_put(available,recurso,(void*)(availables + liberados));
 
@@ -814,19 +814,24 @@ void batallaPokemon(){
 								recuperarPokemonDeEntrenador(entrenador);
 
 								if(!strcmp(buffer,"0")){
-//									BorrarItem(items, entrenador->identificador);
-//
-//									close(entrenador->socket);
-//									list_remove(entrenadores_listos,i);
+									entrenador->proximoObjetivo = '0';
+									BorrarItem(items, entrenador->identificador);
+									nivel_gui_dibujar(items,infoMapa->nombre);
+									recuperarPokemonDeEntrenador(entrenador);
+									entrenador->estado='T';
+									liberar_recursos(entrenador->nombre);
+									close(entrenador->socket);
+									free(entrenador);
+									list_remove(entrenadores_listos,i);
 								}else
 								{
-									MoverPersonaje(items, entrenador->identificador, entrenador->x, entrenador->y );
 									entrenador->proximoObjetivo = '0';
 									entrenador->x = 0;
 									entrenador->y = 0;
-									entrenador->distanciaARecurso = -1 ;
+									entrenador->distanciaARecurso = -1;
 									entrenador->estado='B';
-
+									MoverPersonaje(items, entrenador->identificador, entrenador->x, entrenador->y );
+									nivel_gui_dibujar(items,infoMapa->nombre);
 								}
 							 }
 						i++;
