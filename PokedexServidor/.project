@@ -3,7 +3,7 @@
 	<name>PokedexServidor</name>
 	<comment></comment>
 	<projects>
-		<project>BibliotecaPayback</project>
+		<project>BibliotecaCompartida</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

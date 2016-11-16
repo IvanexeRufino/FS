@@ -24,22 +24,22 @@ endif
 # Add inputs and outputs from these tool invocations to the build variables 
 
 # All Target
-all: PokedexServidor
+all: PokedexCliente
 
 dependents:
 	-cd /home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Debug && $(MAKE) clean all
 
 # Tool invocations
-PokedexServidor: $(OBJS) $(USER_OBJS) /home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Debug/libBibliotecaCompartida.so
+PokedexCliente: $(OBJS) $(USER_OBJS) /home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Debug/libBibliotecaCompartida.so
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C Linker'
-	gcc -L"/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Debug" -o "PokedexServidor" $(OBJS) $(USER_OBJS) $(LIBS)
+	gcc -L"/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Debug" -o "PokedexCliente" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) $(OBJS)$(C_DEPS)$(EXECUTABLES) PokedexServidor
+	-$(RM) $(OBJS)$(C_DEPS)$(EXECUTABLES) PokedexCliente
 	-@echo ' '
 
 .PHONY: all clean dependents

@@ -1,64 +1,48 @@
 # Makefile de todos los proyectos y librerias
 # Utiliza los makes de cada proyecto que crea el eclipse
 
-all: bibliotecaCompartida entrenador mapa pkmnUtils pokedexCliente pokedexServidor so-commons-library so-nivel-gui-library so-pkmn-utils
+all: so-commons-library BibliotecaCompartida/Debug nivel-gui pkmnUtils entrenador mapa pokedexCliente pokedexServidor  
 
 so-commons-library:
-	mkdir -p commons/Debug
-	mkdir -p commons/Debug/commons
-	mkdir -p commons/Debug/commons/collections
-	mkdir -p commons/Debug/commons/LibUtils
-	make -C commons/ all
+	mkdir -p so-commons-library
+	make -C so-commons-library
 
-bibliotecaCompartida: 
-	mkdir -p BibliotecaCompartida/Debug
-	make -C BibliotecaCompartida/ all
+BibliotecaCompartida: so-commons-library
+	
+	make -C BibliotecaCompartida/Debug/ all
 
-entrenador:
-	mkdir -p Entrenador/Debug
-	make -C Entrenador/ all
+nivel-gui: so-commons-library
+	mkdir -p nivel-gui/Debug
+	make -C nivel-gui/ all
 
-mapa: commons nivel-gui
-	mkdir -p Mapa/Debug	
-	make -C Mapa/ all
-
-pkmnUtils: commons
+pkmnUtils: so-commons-library
 	mkdir -p pkmnUtils/Debug
 	make -C pkmnUtils/ all
 
-pokedexCliente: commons
-	mkdir -p PokedexCliente/Debug
-	make -C PokedexCliente/ all
+entrenador: so-commons-library BibliotecaCompartida 
 	
-pokedexServidor: commons
-	mkdir -p PokedexServidor/Debug
-	make -C PokedexServidor/ all
-	
-so-commons-library: commons
-	mkdir -p so-commons-library/Debug
-	make -C so-commons-library/ all
-	
-so-nivel-gui-library: commons
-	mkdir -p so-nivel-gui-library/Debug
-	make -C so-nivel-gui-library/ all
+	make -C Entrenador/Debug/ all
 
-so-pkmn-utils: commons
-	mkdir -p so-pkmn-utils/Debug
-	make -C so-pkmn-utils/ all
+mapa: so-commons-library nivel-gui pkmnUtils BibliotecaCompartida 
+		
+	make -C Mapa/Debug/ all
+
+pokedexCliente: so-commons-library BibliotecaCompartida 
+	
+	make -C PokedexCliente/Debug/ all
+	
+pokedexServidor: so-commons-library BibliotecaCompartida 
+
+	make -C PokedexServidor/Debug/ all
 
 clean:
-	make -C bibliotecaCompartida/ clean
-	make -C entrenador/ clean
-	make -C mapa/ clean
-	make -C pkmnUtils/ clean
-	make -C pokedexCliente/ clean
-	make -C pokedexServidor/ clean.
 	make -C so-commons-library/ clean
-	make -C so-nivel-gui-library/ clean
-	make -C so-pkmn-utils/ clean
+	make -C BibliotecaCompartida/Debug/ clean
+	make -C nivel-gui/ clean
+	make -C pkmnUtils/ clean
+	make -C Entrenador/Debug/ clean
+	make -C Mapa/Debug/ clean
+	make -C PokedexCliente/Debug/ clean
+	make -C PokedexServidor/Debug/clean
 
-.PHONY: all bibliotecaCompartida entrenador mapa pkmnUtils pokedexCliente pokedexServidor so-commons-library so-nivel-gui-library so-pkmn-utils clean
-
-
-
-
+.PHONY: all so-commons-library bibliotecaCompartida nivel-gui pkmnUtils entrenador mapa pokedexCliente pokedexServidor clean
