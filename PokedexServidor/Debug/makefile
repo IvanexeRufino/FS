@@ -27,7 +27,7 @@ endif
 all: PokedexServidor
 
 dependents:
-	-cd /home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Debug && $(MAKE) all
+	-cd /home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Debug && $(MAKE) clean all
 
 # Tool invocations
 PokedexServidor: $(OBJS) $(USER_OBJS) /home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Debug/libBibliotecaCompartida.so

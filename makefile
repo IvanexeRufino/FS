@@ -1,13 +1,13 @@
 # Makefile de todos los proyectos y librerias
 # Utiliza los makes de cada proyecto que crea el eclipse
 
-all: so-commons-library BibliotecaCompartida/Debug nivel-gui pkmnUtils entrenador mapa pokedexCliente pokedexServidor  
+all: so-commons-library bibliotecaCompartida nivel-gui pkmnUtils entrenador mapa pokedexCliente pokedexServidor  
 
 so-commons-library:
 	mkdir -p so-commons-library
 	make -C so-commons-library
 
-BibliotecaCompartida: so-commons-library
+bibliotecaCompartida: so-commons-library
 	
 	make -C BibliotecaCompartida/Debug/ all
 
@@ -43,6 +43,6 @@ clean:
 	make -C Entrenador/Debug/ clean
 	make -C Mapa/Debug/ clean
 	make -C PokedexCliente/Debug/ clean
-	make -C PokedexServidor/Debug/clean
+	make -C PokedexServidor/Debug/ clean
 
 .PHONY: all so-commons-library bibliotecaCompartida nivel-gui pkmnUtils entrenador mapa pokedexCliente pokedexServidor clean
