@@ -37,9 +37,9 @@ _Static_assert( sizeof(osada_file_state) == 1, "osada_file_state is not a char t
 typedef struct {
 	osada_file_state state;
 	unsigned char fname[OSADA_FILENAME_LENGTH];
-	uint32_t lastmod;
-	uint32_t file_size;
 	uint16_t parent_directory;
+	uint32_t file_size;
+	uint32_t lastmod;
 	osada_block_pointer first_block;
 } osada_file;
 

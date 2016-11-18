@@ -162,12 +162,15 @@ void recibirQueSos(int newfd){
 			indice= obtenerIndice(paqueterecv->datos);
 			t_list* listaDeHijos= listaDeHijosDelArchivo(indice);
 			char* bufo= memoria(17*list_size(listaDeHijos));
+			unsigned char* nombre = malloc(17);
 			int i;
-
+			int copiado = 0;
 			for(i=0;i<list_size(listaDeHijos);i++){
 				osada_file* archivoHijo= list_get(listaDeHijos,i);
-				strcat(bufo,archivoHijo->fname);
-				strcat(bufo, "/");
+				memcpy(nombre, archivoHijo->fname,17);
+				memcpy(bufo,nombre ,strlen(archivoHijo->fname) + 1);
+				memcpy(bufo + strlen(archivoHijo->fname) + 1, "/", 1);
+				copiado += strlen(archivoHijo->fname) + 2;
 			}
 
 			if(list_size(listaDeHijos) != NULL){
