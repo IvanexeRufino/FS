@@ -9,6 +9,7 @@ t_nivel* mapa;
 char rutaArgv[100];
 int contadorMapa;
 int contadorObjetivo;
+float tiempoBloqueo;
 int atrapados;
 int reinicio ;
 void devolverMedallas()
@@ -337,6 +338,7 @@ void desconectar(){
 
 int main(int argc, char **argv)
 {
+	tiempoBloqueo = 0;
 	conectado = 0;
 	reinicio = 0;
 	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
@@ -412,9 +414,11 @@ int main(int argc, char **argv)
 							{
 							int atrapado = 0;
 							while(atrapado == 0 && reinicio != 1){
-
+								clock_t inicioBloqueo=clock();
 								atrapado = atraparPokemon(mapa,objetivos[contadorObjetivo]);  								//Le envio en el header el ID 3
 								log_info(logger,"%d",atrapado);
+								clock_t finBloqueo=clock();
+								tiempoBloqueo = tiempoBloqueo + (finBloqueo - inicioBloqueo);
 							}
 							if (atrapado == 1)
 								{
@@ -437,12 +441,14 @@ int main(int argc, char **argv)
 							}
 					}
 
+			sleep(3); // Lo pongo a descansar al terminar un mapa!
 		}
 		clock_t fin=clock();
 
 		log_info(logger, "------TE CONVERTISTE EN MAESTRO POKEMON------ \n");
-		log_info(logger, "El tiempo total que tardo la aventura fue: %f segundos \n", (fin-inicio)/(double)CLOCKS_PER_SEC);
-
+		log_info(logger, "El tiempo total que tardo la aventura fue: %f segundos \n", (fin-inicio)*1000/(double)CLOCKS_PER_SEC);
+		log_info(logger, "Estuviste bloqueado %f Segundos", tiempoBloqueo *1000 /(double)CLOCKS_PER_SEC);
+		log_info(logger, "Solo te costo %d intentos", infoEntrenador->reintentos);
 		list_destroy(listaDeNiveles);
 		list_destroy(mapa->objetivos);
 		free(vector);

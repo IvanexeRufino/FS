@@ -14,7 +14,7 @@ void pokemonMasFuerteDe(t_registroPersonaje *personaje){
 	//t_pokemon* masFuerte = malloc(sizeof(t_pokemon));
 	//t_pokemon* actual = malloc(sizeof(t_pokemon));
 	int nivel;
-	char ruta[400];
+	char ruta[512];
 	strcpy(ruta,rutaArgv);
 	strcat(ruta,"/Entrenadores/");
 	strcat(ruta,personaje->nombre);
@@ -56,7 +56,7 @@ void pokemonMasFuerteDe(t_registroPersonaje *personaje){
 
 }
 int leerDatosBill(char* nombre , char* ruta){
-	char aux[300];
+	char aux[512];
 	strcpy (aux,ruta);
 	strcat(aux,nombre);
 	t_config* config = config_create(aux);
@@ -73,9 +73,9 @@ int leerDatosBill(char* nombre , char* ruta){
 void recuperarPokemonDeEntrenador(t_registroPersonaje *personaje)
 {
 	log_info(logger,"Recuperando Pokemons de %s", personaje->nombre);
-	char origen[300];
-	char destino[300];
-	char comando[500];
+	char origen[512];
+	char destino[512];
+	char comando[512];
 	char pokemon[30];
 
 	strcpy(origen,rutaArgv);
@@ -111,6 +111,7 @@ void recuperarPokemonDeEntrenador(t_registroPersonaje *personaje)
 				strcat(comando, ep->d_name);
 				strcat(comando, "/");
 	//			puts(comando);
+				log_debug(logger,"La ruta para devolver es: %s",comando);
 				system(comando);
 				strcpy(comando, "rm ");
 				strcat(comando, origen);
@@ -123,15 +124,16 @@ void recuperarPokemonDeEntrenador(t_registroPersonaje *personaje)
 	(void) closedir (dp);
 	}
 	else	perror ("Couldn't open the directory");
+
 	log_info(logger,"Pokemons Recuperados");
 }
 
 void copiarPokemonAEntrenador(t_registroPersonaje *personaje, t_registroPokenest* pokenest)
 {
 	log_info(logger," Entregando Pokemon %s, a %s",pokenest->nombre, personaje->nombre);
-	char origen[300];
-	char destino[300];
-	char comando[500];
+	char origen[512];
+	char destino[512];
+	char comando[512];
 	strcpy(origen, rutaArgv);
 	strcat(origen, "/Mapas/");
 	strcat(origen, infoMapa->nombre);
@@ -247,10 +249,10 @@ int leerConfiguracionMapa()
 int reLeerConfiguracionMapa()
 {
 	log_info(logger, "Se Solicito Releer los datos del Mapa");
-	char pathconfigMetadata[256];
+	char pathconfigMetadata[512];
 	strcpy(pathconfigMetadata, rutaArgv);
 	strcat(pathconfigMetadata,"/Mapas/");
-	char path[256];
+	char path[512];
 	strcat(pathconfigMetadata, infoMapa->nombre);
 	strcpy(path,pathconfigMetadata);
 	strcat(path, "/PokeNests");
@@ -289,7 +291,7 @@ int reLeerConfiguracionMapa()
 void leerConfiguracionPokenest(char mapa[20], char pokemon[256])
 {
 	int cantidadPokemon = 0;
-	char pathpokenestMetadata[256] ;
+	char pathpokenestMetadata[512] ;
 	strcpy(pathpokenestMetadata, rutaArgv);
 	strcat(pathpokenestMetadata, "/Mapas/");
 	strcat(pathpokenestMetadata, mapa);
