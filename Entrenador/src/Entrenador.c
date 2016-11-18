@@ -376,7 +376,7 @@ int main(int argc, char **argv)
 
 			char *vector=malloc(sizeof(char)*10);
 			clock_t inicio=clock();
-
+			devolverMedallas();
 		for(contadorMapa = 0 ; contadorMapa< list_size(listaDeNiveles); contadorMapa++)
 		{
 			reinicio=0;
@@ -444,7 +444,6 @@ int main(int argc, char **argv)
 			sleep(3); // Lo pongo a descansar al terminar un mapa!
 		}
 		clock_t fin=clock();
-
 		log_info(logger, "------TE CONVERTISTE EN MAESTRO POKEMON------ \n");
 		log_info(logger, "El tiempo total que tardo la aventura fue: %f segundos \n", (fin-inicio)*1000/(double)CLOCKS_PER_SEC);
 		log_info(logger, "Estuviste bloqueado %f Segundos", tiempoBloqueo *1000 /(double)CLOCKS_PER_SEC);
