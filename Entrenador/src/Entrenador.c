@@ -49,6 +49,7 @@ void devolverMedallas()
 void muerteDefinitivaPorSenial(int aSignal)
 {
 	log_info(logger,"El personaje se desconecto");
+	if(conectado == 1)informarFinalizacion(mapa);
 	exit(1);
 	signal(SIGINT, muerteDefinitivaPorSenial);
 }
@@ -57,7 +58,7 @@ void gameOver()
 {
 	devolverMedallas();
 	char respuesta = 's';
-	log_error(logger,"GAME OVER!!! Parece que el personaje %s ha muerto y se ha quedado sin vidas,¿Desea continuar?(S/n).\n",infoEntrenador->nombre);
+	log_info(logger,"GAME OVER!!! Parece que el personaje %s ha muerto y se ha quedado sin vidas,¿Desea continuar?(S/n).\n",infoEntrenador->nombre);
 	scanf("%c", &respuesta);
 	switch(respuesta){
 		case 'S':
@@ -327,11 +328,7 @@ void copiarMedalla(char entrenador[20],char* nombre)
 
 void desconectar(){
 	if(conectado == 1 && reinicio == 1){
-		log_info(logger,"el entrenador se desconectara del mapa");
-		char* buffer = string_new();
-		string_append(&buffer,string_itoa(4));
-		send(mapa->socketMapa,buffer,sizeof(buffer),0);
-		close(mapa->socketMapa);
+		informarFinalizacion(mapa);
 		conectado = 0;
 	}
 }
@@ -393,7 +390,7 @@ int main(int argc, char **argv)
 			enviarMensajeInicial(mapa->socketMapa);								//Le envio el simbolo al Mapa - HEADER ID es el 0
 			desconectar();
 			//La utilizo para moverme entre objetivos de pokemones
-			for(contadorObjetivo = 0 ; contadorObjetivo< list_size(mapa->objetivos); contadorObjetivo++)
+			for(contadorObjetivo = 0 ; contadorObjetivo< list_size(mapa->objetivos) && reinicio != 1; contadorObjetivo++)
 					{
 
 				int i = list_size(mapa->objetivos);
@@ -445,8 +442,8 @@ int main(int argc, char **argv)
 		}
 		clock_t fin=clock();
 		log_info(logger, "------TE CONVERTISTE EN MAESTRO POKEMON------ \n");
-		log_info(logger, "El tiempo total que tardo la aventura fue: %f segundos \n", (fin-inicio)*1000/(double)CLOCKS_PER_SEC);
-		log_info(logger, "Estuviste bloqueado %f Segundos", tiempoBloqueo *1000 /(double)CLOCKS_PER_SEC);
+		log_info(logger, "El tiempo total que tardo la aventura fue: %f segundos \n", (fin-inicio)*10000/(double)CLOCKS_PER_SEC);
+		log_info(logger, "Estuviste bloqueado %f Segundos", tiempoBloqueo *10000 /(double)CLOCKS_PER_SEC);
 		log_info(logger, "Solo te costo %d intentos", infoEntrenador->reintentos);
 		list_destroy(listaDeNiveles);
 		list_destroy(mapa->objetivos);
