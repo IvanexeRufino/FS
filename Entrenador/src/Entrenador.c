@@ -55,22 +55,17 @@ void muerteDefinitivaPorSenial(int aSignal)
 void gameOver()
 {
 	devolverMedallas();
-	char respuesta ;
-	printf("GAME OVER!!! Parece que el personaje %s ha muerto y se ha quedado sin vidas,¿Desea continuar?(S/n).\n",infoEntrenador->nombre);
+	char respuesta = 's';
+	log_error(logger,"GAME OVER!!! Parece que el personaje %s ha muerto y se ha quedado sin vidas,¿Desea continuar?(S/n).\n",infoEntrenador->nombre);
 	scanf("%c", &respuesta);
-
-	printf("%c",respuesta);
 	switch(respuesta){
 		case 'S':
 		case 's':
-			printf("66");
 			reinicio = 1;
-			log_info(logger,"el entrenador se desconectara del mapa");
-			close(mapa->socketMapa);
 			conectado = 0;
 			log_info(logger,"reiniciando...");
-				//	contadorMapa = -1;
 			contadorObjetivo = 99;
+			contadorMapa = - 1;
 			infoEntrenador->reintentos ++;
 			infoEntrenador->vidas = 3;
 			log_info(logger, "Gracias por continuar jugando! Se le han otorgado 3 vidas mas!\n");
@@ -78,11 +73,7 @@ void gameOver()
 			break;
 
 	default:
-		printf("78");
-		desconectar();
-		close(mapa->socketMapa);
-		free(infoEntrenador);
-		free(mapa);
+
 		log_info(logger, "Gracias por jugar! Vuelva Pronto!\n");
 		exit(1);
 	}
@@ -92,8 +83,8 @@ void muertePorSenial(int num)
 {
 	signal(SIGTERM,muertePorSenial);//Por consola kill -15 PID
 	infoEntrenador->vidas--;
-	contadorObjetivo = -1;		//siguiente pokenest
-	atrapados = 0;
+	//contadorObjetivo = -1;		//siguiente pokenest
+	//atrapados = 0;
 	//contadorMapa = contadorMapa - 1;
 	if(infoEntrenador->vidas>0)
 	{
@@ -101,23 +92,23 @@ void muertePorSenial(int num)
 	}
 	else
 	{
+
+		informarFinalizacion(mapa);
+		conectado = 0;
 		gameOver();
 	}
 }
 void muertePorDeadlock(){
 
 	infoEntrenador->vidas--;
-	char* buffer = string_new();
-	string_append(&buffer,string_itoa(infoEntrenador->vidas));		//Envio cantidad de vidas
-	send(mapa->socketMapa,buffer,sizeof(buffer),0);
+	reinicio = 1;
+	conectado = 0;
+	contadorObjetivo = 99;
 	if(infoEntrenador->vidas<=0){
 			gameOver();
 		}
 	else{
-		infoEntrenador->posicionEnX = 0;
-		infoEntrenador->posicionEnY = 0;
-		contadorObjetivo = -1;
-		//contadorMapa = contadorMapa-1;
+		contadorMapa = contadorMapa-1;
 		atrapados = 0;
 		log_info(logger,"El personaje %s perdio una vida por deadlock y actualmente tiene %d vidas.\n",infoEntrenador->nombre,infoEntrenador->vidas);
 	}
@@ -265,6 +256,7 @@ void informarFinalizacion(t_nivel *mapa)
 	string_append(&buffer,string_itoa(FINALIZACION));
 	send(mapa->socketMapa, buffer, sizeof(buffer), 0);
 	log_info(logger, "Le informo al Mapa que finalice mi mision aqui");
+	close(mapa->socketMapa);
 }
 
 void solicitarAvanzar(t_nivel *mapa,char objetivo)
@@ -385,12 +377,8 @@ int main(int argc, char **argv)
 
 		for(contadorMapa = 0 ; contadorMapa< list_size(listaDeNiveles); contadorMapa++)
 		{
-
-			if(reinicio == 1) {
-				contadorMapa = 0;
-				reinicio = 0;
-				contadorObjetivo = 0;
-			}
+			reinicio=0;
+			contadorObjetivo = 0;
 			atrapados = 0;
 			t_nivel* mapa = list_get(listaDeNiveles,contadorMapa);
 			leerConfiguracionMapa(mapa);				      					   //Busco en los archivos de config la ip y el socket
@@ -420,7 +408,7 @@ int main(int argc, char **argv)
 								solicitarAvanzar(mapa,objetivos[contadorObjetivo]);									//(Le envio en el header el ID 2)
 							}
 
-						if(infoEntrenador->posicionEnX == mapa->pokemonActualPosicionEnX && infoEntrenador->posicionEnY == mapa->pokemonActualPosicionEnY && reinicio != 1)
+						if(infoEntrenador->posicionEnX == mapa->pokemonActualPosicionEnX && infoEntrenador->posicionEnY == mapa->pokemonActualPosicionEnY)
 							{
 							int atrapado = 0;
 							while(atrapado == 0 && reinicio != 1){
@@ -428,7 +416,7 @@ int main(int argc, char **argv)
 								atrapado = atraparPokemon(mapa,objetivos[contadorObjetivo]);  								//Le envio en el header el ID 3
 								log_info(logger,"%d",atrapado);
 							}
-							if (atrapado == 1 && reinicio != 1)
+							if (atrapado == 1)
 								{
 									atrapados ++;
 									log_info(logger,"Felicitaciones, capturaste el pokemon nro %d \n",contadorObjetivo);
@@ -437,10 +425,11 @@ int main(int argc, char **argv)
 										log_info(logger, "Felicitaciones, terminaste de capturar todos los pokemons del mapa nro %d \n",contadorMapa);
 										conectado = 0;
 										informarFinalizacion(mapa);
-										close(mapa->socketMapa);
+
 									}
 								}
-							else if(atrapado == 2 && reinicio != 1){		//Esperando el pokemon para atrapar el mapa me indica que mori por deadlock
+							else if(atrapado == 2 ){		//Esperando el pokemon para atrapar el mapa me indica que mori por deadlock
+								informarFinalizacion(mapa);
 								muertePorDeadlock();
 								log_info(logger,"Parece que te mataron, Reiniciando nivel....");
 								}
