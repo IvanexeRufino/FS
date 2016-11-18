@@ -549,10 +549,10 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje)
 	case ('4'):
 		nuevoPersonaje->proximoObjetivo = '0';
 		BorrarItem(items, nuevoPersonaje->identificador);
-		nivel_gui_dibujar(items,infoMapa->nombre);
-		recuperarPokemonDeEntrenador(nuevoPersonaje);
-		nuevoPersonaje->estado='T';
 		liberar_recursos(nuevoPersonaje->nombre);
+		recuperarPokemonDeEntrenador(nuevoPersonaje);
+		nivel_gui_dibujar(items,infoMapa->nombre);
+		nuevoPersonaje->estado='T';
 		close(nuevoPersonaje->socket);
 		break;
 	}
@@ -653,7 +653,8 @@ void planificarNuevo()
 			list_add(entrenadores_listos,entrenador);
 			pthread_mutex_unlock(&mutex_EntrenadoresActivos);
 			if(entrenador->estado == 'L') sem_post(&colaDeListos);  //Agrego este if para que el mapa no se quede loopeando si estan bloqueados los entrenadores
-		}															//el sem_post deberia llamarse cuando el deadlock lo diga;
+		}
+		else free(entrenador);//el sem_post deberia llamarse cuando el deadlock lo diga;
 	}	//Aca termina y  vuelve al while(1)
 }
 
@@ -782,6 +783,7 @@ void batallaPokemon(){
 	t_pokEn* pokEn2 = malloc(sizeof(pokEn));
 	t_pokemon* pokPerdedor = malloc(sizeof(t_pokemon));
 	pokEn = list_remove(listapokEn,0);
+	pthread_mutex_lock(&mutex_EntrenadoresActivos);
 	while(list_size(listapokEn)!=0){
 				pokEn2 = list_remove(listapokEn,0);
 				pokPerdedor = pkmn_battle(pokEn->pok , pokEn2->pok);
@@ -803,46 +805,19 @@ void batallaPokemon(){
 				void eliminar(t_registroPersonaje* entrenador) {
 							if(entrenador->identificador == pokEn2->entrenador->identificador){
 								char* buffer = string_new();
+								log_info(logger,"Informo a %s , que murio en una batalla.",entrenador->nombre);
 								string_append(&buffer,string_itoa(2)); 	//El 2 que mando es el de muerte por deadlock
 								send(entrenador->socket,buffer, sizeof(buffer), 0);
-								//Quiero escuchar cuantas vidas tiene
-								char* buffer2 = string_new();
-								recv(entrenador->socket,buffer2,sizeof(buffer),0);
-								log_info(logger,"845 Al entrenador le quedan %s vidas",buffer);
 
-								liberar_recursos(entrenador->nombre);
-								recuperarPokemonDeEntrenador(entrenador);
+								recibirQueHacer(entrenador);
 
-								if(!strcmp(buffer,"0")){
-									entrenador->proximoObjetivo = '0';
-									BorrarItem(items, entrenador->identificador);
-									nivel_gui_dibujar(items,infoMapa->nombre);
-									recuperarPokemonDeEntrenador(entrenador);
-									entrenador->estado='T';
-									liberar_recursos(entrenador->nombre);
-									close(entrenador->socket);
-									free(entrenador);
-									pthread_cancel(entrenador->threadId);
-									pthread_mutex_lock(&mutex_EntrenadoresActivos);
-									list_remove(entrenadores_listos,i);
-									pthread_mutex_unlock(&mutex_EntrenadoresActivos);
-
-
-								}else
-								{
-									entrenador->proximoObjetivo = '0';
-									entrenador->x = 0;
-									entrenador->y = 0;
-									entrenador->distanciaARecurso = -1;
-									entrenador->estado='B';
-									MoverPersonaje(items, entrenador->identificador, entrenador->x, entrenador->y );
-									nivel_gui_dibujar(items,infoMapa->nombre);
-								}
 							 }
 						i++;
 				}
 				list_iterate(entrenadores_listos, (void*) eliminar);
+
 			}
+	pthread_mutex_unlock(&mutex_EntrenadoresActivos);
 
 	log_info(logger,"El ganador de todas las batallas es:%s", pokEn->entrenador->nombre);
 }
@@ -957,7 +932,6 @@ void *detectar_interbloqueo(void *milis) {
 			 }
 			 list_iterate(entrenadores_listos, (void*) desbloquear);
 
-			log_info(logger,"puto el que lee");
 			dictionary_destroy(copiaAvailable);
 		usleep(((int)milis*1000));
 	}
