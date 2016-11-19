@@ -148,6 +148,7 @@ void recibirQueSos(int newfd){
 
 		switch(paqueterecv->codigo){
 		case 1:
+			printf("el tamaño es %s \n", paqueterecv->datos);
 			archivo = obtenerArchivo(paqueterecv->datos);
 			if(archivo == NULL || archivo->state == 0) {
 				paqueteSend = empaquetar(100,"error",6);
@@ -159,6 +160,7 @@ void recibirQueSos(int newfd){
 			}
 			break;
 			case 2:
+			printf("el tamaño es %s \n", paqueterecv->datos);
 			indice= obtenerIndice(paqueterecv->datos);
 			t_list* listaDeHijos= listaDeHijosDelArchivo(indice);
 			char* bufo= memoria(17*list_size(listaDeHijos));
@@ -168,9 +170,8 @@ void recibirQueSos(int newfd){
 			for(i=0;i<list_size(listaDeHijos);i++){
 				osada_file* archivoHijo= list_get(listaDeHijos,i);
 				memcpy(nombre, archivoHijo->fname,17);
-				memcpy(bufo,nombre ,strlen(archivoHijo->fname) + 1);
-				memcpy(bufo + strlen(archivoHijo->fname) + 1, "/", 1);
-				copiado += strlen(archivoHijo->fname) + 2;
+				strcat(bufo,nombre);
+				strcat(bufo, "/");
 			}
 
 			if(list_size(listaDeHijos) != NULL){
@@ -183,12 +184,15 @@ void recibirQueSos(int newfd){
 
 			break;
 			case 3:
+				printf("el tamaño es %s \n", paqueterecv->datos);
 				crear_archivo(paqueterecv->datos,2);
 				break;
 			case 4:
+				printf("el tamaño es %s \n", paqueterecv->datos);
 				crear_archivo(paqueterecv->datos,1);
 				break;
 			case 5:
+				printf("el tamaño es %s \n", paqueterecv->datos);
 				archivo = obtenerArchivo(paqueterecv->datos);
 				if(archivo == NULL || archivo->state == 0) {
 					paqueteSend = empaquetar(100,"error",6);
@@ -218,6 +222,7 @@ void recibirQueSos(int newfd){
 				enviar = acoplador(paqueteSend);
 				break;
 			case 8:
+				printf("el tamaño es %s \n", paqueterecv->datos);
 				archivo = obtenerArchivo(paqueterecv->datos);
 				if(archivo->state == 1) {
 					borrar_archivo(paqueterecv->datos);
@@ -231,6 +236,7 @@ void recibirQueSos(int newfd){
 				}
 				break;
 			case 9:
+				printf("el tamaño es %s \n", paqueterecv->datos);
 				break;
 			case 10:
 				paqueteRead = desacoplador1(paqueterecv->datos,paqueterecv->tamanio);
@@ -243,12 +249,14 @@ void recibirQueSos(int newfd){
 				}
 				break;
 			case 11:
+				printf("el tamaño es %s \n", paqueterecv->datos);
 				buforecibido= malloc(paqueterecv->tamanio);
 				buforecibido= paqueterecv->datos;
 				char** bufonuevo= string_split(buforecibido,"%");
 				renombrar_archivo(bufonuevo[0],bufonuevo[1]);
 				break;
 			case 12:
+				printf("el tamaño es %s \n", paqueterecv->datos);
 				buforecibidox= malloc(paqueterecv->tamanio);
 				buforecibidox= paqueterecv->datos;
 				char** bufonuevox= string_split(buforecibidox,"%");
