@@ -181,10 +181,14 @@ static int ejemplo_read(char *path, char *buf, size_t size, off_t offset,
 }
 
 static int ejemplo_write (char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
-	char* bufosend= malloc(strlen(path) + size + 1);
-	memcpy(bufosend,path,strlen(path) + 1);
-	memcpy(bufosend + strlen(path), buf, size);
-	t_paquete* paquetewrite= empaquetar(offset,bufosend,size);
+	char* bufo=malloc(strlen(path)+strlen(buf)+2);
+	strcpy(bufo,path);
+	strcat(bufo,"|");
+	strcat(bufo,buf);
+//	char* bufosend= malloc(strlen(path) + size + 1);
+//	memcpy(bufosend,path,strlen(path) + 1);
+//	memcpy(bufosend + strlen(path), buf, size + 1);
+	t_paquete* paquetewrite= empaquetar(offset,bufo,size);
 	void* streamwrite= acoplador1(paquetewrite);
 	t_paquete* paqueterec= enviarQueSos(7,streamwrite,strlen(path) + 1 + size + size_header);
 	return paqueterec->tamanio;
@@ -214,7 +218,7 @@ static int ejemplo_truncate(char* path, off_t size) {
 }
 
 static int ejemplo_rename(char *nombreViejo, char *nombreNuevo){
-	char* bufo=malloc(strlen(nombreViejo)+strlen(nombreNuevo)+1);
+	char* bufo=malloc(strlen(nombreViejo)+strlen(nombreNuevo)+2);
 	strcpy(bufo,nombreViejo);
 	strcat(bufo,"%");
 	strcat(bufo,nombreNuevo);
@@ -223,7 +227,7 @@ static int ejemplo_rename(char *nombreViejo, char *nombreNuevo){
 }
 
 static int ejemplo_link (char *archivoOrigen, char *archivoDestino){
-	char* bufo=malloc(strlen(archivoOrigen)+strlen(archivoDestino)+1);
+	char* bufo=malloc(strlen(archivoOrigen)+strlen(archivoDestino)+2);
 	strcpy(bufo,archivoOrigen);
 	strcat(bufo,"%");
 	strcat(bufo,archivoDestino);

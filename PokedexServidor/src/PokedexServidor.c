@@ -148,7 +148,7 @@ void recibirQueSos(int newfd){
 
 		switch(paqueterecv->codigo){
 		case 1:
-			printf("el tamaño es %s \n", paqueterecv->datos);
+			printf("el path es %s \n", paqueterecv->datos);
 			archivo = obtenerArchivo(paqueterecv->datos);
 			if(archivo == NULL || archivo->state == 0) {
 				paqueteSend = empaquetar(100,"error",6);
@@ -160,7 +160,7 @@ void recibirQueSos(int newfd){
 			}
 			break;
 			case 2:
-			printf("el tamaño es %s \n", paqueterecv->datos);
+			printf("el path es %s \n", paqueterecv->datos);
 			indice= obtenerIndice(paqueterecv->datos);
 			t_list* listaDeHijos= listaDeHijosDelArchivo(indice);
 			char* bufo= memoria(17*list_size(listaDeHijos));
@@ -184,15 +184,15 @@ void recibirQueSos(int newfd){
 
 			break;
 			case 3:
-				printf("el tamaño es %s \n", paqueterecv->datos);
+				printf("el path es %s \n", paqueterecv->datos);
 				crear_archivo(paqueterecv->datos,2);
 				break;
 			case 4:
-				printf("el tamaño es %s \n", paqueterecv->datos);
+				printf("el path es %s \n", paqueterecv->datos);
 				crear_archivo(paqueterecv->datos,1);
 				break;
 			case 5:
-				printf("el tamaño es %s \n", paqueterecv->datos);
+				printf("el path es %s \n", paqueterecv->datos);
 				archivo = obtenerArchivo(paqueterecv->datos);
 				if(archivo == NULL || archivo->state == 0) {
 					paqueteSend = empaquetar(100,"error",6);
@@ -205,6 +205,7 @@ void recibirQueSos(int newfd){
 				break;
 			case 6:
 				paqueteRead = desacoplador1(paqueterecv->datos,paqueterecv->tamanio);
+				printf("el path es %s \n", paqueteRead->datos);
 				archivo = obtenerArchivo(paqueteRead->datos);
 				char* buf = malloc(minimoEntre(archivo->file_size, paqueteRead->tamanio));
 				int size = leer_archivo(paqueteRead->datos,0,archivo->file_size,buf);
@@ -213,12 +214,19 @@ void recibirQueSos(int newfd){
 				break;
 			case 7:
 				paqueteRead = desacoplador1(paqueterecv->datos,paqueterecv->tamanio);
-				char* bufpath = malloc(paqueterecv->tamanio - size_header - paqueteRead->tamanio -1);
-				char* bufbuf = malloc(paqueterecv->tamanio);
-				memcpy(bufpath, paqueteRead->datos, paqueterecv->tamanio -size_header - paqueteRead->tamanio -1);
-				memcpy(bufbuf,paqueteRead->datos + strlen(bufpath), paqueteRead->tamanio);
-				int tam = escribir_archivo(bufpath,paqueteRead->codigo,paqueteRead->tamanio,bufbuf);
-				paqueteSend = empaquetar(7,bufbuf,tam);
+				char** bufonuevo= string_split(paqueteRead->datos,"|");
+				char* bufoPath = malloc(paqueterecv->tamanio -size_header - paqueteRead->tamanio);
+				char* bufobufo = malloc(paqueteRead->tamanio);
+				strcpy(bufoPath,bufonuevo[0]);
+				strcpy(bufobufo,bufonuevo[1]);
+//				char* bufpath = malloc(paqueterecv->tamanio - size_header - paqueteRead->tamanio);
+//				char* bufbuf = malloc(paqueterecv->tamanio);
+//				memcpy(bufpath, paqueteRead->datos, paqueterecv->tamanio -size_header - paqueteRead->tamanio);
+//				memcpy(bufbuf,paqueteRead->datos + strlen(bufpath), paqueteRead->tamanio);
+				printf("el path es %s \n", bufonuevo[0]);
+				printf("el contenido es %s \n", bufonuevo[1]);
+				int tam = escribir_archivo(bufonuevo[0],paqueteRead->codigo,paqueteRead->tamanio,bufonuevo[1]);
+				paqueteSend = empaquetar(7,bufonuevo[1],tam);
 				enviar = acoplador(paqueteSend);
 				break;
 			case 8:
@@ -249,17 +257,15 @@ void recibirQueSos(int newfd){
 				}
 				break;
 			case 11:
-				printf("el tamaño es %s \n", paqueterecv->datos);
 				buforecibido= malloc(paqueterecv->tamanio);
 				buforecibido= paqueterecv->datos;
-				char** bufonuevo= string_split(buforecibido,"%");
+				char** bufonuevox= string_split(buforecibido,"%");
 				renombrar_archivo(bufonuevo[0],bufonuevo[1]);
 				break;
 			case 12:
-				printf("el tamaño es %s \n", paqueterecv->datos);
 				buforecibidox= malloc(paqueterecv->tamanio);
 				buforecibidox= paqueterecv->datos;
-				char** bufonuevox= string_split(buforecibidox,"%");
+				char** bufonuevoxx= string_split(buforecibidox,"%");
 				copiar_archivo(bufonuevox[0],bufonuevox[1]);
 				break;
 			}
