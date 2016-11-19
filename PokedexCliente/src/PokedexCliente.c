@@ -156,6 +156,9 @@ static int ejemplo_mkdir(char* filename, mode_t modo){
 	if(paquete->codigo == 100) {
 		return ENAMETOOLONG;
 	}
+	if(paquete->codigo == 101) {
+		return EDQUOT;
+	}
 	return 0;
 }
 
@@ -163,6 +166,9 @@ static int ejemplo_create (char* path, mode_t modo, struct fuse_file_info * info
 	t_paquete* paquete = enviarQueSos(4, path, strlen(path) + 1);
 	if(paquete->codigo == 100) {
 		return ENAMETOOLONG;
+	}
+	if(paquete->codigo == 101) {
+		return EDQUOT;
 	}
 	return 0;
 }

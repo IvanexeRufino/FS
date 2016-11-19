@@ -148,9 +148,16 @@ void recibirQueSos(int newfd){
 			break;
 			case 3:
 				if(paqueterecv->tamanio - 2 <= 17) {
-					crear_archivo(paqueterecv->datos,2);
-					paqueteSend = empaquetar(99,"ok",3);
-					enviar = acoplador(paqueteSend);
+					int error = crear_archivo(paqueterecv->datos,2);
+					if (error == -1) {
+						paqueteSend = empaquetar(101,"tabla de archivos",18);
+						enviar = acoplador(paqueteSend);
+					}
+					else {
+						paqueteSend = empaquetar(99,"ok",3);
+						enviar = acoplador(paqueteSend);
+					}
+
 				}
 				else {
 					paqueteSend= empaquetar(100,"error",6);
@@ -159,9 +166,13 @@ void recibirQueSos(int newfd){
 				break;
 			case 4:
 				if(paqueterecv->tamanio - 2 <= 17) {
-					crear_archivo(paqueterecv->datos,1);
+					int  error = crear_archivo(paqueterecv->datos,1);
 					paqueteSend = empaquetar(99,"ok",3);
 					enviar = acoplador(paqueteSend);
+					if (error == -1) {
+						paqueteSend = empaquetar(101,"tabla de archivos",18);
+						enviar = acoplador(paqueteSend);
+					}
 				}
 				else {
 					paqueteSend= empaquetar(100,"error",6);
