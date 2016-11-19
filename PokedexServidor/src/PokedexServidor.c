@@ -149,6 +149,8 @@ void recibirQueSos(int newfd){
 			case 3:
 				if(paqueterecv->tamanio - 2 <= 17) {
 					crear_archivo(paqueterecv->datos,2);
+					paqueteSend = empaquetar(99,"ok",3);
+					enviar = acoplador(paqueteSend);
 				}
 				else {
 					paqueteSend= empaquetar(100,"error",6);
@@ -158,6 +160,8 @@ void recibirQueSos(int newfd){
 			case 4:
 				if(paqueterecv->tamanio - 2 <= 17) {
 					crear_archivo(paqueterecv->datos,1);
+					paqueteSend = empaquetar(99,"ok",3);
+					enviar = acoplador(paqueteSend);
 				}
 				else {
 					paqueteSend= empaquetar(100,"error",6);
@@ -235,11 +239,11 @@ void recibirQueSos(int newfd){
 				free(bufonuevoxx);
 				break;
 			}
-		free(paqueterecv);
 		if(send(newfd,enviar,paqueteSend->tamanio + size_header ,0)<0) {
 					puts("ERROR ENVIO");
 					exit(1);
 		}
+		free(paqueterecv);
 }
 
 void sigchld_handler(int s){
