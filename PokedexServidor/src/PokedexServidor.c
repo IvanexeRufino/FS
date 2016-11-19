@@ -224,14 +224,14 @@ void recibirQueSos(int newfd){
 				buforecibido= malloc(paqueterecv->tamanio);
 				buforecibido= paqueterecv->datos;
 				char** bufonuevox= string_split(buforecibido,"%");
-				renombrar_archivo(bufonuevo[0],bufonuevo[1]);
+				renombrar_archivo(bufonuevox[0],bufonuevox[1]);
 				free(bufonuevox);
 				break;
 			case 12:
 				buforecibidox= malloc(paqueterecv->tamanio);
 				buforecibidox= paqueterecv->datos;
 				char** bufonuevoxx= string_split(buforecibidox,"%");
-				copiar_archivo(bufonuevox[0],bufonuevox[1]);
+				copiar_archivo(bufonuevoxx[0],bufonuevoxx[1]);
 				free(bufonuevoxx);
 				break;
 			}
