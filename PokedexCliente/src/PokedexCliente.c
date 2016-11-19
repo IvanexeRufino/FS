@@ -7,6 +7,14 @@
 
 #include "pokedexcliente.h"
 int sockfd;
+pthread_mutex_t sendRecv;
+
+typedef struct {
+	uint16_t codigo;
+	uint16_t tamanio;
+	void* datos;
+}__attribute__((__packed__)) t_paquete ;
+
 
 void* memoria(int cantidad) {
 	void* puntero = NULL;
@@ -84,15 +92,13 @@ int conectarConServer()
 t_paquete* enviarQueSos(int nroop, void* path, int size){
 	t_paquete* paquete = empaquetar(nroop,path,size);
 	void* cosaparaenviar = acoplador(paquete);
-
+	pthread_mutex_lock(&sendRecv);
 	if(send(sockfd,cosaparaenviar,paquete->tamanio + size_header ,0)<0)
 		{
 			puts("ERROR ENVIO");
 //			log_error(logDelPersonaje,"Error al enviar datos del cliente \n");
 			exit(1);
-		}
-	free(cosaparaenviar);
-
+	}
 	char buffer[MAX_BUFFERSIZE];
 	int sizebytes;
 	if((sizebytes = recv(sockfd, &buffer, MAX_BUFFERSIZE - 1,0)) <= 0)
@@ -101,18 +107,21 @@ t_paquete* enviarQueSos(int nroop, void* path, int size){
 		//log_error(logDelPersonaje, "Error al recibir paquete del cliente \n");
 		exit(1);
 	}
+	pthread_mutex_unlock(&sendRecv);
 	return paquete = desacoplador(buffer);
 }
 
 static int ejemplo_getattr(char *path, struct stat *stbuf) {
-	t_paquete* paquete = enviarQueSos(1,path, strlen(path) + 1);
 	int res = 0;
+	t_paquete* paquete = enviarQueSos(1,path, strlen(path) + 1);
 	memset(stbuf, 0, sizeof(struct stat));
-
 	if (strcmp(path, "/") == 0) {
 		stbuf->st_mode = S_IFDIR | 0755;
 		stbuf->st_nlink = 2;
-	} else {
+
+		return res;
+	}
+	else {
 		osada_file* archivo = paquete->datos;
 		if(paquete->codigo == 100 || archivo->state == 0) {
 		return -ENOENT;
@@ -288,6 +297,7 @@ int main(int argc, char *argv[]) {
 		conecto = connect (sockfd,(struct sockaddr *)&socket_info,sizeof (socket_info));
 		printf("Conectado");
 	}
+	pthread_mutex_init (&sendRecv,NULL);
 
 	return fuse_main(argc, argv, &ejemplo_oper, NULL );
 

@@ -31,12 +31,6 @@
 
 /* -- declaraciones de estructuras -- */
 
-typedef struct {
-	uint16_t codigo;
-	uint16_t tamanio;
-	void* datos;
-}__attribute__((__packed__)) t_paquete ;
-
 typedef unsigned char osada_block[64];
 typedef uint32_t osada_block_pointer;
 

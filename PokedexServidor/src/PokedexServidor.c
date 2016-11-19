@@ -112,14 +112,17 @@ void recibirQueSos(int newfd){
 
 		switch(paqueterecv->codigo){
 		case 1:
+			printf("el path es %s \n", paqueterecv->datos);
 			archivo = obtenerArchivo(paqueterecv->datos);
 			if(archivo == NULL || archivo->state == 0) {
 				paqueteSend = empaquetar(100,"error",6);
 				enviar = acoplador(paqueteSend);
+				printf ("voy a enviar\n");
 			}
 			else {
 				paqueteSend = empaquetar(1,archivo,sizeof(osada_file));
 				enviar = acoplador(paqueteSend);
+				printf ("voy a enviar\n");
 			}
 			break;
 			case 2:
@@ -128,7 +131,6 @@ void recibirQueSos(int newfd){
 			char* bufo= memoria(17*list_size(listaDeHijos));
 			unsigned char* nombre = malloc(17);
 			int i;
-			int copiado = 0;
 			for(i=0;i<list_size(listaDeHijos);i++){
 				osada_file* archivoHijo= list_get(listaDeHijos,i);
 				memcpy(nombre, archivoHijo->fname,17);
@@ -139,12 +141,13 @@ void recibirQueSos(int newfd){
 			if(list_size(listaDeHijos) != NULL){
 				paqueteSend= empaquetar(2,bufo,strlen(bufo)+1);
 				enviar= acoplador(paqueteSend);
+				printf ("voy a enviar\n");
 			} else {
 				paqueteSend= empaquetar(100,"error",6);
 				enviar= acoplador(paqueteSend);
+				printf ("voy a enviar\n");
 			}
 			free(nombre);
-
 			break;
 			case 3:
 				if(paqueterecv->tamanio - 2 <= 17) {
@@ -175,6 +178,9 @@ void recibirQueSos(int newfd){
 					}
 				}
 				else {
+					if(string_ends_with(adquirirNombreAnterior(paqueterecv),".jpg")) {
+						printf("termina en .jpg");
+					}
 					paqueteSend= empaquetar(100,"error",6);
 					enviar= acoplador(paqueteSend);
 				}
