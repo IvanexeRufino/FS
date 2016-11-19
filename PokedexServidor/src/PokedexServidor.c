@@ -147,10 +147,22 @@ void recibirQueSos(int newfd){
 
 			break;
 			case 3:
-				crear_archivo(paqueterecv->datos,2);
+				if(paqueterecv->tamanio - 2 <= 17) {
+					crear_archivo(paqueterecv->datos,2);
+				}
+				else {
+					paqueteSend= empaquetar(100,"error",6);
+					enviar= acoplador(paqueteSend);
+				}
 				break;
 			case 4:
-				crear_archivo(paqueterecv->datos,1);
+				if(paqueterecv->tamanio - 2 <= 17) {
+					crear_archivo(paqueterecv->datos,1);
+				}
+				else {
+					paqueteSend= empaquetar(100,"error",6);
+					enviar= acoplador(paqueteSend);
+				}
 				break;
 			case 5:
 				archivo = obtenerArchivo(paqueterecv->datos);
