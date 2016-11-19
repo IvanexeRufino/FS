@@ -36,7 +36,7 @@ PokedexCliente: $(OBJS) $(USER_OBJS)
 
 # Other Targets
 clean:
-	-$(RM) $(EXECUTABLES)$(OBJS)$(C_DEPS) PokedexCliente
+	-$(RM) $(OBJS)$(C_DEPS)$(EXECUTABLES) PokedexCliente
 	-@echo ' '
 
 .PHONY: all clean dependents

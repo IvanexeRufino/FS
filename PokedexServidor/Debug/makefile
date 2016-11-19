@@ -27,23 +27,23 @@ endif
 all: PokedexServidor
 
 dependents:
-	-cd /home/utnso/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Debug && $(MAKE) all
+	-cd /home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Debug && $(MAKE) all
 
 # Tool invocations
-PokedexServidor: $(OBJS) $(USER_OBJS) /home/utnso/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Debug/libBibliotecaCompartida.so
+PokedexServidor: $(OBJS) $(USER_OBJS) /home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Debug/libBibliotecaCompartida.so
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C Linker'
-	gcc -L"/home/utnso/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Debug" -o "PokedexServidor" $(OBJS) $(USER_OBJS) $(LIBS)
+	gcc -L"/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Debug" -o "PokedexServidor" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) $(EXECUTABLES)$(OBJS)$(C_DEPS) PokedexServidor
+	-$(RM) $(OBJS)$(C_DEPS)$(EXECUTABLES) PokedexServidor
 	-@echo ' '
 
 .PHONY: all clean dependents
 .SECONDARY:
-/home/utnso/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Debug/libBibliotecaCompartida.so:
+/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Debug/libBibliotecaCompartida.so:
 
 -include ../makefile.targets
