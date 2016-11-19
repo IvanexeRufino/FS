@@ -613,6 +613,7 @@ void planificarNuevo()
 			pthread_mutex_unlock(&mutex_EntrenadoresActivos);
 			for(i=0;i!=infoMapa->quantum && j == 0 && entrenador->estado == 'L' ;i++)
 			{
+				usleep(infoMapa->retardo);
 				recibirQueHacer(entrenador);
 				if(entrenador->estado == 'T') j = 1;
 			}
@@ -627,6 +628,7 @@ void planificarNuevo()
 				if(entrenador->distanciaARecurso == -1)
 				{
 					entrenador =  list_remove(entrenadores_listos,k);
+					usleep(infoMapa->retardo);
 					recibirQueHacer(entrenador);
 					list_add(entrenadores_listos,entrenador);
 				}
