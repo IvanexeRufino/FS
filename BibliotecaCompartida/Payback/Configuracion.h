@@ -17,11 +17,6 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <commons/string.h>
-#include <tad_items.h>
-#include <nivel.h>
-#include <curses.h>
-#include <pthread.h>
-#include <semaphore.h>
 #include <dirent.h>
 
 
