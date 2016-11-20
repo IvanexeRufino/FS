@@ -669,7 +669,6 @@ void releerconfig(int aSignal)
 	 return ;
 }
 
-
 char *liberar_recursos(char *nombre_personaje){
 	char *recursosString = string_new();
 	int liberados = 0, totalLiberados = 0;

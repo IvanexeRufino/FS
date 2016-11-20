@@ -7,6 +7,7 @@
 
 #include "pokedexcliente.h"
 int sockfd;
+pthread_mutex_t sendRecv = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t sendRecv;
 
 typedef struct {
@@ -160,6 +161,7 @@ static int ejemplo_readdir(char *path, void *buf, fuse_fill_dir_t filler,
 	return res;
 }
 
+
 static int ejemplo_mkdir(char* filename, mode_t modo){
 	t_paquete* paquete = enviarQueSos(3, filename, strlen(filename) + 1);
 	if(paquete->codigo == 100) {
@@ -271,7 +273,6 @@ static struct fuse_operations ejemplo_oper = {
 		.rename = ejemplo_rename,
 		.link = ejemplo_link,
 };
-
 
 int main(int argc, char *argv[]) {
 

@@ -4,8 +4,8 @@
 all: so-commons-library bibliotecaCompartida nivel-gui pkmnUtils entrenador mapa pokedexCliente pokedexServidor  
 
 so-commons-library:
-	mkdir -p so-commons-library
-	make -C so-commons-library/ all
+	mkdir -p so-commons-library/src/Debug
+	make -C so-commons-library/src/ all
 	sudo make install -C so-commons-library/src
 	sudo apt-get install libncurses5-dev
 
@@ -14,14 +14,14 @@ bibliotecaCompartida: so-commons-library
 	make -C BibliotecaCompartida/Debug/ all
 
 nivel-gui: so-commons-library
-	mkdir -p nivel-gui/Debug
-	make -C nivel-gui/ all
-	sudo make install -C nivel-gui
+	mkdir -p nivel-gui/nivel-gui/Debug
+	make -C nivel-gui/nivel-gui
+	sudo make install -C nivel-gui/nivel-gui
 
 pkmnUtils: so-commons-library
-	mkdir -p pkmnUtils/Debug
-	make -C pkmnUtils/ all
-	sudo make install -C pkmnUtils
+	mkdir -p pkmnUtils/src/Debug
+	make -C pkmnUtils/src/ all
+	sudo make install -C pkmnUtils/src
 
 entrenador: so-commons-library BibliotecaCompartida 
 	

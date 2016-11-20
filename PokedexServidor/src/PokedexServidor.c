@@ -6,7 +6,7 @@
  */
 
 #include "pokedexservidor.h"
-#include <commons/collections/list.h>
+
 
 void* memoria(int cantidad) {
 	void* puntero = NULL;
@@ -25,6 +25,7 @@ t_paquete* empaquetar(int codigo, void* datos, int size){
 	paquete->tamanio= size;
 	return paquete;
 }
+
 
 void* acoplador(t_paquete* paquete) /*transforma una estructura de tipo t_paquete en un stream*/
 {

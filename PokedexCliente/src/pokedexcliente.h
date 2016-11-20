@@ -26,7 +26,12 @@
 #include <errno.h>
 #include <unistd.h>
 #include <signal.h>
-
+#include <pthread.h>
+#include <commons/string.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #include "FileSysOSADA/osada.h"
 
 /* -- declaraciones de estructuras -- */
