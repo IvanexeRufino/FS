@@ -1,14 +1,14 @@
 #include "Mapa.h"
 
-void sumarRecurso(t_list* items, char id) {
-    ITEM_NIVEL* item = _search_item_by_id(items, id);
-
-    if (item != NULL) {
-        item->quantity++;
-    } else {
-        printf("WARN: Item %c no existente\n", id);
-    }
-}
+//void sumarRecurso(t_list* items, char id) {
+//    ITEM_NIVEL* item = _search_item_by_id(items, id);
+//
+//    if (item != NULL) {
+//        item->quantity++;
+//    } else {
+//        printf("WARN: Item %c no existente\n", id);
+//    }
+//}
 
 void pokemonMasFuerteDe(t_registroPersonaje *personaje){
 	//t_pokemon* masFuerte = malloc(sizeof(t_pokemon));

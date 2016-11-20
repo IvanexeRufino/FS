@@ -5,7 +5,9 @@ all: so-commons-library bibliotecaCompartida nivel-gui pkmnUtils entrenador mapa
 
 so-commons-library:
 	mkdir -p so-commons-library
-	make -C so-commons-library
+	make -C so-commons-library/ all
+	sudo make install -C so-commons-library/src
+	sudo apt-get install libncurses5-dev
 
 bibliotecaCompartida: so-commons-library
 	
@@ -14,10 +16,12 @@ bibliotecaCompartida: so-commons-library
 nivel-gui: so-commons-library
 	mkdir -p nivel-gui/Debug
 	make -C nivel-gui/ all
+	sudo make install -C nivel-gui
 
 pkmnUtils: so-commons-library
 	mkdir -p pkmnUtils/Debug
 	make -C pkmnUtils/ all
+	sudo make install -C pkmnUtils
 
 entrenador: so-commons-library BibliotecaCompartida 
 	

@@ -4,5 +4,5 @@
 
 USER_OBJS :=
 
-LIBS := -lBibliotecaCompartida -lnivel-gui -lcommons -lpkmn-battle
+LIBS := -lBibliotecaCompartida -lcommons
 

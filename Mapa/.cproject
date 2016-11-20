@@ -30,11 +30,12 @@
 								<option id="gnu.c.compiler.option.include.paths.830869873" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/BibliotecaCompartida}&quot;"/>
 								</option>
+								<option id="gnu.c.compiler.option.dialect.std.1826982513" name="Language standard" superClass="gnu.c.compiler.option.dialect.std" value="gnu.c.compiler.dialect.default" valueType="enumerated"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1075707565" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.458790210" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug">
 								<option id="gnu.c.link.option.libs.1613320096" name="Libraries (-l)" superClass="gnu.c.link.option.libs" valueType="libs">
-									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="BibliotecaCompartida"/>
+									<listOptionValue builtIn="false" value="BibliotecaCompartida"/>
 									<listOptionValue builtIn="false" value="commons"/>
 									<listOptionValue builtIn="false" value="nivel-gui"/>
 									<listOptionValue builtIn="false" value="pthread"/>
@@ -43,7 +44,6 @@
 								</option>
 								<option id="gnu.c.link.option.paths.433999264" name="Library search path (-L)" superClass="gnu.c.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/BibliotecaCompartida/Debug}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/BibliotecaCompartida}&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.linker.input.465613264" superClass="cdt.managedbuild.tool.gnu.c.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
