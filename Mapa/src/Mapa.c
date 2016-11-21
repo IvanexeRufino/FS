@@ -1,14 +1,14 @@
 #include "Mapa.h"
 
-//void sumarRecurso(t_list* items, char id) {
-//    ITEM_NIVEL* item = _search_item_by_id(items, id);
-//
-//    if (item != NULL) {
-//        item->quantity++;
-//    } else {
-//        printf("WARN: Item %c no existente\n", id);
-//    }
-//}
+void sumarRecurso(t_list* items, char id) {
+    ITEM_NIVEL* item = _search_item_by_id(items, id);
+
+    if (item != NULL) {
+        item->quantity++;
+    } else {
+        printf("WARN: Item %c no existente\n", id);
+    }
+}
 
 void pokemonMasFuerteDe(t_registroPersonaje *personaje){
 	//t_pokemon* masFuerte = malloc(sizeof(t_pokemon));
@@ -345,7 +345,7 @@ void leerConfiguracionPokenest(char mapa[20], char pokemon[256])
 		if(pokenest->x> columnas || pokenest->y > filas)
 		{
 			log_error(logger, "La Pokenest %c supera los limites de filas/columnas del nivel. \n", pokenest->identificador);
-			nivel_gui_terminar();
+//			nivel_gui_terminar();
 			exit(1);
 		}
 
@@ -357,7 +357,7 @@ void leerConfiguracionPokenest(char mapa[20], char pokemon[256])
 		if(list_any_satisfy(listaPokenest, (void*) distanciaEntreCajas))
 		{
 			log_error(logger, "La Pokenest %c no respeta las distancias con otra Pokenest. \n", pokenest->identificador);
-			nivel_gui_terminar();
+//			nivel_gui_terminar();
 			exit(1);
 		}
 
@@ -392,7 +392,7 @@ char recibirBienvenidaEntrenador(int newfd,t_registroPersonaje *nuevoPersonaje)
 	nuevoPersonaje->distanciaARecurso = -1;
 	log_info(logger,"*BIENVENIDA* Recibi de %s: %s,con ID %c y accion: %c",nuevoPersonaje->nombre,buffer,nuevoPersonaje->identificador,bufferConAccion);
 	CrearPersonaje(items, nuevoPersonaje->identificador , nuevoPersonaje->x, nuevoPersonaje->y);
-	nivel_gui_dibujar(items,infoMapa->nombre);
+//	nivel_gui_dibujar(items,infoMapa->nombre);
 	return (buffer[0]);
 }
 
@@ -473,7 +473,7 @@ void mover (t_registroPersonaje *personaje, t_registroPokenest* pokemonActual)
 	if(personaje->x == personaje->pokemonActual->x) personaje->ultimoRecurso = 0;
 	if(personaje->y == personaje->pokemonActual->y) personaje->ultimoRecurso = 1;
 	MoverPersonaje(items, personaje->identificador, personaje->x, personaje->y );
-	nivel_gui_dibujar(items,infoMapa->nombre);
+//	nivel_gui_dibujar(items,infoMapa->nombre);
 	enviarCoordenada(personaje->x,personaje->socket);
 	enviarCoordenada(personaje->y,personaje->socket);
 	log_info(logger, "*MOVER* Se mueve %c (%s) por la coordenada X: %d Y: %d para llegar a: %c \n",personaje->identificador,personaje->nombre,personaje->x,personaje->y,pokemonActual->identificador);
@@ -509,17 +509,28 @@ void envioQueSeAtrapoPokemon (t_registroPersonaje *personaje, t_registroPokenest
 void recibirQueHacer(t_registroPersonaje *nuevoPersonaje)
 {
 	char* buffer = string_new();
-	recv(nuevoPersonaje->socket,buffer,sizeof(buffer),0);
-	char bufferConAccion;        //Vendria a ser el header
+	int coordenadaX,coordenadaY;
+	char bufferConAccion;
+	char* payload = string_new();
+	if (recv(nuevoPersonaje->socket,buffer,sizeof(buffer),0)== 0)
+			{
+				nuevoPersonaje->estado = 'T';
+				bufferConAccion = '4';
+			}
+	else
+	{
+
+
 	bufferConAccion=buffer[0];
 	nuevoPersonaje->accion=bufferConAccion;
-	char* payload = string_new();
+
 	payload =string_duplicate(buffer);
 	str_cut(payload,0,1);
 	log_info(logger,"Recibio para hacer: %s Header: %c Payload: %s",buffer,bufferConAccion,payload);
 
-	int coordenadaX,coordenadaY;
 
+
+	}
 	switch(bufferConAccion)
 	{
 	case ('1'):
@@ -547,15 +558,18 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje)
 		sleep(1);
 		break;
 
-	case ('\0'):
+	//case ('\0'):
 	case ('4'):
+
+
 		nuevoPersonaje->proximoObjetivo = '0';
 		BorrarItem(items, nuevoPersonaje->identificador);
 		liberar_recursos(nuevoPersonaje->nombre);
 		recuperarPokemonDeEntrenador(nuevoPersonaje);
-		nivel_gui_dibujar(items,infoMapa->nombre);
-		nuevoPersonaje->estado='T';
-		close(nuevoPersonaje->socket);
+		nuevoPersonaje->estado = 'T';
+//		nivel_gui_dibujar(items,infoMapa->nombre);
+		//nuevoPersonaje->estado='T';
+		//close(nuevoPersonaje->socket);
 		break;
 	}
 }
@@ -585,7 +599,7 @@ void ejecutar_Entrenador(parametros_entrenador* param)
 	{
 		log_info(logger, "Nose para que te conectaste si no queres jugar xD ");		// No deberia tirar nunca este printf
 	}
- 	pthread_exit(0);
+ 	//pthread_exit(0);
  	return;
 
 }
@@ -615,7 +629,12 @@ void planificarNuevo()
 			{
 				usleep(infoMapa->retardo);
 				recibirQueHacer(entrenador);
-				if(entrenador->estado == 'T') j = 1;
+				if(entrenador->estado == 'T')
+					{
+					close(entrenador->socket);
+					pthread_cancel(entrenador->threadId);
+					free(entrenador);
+					}
 			}
 		}
 			else  //NOT RR
@@ -630,7 +649,17 @@ void planificarNuevo()
 					entrenador =  list_remove(entrenadores_listos,k);
 					usleep(infoMapa->retardo);
 					recibirQueHacer(entrenador);
-					list_add(entrenadores_listos,entrenador);
+					if(entrenador->estado == 'T')
+						{
+							close(entrenador->socket);
+							pthread_cancel(entrenador->threadId);
+							free(entrenador);
+										}
+					else
+					{
+						list_add(entrenadores_listos,entrenador);
+					}
+
 				}
 				pthread_mutex_unlock(&mutex_EntrenadoresActivos);
 				k++;
@@ -648,6 +677,12 @@ void planificarNuevo()
 				if(entrenador->estado != 'T')
 				{
 					recibirQueHacer(entrenador);
+					if(entrenador->estado == 'T')
+						{
+							close(entrenador->socket);
+							pthread_cancel(entrenador->threadId);
+							free(entrenador);
+						}
 				}
 			}
 		}
@@ -658,7 +693,11 @@ void planificarNuevo()
 			pthread_mutex_unlock(&mutex_EntrenadoresActivos);
 			if(entrenador->estado == 'L') sem_post(&colaDeListos);  //Agrego este if para que el mapa no se quede loopeando si estan bloqueados los entrenadores
 		}
-		else free(entrenador);//el sem_post deberia llamarse cuando el deadlock lo diga;
+//		else
+//			{
+//			close(entrenador->socket);
+//			free(entrenador);//el sem_post deberia llamarse cuando el deadlock lo diga;
+//			}
 	}	//Aca termina y  vuelve al while(1)
 }
 
@@ -953,7 +992,7 @@ int main(int argc, char **argv)
 	if(argc == 1)
 	{
 		log_info(logger, "Cantidad de parametros incorrectos, Aplicando por defecto");
-		strcpy(infoMapa->nombre,"CiudadTest");
+		strcpy(infoMapa->nombre,"Test");
 		strcpy(rutaArgv, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Pokedex");
 	}
 	else if(argc==3)
@@ -988,8 +1027,8 @@ int main(int argc, char **argv)
     request = dictionary_create();
     alloc = dictionary_create();
 
-    nivel_gui_inicializar();
-    nivel_gui_get_area_nivel(&filas, &columnas);
+//    nivel_gui_inicializar();
+//    nivel_gui_get_area_nivel(&filas, &columnas);
 
 	if (leerConfiguracionMapa () == 1)
 		log_info(logger, "Archivo de configuracion leido correctamente");
@@ -1006,7 +1045,7 @@ int main(int argc, char **argv)
 	list_iterate(listaPokenest, (void*) _list_elements);
 
 
-	nivel_gui_dibujar(items,infoMapa->nombre);
+//	nivel_gui_dibujar(items,infoMapa->nombre);
 
 	  int socketServidor;
 	  int newfd;

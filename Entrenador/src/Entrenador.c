@@ -11,7 +11,7 @@ int contadorMapa;
 int contadorObjetivo;
 float tiempoBloqueo;
 int atrapados;
-int reinicio ;
+int reinicio = 0;
 
 
 void devolverMedallas()
@@ -62,6 +62,7 @@ void gameOver()
 	char respuesta = 's';
 	log_info(logger,"GAME OVER!!! Parece que el personaje %s ha muerto y se ha quedado sin vidas,¿Desea continuar?(S/n).\n",infoEntrenador->nombre);
 	scanf("%c", &respuesta);
+	informarFinalizacion(mapa);
 	switch(respuesta){
 		case 'S':
 		case 's':
@@ -85,7 +86,7 @@ void gameOver()
 
 void muertePorSenial(int num)
 {
-	signal(SIGTERM,muertePorSenial);//Por consola kill -15 PID
+//	signal(SIGTERM,muertePorSenial);//Por consola kill -15 PID
 	infoEntrenador->vidas--;
 	//contadorObjetivo = -1;		//siguiente pokenest
 	//atrapados = 0;
@@ -97,7 +98,7 @@ void muertePorSenial(int num)
 	else
 	{
 
-		informarFinalizacion(mapa);
+
 		conectado = 0;
 		gameOver();
 	}
@@ -351,7 +352,7 @@ int main(int argc, char **argv)
 		{
 			case (1):	//Si la cant de param es 1 osea solo ./Entrenador aplica por defecto los 2 argumentos de abajo
 				log_info(logger, "Cantidad de parametros: %d, Aplicando datos por Defecto",argc);
-				strcpy(infoEntrenador->nombre, "Red");
+				strcpy(infoEntrenador->nombre, "Test");
 				strcpy(rutaArgv, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Pokedex");
 				break;
 			case (2):	//Si la cant de param es 2 osea ./Entrenador 'pokemon x'
@@ -410,7 +411,7 @@ int main(int argc, char **argv)
 		enviarMensajeInicial(mapa->socketMapa);				//Le envio el simbolo al Mapa - HEADER ID es el 0
 		desconectar();
 			//La utilizo para moverme entre objetivos de pokemones
-		for(contadorObjetivo = 0 ; contadorObjetivo< list_size(mapa->objetivos) && reinicio != 1; contadorObjetivo++)
+		for(contadorObjetivo = 0 ; contadorObjetivo< list_size(mapa->objetivos); contadorObjetivo++)
 		{
 			int i = list_size(mapa->objetivos);
 			char objetivos[i];
