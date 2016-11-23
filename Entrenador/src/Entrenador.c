@@ -66,14 +66,14 @@ void gameOver()
 	switch(respuesta){
 		case 'S':
 		case 's':
-			reinicio = 1;
-			conectado = 0;
+			//reinicio = 1;
+			//conectado = 0;
 			log_info(logger,"reiniciando...");
-			contadorObjetivo = 99;
-			contadorMapa = - 1;
+			//contadorObjetivo = 99;
+			//contadorMapa = - 1;
 			infoEntrenador->reintentos ++;
-			infoEntrenador->vidas = 3;
-			log_info(logger, "Gracias por continuar jugando! Se le han otorgado 3 vidas mas!\n");
+			infoEntrenador->vidas = 1;
+			log_info(logger, "Gracias por continuar jugando! Se le han otorgado 1 vidas mas!\n");
 
 			break;
 
@@ -83,40 +83,48 @@ void gameOver()
 		exit(1);
 	}
 }
-
-void muertePorSenial(int num)
-{
-//	signal(SIGTERM,muertePorSenial);//Por consola kill -15 PID
-	infoEntrenador->vidas--;
-	//contadorObjetivo = -1;		//siguiente pokenest
-	//atrapados = 0;
-	//contadorMapa = contadorMapa - 1;
-	if(infoEntrenador->vidas>0)
-	{
-		log_info(logger,"El personaje %s perdio una vida por señal y actualmente tiene %d vidas.\n",infoEntrenador->nombre,infoEntrenador->vidas);
-	}
-	else
-	{
-
-
-		conectado = 0;
-		gameOver();
-	}
-}
 void muertePorDeadlock(){
 
 	infoEntrenador->vidas--;
 	reinicio = 1;
 	conectado = 0;
 	contadorObjetivo = 99;
-	if(infoEntrenador->vidas<=0){
-			gameOver();
-		}
-	else{
+	if(infoEntrenador->vidas<=0)
+	{
+		contadorMapa = - 1;
+		gameOver();
+
+	}
+	else
+	{
 		contadorMapa = contadorMapa-1;
 		atrapados = 0;
 		log_info(logger,"El personaje %s perdio una vida por deadlock y actualmente tiene %d vidas.\n",infoEntrenador->nombre,infoEntrenador->vidas);
 	}
+}
+
+void muertePorSenial(int num)
+{
+	//signal(SIGTERM,muertePorSenial);//Por consola kill -15 PID
+	//informarFinalizacion(mapa);
+	muertePorDeadlock();
+//	infoEntrenador->vidas--;
+//	//contadorObjetivo = -1;		//siguiente pokenest
+//	//atrapados = 0;
+//	//contadorMapa = contadorMapa - 1;
+//	if(infoEntrenador->vidas>0)
+//	{
+//		log_info(logger,"El personaje %s perdio una vida por señal y actualmente tiene %d vidas.\n",infoEntrenador->nombre,infoEntrenador->vidas);
+//	}
+//	else
+//	{
+//		contadorMapa = -1;
+//		contadorObjetivo = 99;
+//		reinicio = 1;
+//		conectado = 0;
+//		gameOver();
+//	}
+	informarFinalizacion(mapa);
 }
 
 void sumarVida(int aSignal)
@@ -443,7 +451,7 @@ int main(int argc, char **argv)
 					if(atrapados == list_size(mapa->objetivos))
 					{
 						copiarMedalla(infoEntrenador->nombre, mapa->nivel);
-						log_info(logger, "Felicitaciones, terminaste de capturar todos los pokemons del mapa nro %d \n",contadorMapa);
+						log_info(logger, "Felicitaciones, terminaste de capturar todos los pokemons del mapa nro %d que es %s\n",contadorMapa,mapa->nivel);
 						conectado = 0;
 						informarFinalizacion(mapa);
 					}

@@ -63,8 +63,6 @@ typedef struct
 	bool posicionPedida;
 	int threadId;
 	char estado; // E= en ejecucion, B= bloqueado, L = listo 	T = terminado    M = es el hilo Main
-	sem_t comienzoTurno;
-	sem_t finTurno;
 	char accion;
 	int quantumFaltante;
 	t_registroPokenest* pokemonActual;
@@ -121,15 +119,8 @@ typedef struct
 /*----------------------- Declaraciones de Semaforos Globales ---------------------------*/
 
 	sem_t colaDeListos;
-	sem_t pasoDeEntrenador;
-	sem_t turnoMain;
 
 	pthread_mutex_t mutex_EntrenadoresActivos = PTHREAD_MUTEX_INITIALIZER;
-	pthread_mutex_t mutex_threadAEjecutar = PTHREAD_MUTEX_INITIALIZER;
-	pthread_mutex_t mutex_bloqPlanificador = PTHREAD_MUTEX_INITIALIZER;
-	pthread_mutex_t mutex_entrenadorEnEjecucion = PTHREAD_MUTEX_INITIALIZER;
-	pthread_mutex_t mutex_Ejecucion = PTHREAD_MUTEX_INITIALIZER;
-	pthread_mutex_t mutex_siguienteQuantum = PTHREAD_MUTEX_INITIALIZER;
 	pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER; //PARA EL DEADLOCK
 
 /*----------------------- Declaraciones de Constantes ----------------------------------*/
@@ -138,7 +129,7 @@ typedef struct
 		#define LOG_FILE "proceso_Mapa.log"
 		#define PROGRAM_NAME "MAPA"
 		#define PROGRAM_DESCRIPTION "Proceso MAPA"
-		#define IS_ACTIVE_CONSOLE false
+		#define IS_ACTIVE_CONSOLE true
 		#define T_LOG_LEVEL LOG_LEVEL_INFO
 
 		/* Configuración de SOCKETS */

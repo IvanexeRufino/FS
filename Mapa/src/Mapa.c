@@ -557,19 +557,18 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje)
 		envioQueSeAtrapoPokemon(nuevoPersonaje,nuevoPersonaje->pokemonActual);
 		sleep(1);
 		break;
-
+	case ('0'):
 	//case ('\0'):
 	case ('4'):
-
+	default:
 
 		nuevoPersonaje->proximoObjetivo = '0';
-		BorrarItem(items, nuevoPersonaje->identificador);
+//		BorrarItem(items, nuevoPersonaje->identificador);
 		liberar_recursos(nuevoPersonaje->nombre);
 		recuperarPokemonDeEntrenador(nuevoPersonaje);
 		nuevoPersonaje->estado = 'T';
 //		nivel_gui_dibujar(items,infoMapa->nombre);
-		//nuevoPersonaje->estado='T';
-		//close(nuevoPersonaje->socket);
+		close(nuevoPersonaje->socket);
 		break;
 	}
 }
@@ -612,12 +611,14 @@ void planificarNuevo()
 	while(1)
 	{
 		sem_wait(&colaDeListos);
+		log_info(logger,"Planificando");
 		t_registroPersonaje* entrenador = malloc(sizeof(t_registroPersonaje));
 		j=0;
 		if(!strcmp(infoMapa->algoritmo,"RR"))
 		{
 			pthread_mutex_lock(&mutex_EntrenadoresActivos);
 			int e;
+			log_info(logger,"Hay en la cola de listos %d entrenadores",list_size(entrenadores_listos));
 			for(e=0;list_size(entrenadores_listos)>e;e++)
 			{
 			entrenador = list_remove(entrenadores_listos,0);
@@ -625,15 +626,17 @@ void planificarNuevo()
 			else break;
 			}
 			pthread_mutex_unlock(&mutex_EntrenadoresActivos);
+			log_info(logger,"Voy a darle quantum");
 			for(i=0;i!=infoMapa->quantum && j == 0 && entrenador->estado == 'L' ;i++)
 			{
 				usleep(infoMapa->retardo);
+				log_info(logger,"Voy a recibirQueHacer");
 				recibirQueHacer(entrenador);
 				if(entrenador->estado == 'T')
 					{
-					close(entrenador->socket);
-					pthread_cancel(entrenador->threadId);
-					free(entrenador);
+					//close(entrenador->socket);
+					//pthread_cancel(entrenador->threadId);
+					//free(entrenador);
 					}
 			}
 		}
@@ -652,7 +655,7 @@ void planificarNuevo()
 					if(entrenador->estado == 'T')
 						{
 							close(entrenador->socket);
-							pthread_cancel(entrenador->threadId);
+							//pthread_cancel(entrenador->threadId);
 							free(entrenador);
 										}
 					else
@@ -680,7 +683,7 @@ void planificarNuevo()
 					if(entrenador->estado == 'T')
 						{
 							close(entrenador->socket);
-							pthread_cancel(entrenador->threadId);
+							//pthread_cancel(entrenador->threadId);
 							free(entrenador);
 						}
 				}
@@ -833,7 +836,6 @@ void batallaPokemon(){
 				if(pokPerdedor == pokEn2->pok){
 				//Si gana el pokEn1
 
-
 				}
 				else
 				{
@@ -984,7 +986,7 @@ int main(int argc, char **argv)
 	filas = 30;
 	columnas =30;
 	items = list_create();	//Para usar despues en las cajas
-	sem_init(&(pasoDeEntrenador),1,0);
+
 	/* Inicializacion y registro inicial de ejecucion */
 	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
 	log_info(logger, PROGRAM_DESCRIPTION);
@@ -1063,8 +1065,6 @@ int main(int argc, char **argv)
 	  //Y ademas creamos un hilo para que mientras que escuche conexiones nuevas, me delegue lo que llego para trabajar
 	  while(1)
 	  {
-		  //sem_wait(&hiloEscucha->comienzoTurno);
-
 		  newfd = AceptarConexionCliente(socketServidor);
 
 		  //No quiero quedarme esperando a que termine de hacer lo del hilo, por eso no pongo el join
