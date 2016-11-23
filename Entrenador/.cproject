@@ -35,8 +35,10 @@
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.1475732472" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug">
 								<option id="gnu.c.link.option.libs.1800381073" name="Libraries (-l)" superClass="gnu.c.link.option.libs" valueType="libs">
-									<listOptionValue builtIn="false" value="BibliotecaCompartida"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="BibliotecaCompartida"/>
+									<listOptionValue builtIn="false" value="nivel-gui"/>
 									<listOptionValue builtIn="false" value="commons"/>
+									<listOptionValue builtIn="false" value="pkmn-battle"/>
 								</option>
 								<option id="gnu.c.link.option.paths.1511337575" name="Library search path (-L)" superClass="gnu.c.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/BibliotecaCompartida/Debug}&quot;"/>

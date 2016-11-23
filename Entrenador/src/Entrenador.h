@@ -20,7 +20,6 @@
 #include <commons/log.h>
 #include <commons/config.h>
 #include <commons/collections/list.h>
-#include <commons/string.h>
 #include <stdbool.h>
 #include <signal.h>
 #include <arpa/inet.h>
