@@ -20,18 +20,17 @@
 #include <commons/log.h>
 #include <commons/config.h>
 #include <commons/collections/list.h>
+#include <commons/string.h>
 #include <stdbool.h>
 #include <signal.h>
 #include <arpa/inet.h>
 #include <time.h>
 
-#include <Payback/str_cut.h>
 #include <Payback/enviarCoordenada.c>
+#include <Payback/recibirCoordenada.c>
 #include <Payback/charToString.c>
 #include <Payback/crearSocketCliente.c>
 #include <Payback/conectarConServer.c>
-#include <Payback/convertirStreamAString.c>
-#include <Payback/recibirCoordenada.c>
 
 /*----------------------- Declaraciones de Estructuras ---------------------------------*/
 
@@ -51,16 +50,12 @@ typedef struct {
 	int pokemonActualPosicionEnX;
 	int pokemonActualPosicionEnY;
 	char* ipMapa;
-	char* nivel;
-	bool estaTerminado;
+	char* nombreMapa;
 	t_list* objetivos;
 	pthread_t threadIdNivel;
-} t_nivel;
+} t_mapa;
 
 /*----------------------- Declaraciones de Constantes ----------------------------------*/
-	/* Configuración de SOCKETS */
-
-	#define PACKAGESIZE 1024	// Define cual va a ser el size maximo del paquete a enviar
 
 	/* Configuración de LOG */
 
@@ -91,11 +86,11 @@ void enviarMensajeInicial(int);
 void jugarTurno(int);
 void devolverMedallas();
 int leerConfiguracionEntrenador();
-int leerConfiguracionMapa(t_nivel*);
-void solicitarPosicion(t_nivel*,char);
-void informarFinalizacion(t_nivel*);
-void solicitarAvanzar(t_nivel*,char);
-int atraparPokemon(t_nivel*,char);
+int leerConfiguracionMapa(t_mapa*);
+void solicitarPosicion(t_mapa*,char);
+void informarFinalizacion(t_mapa*);
+void solicitarAvanzar(t_mapa*,char);
+int atraparPokemon(t_mapa*,char);
 void copiarMedalla(char*,char*);
 void desconectar();
 

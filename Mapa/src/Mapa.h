@@ -57,13 +57,11 @@ typedef struct
 	int socket;
 	int x;
 	int y;
+	char accion;
 	bool marcado;
 	int distanciaARecurso;
-	bool posicionPedida;
 	int threadId;
 	char estado; // E= en ejecucion, B= bloqueado, L = listo 	T = terminado    M = es el hilo Main
-	char accion;
-	int quantumFaltante;
 	t_registroPokenest* pokemonActual;
 }t_registroPersonaje;
 
@@ -130,15 +128,6 @@ typedef struct
 		#define PROGRAM_DESCRIPTION "Proceso MAPA"
 		#define IS_ACTIVE_CONSOLE false
 		#define T_LOG_LEVEL LOG_LEVEL_INFO
-
-		/* Configuración de SOCKETS */
-
-		#define PORT "10000"  // puerto por el que estamos escuchando
-		#define BACKLOG 10
-
-		/* Configuración de ARCHIVOS DE CONFIGURACION */
-
-		#define PATH_CONFIG "../Mapas/Ciudad Paleta/metadata"
 
 /*----------------------- Declaraciones de Prototipos ---------------------------------*/
 

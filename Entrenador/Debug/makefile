@@ -26,13 +26,13 @@ endif
 all: Entrenador
 
 dependents:
-	-cd /home/utnso/Escritorio/tp/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Debug && $(MAKE) all
+	-cd /home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Debug && $(MAKE) all
 
 # Tool invocations
-Entrenador: $(OBJS) $(USER_OBJS) /home/utnso/Escritorio/tp/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Debug/libBibliotecaCompartida.so
+Entrenador: $(OBJS) $(USER_OBJS) /home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Debug/libBibliotecaCompartida.so
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C Linker'
-	gcc -L"/home/utnso/Escritorio/tp/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Debug" -o "Entrenador" $(OBJS) $(USER_OBJS) $(LIBS)
+	gcc -L"/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Debug" -o "Entrenador" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -43,6 +43,6 @@ clean:
 
 .PHONY: all clean dependents
 .SECONDARY:
-/home/utnso/Escritorio/tp/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Debug/libBibliotecaCompartida.so:
+/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Debug/libBibliotecaCompartida.so:
 
 -include ../makefile.targets
