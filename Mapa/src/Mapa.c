@@ -550,7 +550,6 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje)
 		sleep(1);
 		break;
 
-	case('4'):
 	default:
 		log_info(logger,"Desconectando...");
 		nuevoPersonaje->proximoObjetivo = '0';
@@ -966,33 +965,6 @@ void *detectar_interbloqueo(void *milis)
 		usleep(((int)milis*1000));
 	}
 }
-void cargarParametrosMapa(int argc, char **argv){
-	switch(argc)
-		{
-		case (1):
-		//	log_info(logger, "Cantidad de parametros incorrectos, Aplicando por defecto");
-			strcpy(infoMapa->nombre,"CiudadTest");
-			strcpy(rutaArgv, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Pokedex");
-			break;
-		case (2):
-		//	log_info(logger,"Cantidad de parametros Incorrectos, aplicando por defecto para la ruta");
-			strcpy(infoMapa->nombre,argv[1]);
-			strcpy(rutaArgv, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Pokedex");
-			break;
-		case (3):
-		//	log_info(logger, "Cantidad de parametros CORRECTOS");
-			strcpy(infoMapa->nombre,argv[1]);
-			strcpy(rutaArgv, argv[2]);
-			break;
-		default:
-		// 	log_info(logger, "ERROR: Ingresaste %d parametros",argc);
-		 	printf("INGRESAR NOMBRE DEL MAPA ");
-		 	scanf("%s",infoMapa->nombre);
-		 	printf("INGRESAR RUTA DE LA POKEDEX ");
-		 	scanf("%s",rutaArgv);
-		 	break;
-		}
-}
 
 int main(int argc, char **argv)
 {
@@ -1000,29 +972,44 @@ int main(int argc, char **argv)
 	columnas =30;
 	items = list_create();	//Para usar despues en las cajas
 	/* Inicializacion y registro inicial de ejecucion */
+	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
+	log_info(logger, PROGRAM_DESCRIPTION);
 	infoMapa = malloc(sizeof(mapa_datos));
+
+	switch(argc)
+	{
+	case (1):
+		log_info(logger, "Cantidad de parametros incorrectos, Aplicando por defecto");
+		strcpy(infoMapa->nombre,"Test");
+		strcpy(rutaArgv, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Pokedex");
+		break;
+	case (2):
+		log_info(logger,"Cantidad de parametros Incorrectos, aplicando por defecto para la ruta");
+		strcpy(infoMapa->nombre,argv[1]);
+		strcpy(rutaArgv, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Pokedex");
+		break;
+	case (3):
+		log_info(logger, "Cantidad de parametros CORRECTOS");
+		strcpy(infoMapa->nombre,argv[1]);
+		strcpy(rutaArgv, argv[2]);
+		break;
+	default:
+	 	log_info(logger, "ERROR: Ingresaste %d parametros",argc);
+	 	printf("INGRESAR NOMBRE DEL MAPA ");
+	 	scanf("%s",infoMapa->nombre);
+	 	printf("INGRESAR RUTA DE LA POKEDEX ");
+	 	scanf("%s",rutaArgv);
+	 	break;
+	}
+
+	log_info(logger, "Nombre Mapa: %s Ruta: %s", infoMapa->nombre, rutaArgv);
 	listapokEn = malloc(sizeof(t_pokEn));
 	listapokEn = list_create();
 	listaPokenest = malloc(sizeof(t_registroPokenest));
 	listaPokenest = list_create();
 	fabricaPokemon = create_pkmn_factory();
 	pid = getpid();
-	cargarParametrosMapa(argc,argv);
-
-
-	char* nombreLog = string_new();
-	string_append(&nombreLog,infoMapa->nombre);
-	string_append(&nombreLog,LOG_FILE);
-	logger = log_create(nombreLog, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
-
-	log_info(logger, PROGRAM_DESCRIPTION);
-	log_info(logger, "Nombre Mapa: %s Ruta: %s", infoMapa->nombre, rutaArgv);
 	log_info(logger, "El PID del proceso Mapa es %d\n", pid);
-	if (leerConfiguracionMapa () == 1)
-		log_info(logger, "Archivo de configuracion leido correctamente");
-	else
-		log_error(logger,"Error la leer archivo de configuracion");
-
 	signal(SIGUSR2,releerconfig);//Por consola kill -SIGUSR2 -PID
 
 	entrenadores_listos = malloc(sizeof(t_list));
@@ -1037,6 +1024,11 @@ int main(int argc, char **argv)
 
     nivel_gui_inicializar();
     nivel_gui_get_area_nivel(&filas, &columnas);
+
+	if (leerConfiguracionMapa () == 1)
+		log_info(logger, "Archivo de configuracion leido correctamente");
+	else
+		log_error(logger,"Error la leer archivo de configuracion");
 
 	//pokenests
 	void _list_elements(t_registroPokenest *r)

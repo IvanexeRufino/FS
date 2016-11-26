@@ -59,7 +59,7 @@ typedef struct {
 
 	/* Configuración de LOG */
 
-	#define LOG_FILE "_Entrenador.log"
+	#define LOG_FILE "proceso_Entrenador.log"
 	#define PROGRAM_NAME "ENTRENADOR"
 	#define PROGRAM_DESCRIPTION "Proceso ENTRENADOR"
 	#define IS_ACTIVE_CONSOLE true

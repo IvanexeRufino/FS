@@ -1,5 +1,6 @@
 #include "Entrenador.h"
 
+int conectado;
 t_log* logger;
 entrenador_datos* infoEntrenador;
 pid_t pid;
@@ -11,6 +12,7 @@ int contadorObjetivo;
 float tiempoBloqueo;
 int atrapados;
 int reinicio ;
+int completado;
 void devolverMedallas()
 {
 	log_info(logger, "Devolviendo medallas..");
@@ -49,7 +51,7 @@ void devolverMedallas()
 void muerteDefinitivaPorSenial(int aSignal)
 {
 	log_info(logger,"El personaje se desconecto");
-	informarFinalizacion();
+	if(conectado == 1) informarFinalizacion(mapa);
 	exit(1);
 }
 
@@ -59,15 +61,17 @@ void gameOver()
 	char respuesta = 's';
 	log_info(logger,"GAME OVER!!! Parece que el personaje %s ha muerto y se ha quedado sin vidas,¿Desea continuar?(S).\n",infoEntrenador->nombre);
 	scanf("%c", &respuesta);
-	informarFinalizacion();
+	informarFinalizacion(mapa);
+
 	switch(respuesta)
 	{
 		case 'S':
 		case 's':
 			reinicio = 1;
+			conectado = 0;
 			log_info(logger,"reiniciando...");
-//			contadorObjetivo = 99;
-//			contadorMapa = - 1;
+			contadorObjetivo = 99;
+			contadorMapa = - 1;
 			infoEntrenador->reintentos ++;
 			infoEntrenador->vidas = 3;
 			log_info(logger, "Gracias por continuar jugando! Se le han otorgado 3 vidas mas!\n");
@@ -88,7 +92,7 @@ void muertePorSenial(int num)
 	}
 	else
 	{
-
+		conectado = 0;
 		gameOver();
 	}
 }
@@ -96,6 +100,7 @@ void muertePorDeadlock(){
 
 	infoEntrenador->vidas--;
 	reinicio = 1;
+	conectado = 0;
 	contadorObjetivo = 99;
 	if(infoEntrenador->vidas<=0)
 	{
@@ -250,7 +255,7 @@ void solicitarPosicion(t_mapa *mapa,char objetivo)
 	log_info(logger, "Las coordenadas del pokemon que solicite X: %d Y: %d", mapa->pokemonActualPosicionEnX, mapa->pokemonActualPosicionEnY);
 }
 
-void informarFinalizacion()
+void informarFinalizacion(void)
 {
 	char* buffer = string_new();
 	string_append(&buffer,string_itoa(FINALIZACION));
@@ -330,184 +335,359 @@ void copiarMedalla(char entrenador[20],char* nombre)
 
 void desconectar()
 {
-	if(reinicio == 1)
+	if(conectado == 1 && reinicio == 1)
+	{
 		informarFinalizacion();
-
+		conectado = 0;
+	}
 }
 
-int completado;
-
-
 int jugar(){
+
 	int nivelesCompletados = 0;
+
 	devolverMedallas();
+
 	int gane = 0;
+
 	reinicio=0;
+
 	log_info(logger,"------------------------*Tu Aventura pokemon esta por comenzar*----------------------");
+
 	char *vector=malloc(sizeof(char)*10);
+
 			for(contadorMapa = 0 ; contadorMapa< list_size(listaDeMapas) && reinicio != 1; contadorMapa++)
+
 			{
 
+
+
 				contadorObjetivo = 0;
+
 				atrapados = 0;
-				t_mapa* mapa = list_get(listaDeMapas,contadorMapa);
+
+				mapa = list_get(listaDeMapas,contadorMapa);
+
 				leerConfiguracionMapa(mapa);				      					   //Busco en los archivos de config la ip y el socket
+
 				int socketServidor = conectarConServer(mapa->ipMapa, mapa->puertoMapa); //Me conecto con el Mapa
+
 				mapa->socketMapa = socketServidor;
+
 				log_info(logger, "Conectado al servidor");							// Lo reflejo en el log
+
 				infoEntrenador->posicionEnX = 1;									//Estaria en la posicion 1 en el nuevo mapa
+
 				infoEntrenador->posicionEnY = 1;									// La (0,0) esta fuera de los limites
+
 				enviarMensajeInicial(mapa->socketMapa);								//Le envio el simbolo al Mapa - HEADER ID es el 0
+
 				log_info(logger,"Me conecto al socket: %d", mapa->socketMapa);
+
 				//La utilizo para moverme entre objetivos de pokemones
+
 				for(contadorObjetivo = 0 ; contadorObjetivo< list_size(mapa->objetivos) && reinicio != 1; contadorObjetivo++)
+
 				{
+
 					log_info(logger, "El Mapa Actual es %s ", mapa->nombreMapa);
+
 					int i = list_size(mapa->objetivos);
+
 					char objetivos[i];
+
 					vector = list_get(mapa->objetivos,contadorObjetivo);
+
 					objetivos[contadorObjetivo] = *vector;
+
+
 
 					log_info(logger, "El objetivo actual es %c \n", objetivos[contadorObjetivo]);
 
+
+
 					solicitarPosicion(mapa,objetivos[contadorObjetivo]);		//Le envio en el header el ID 1
 
+
+
 					while((infoEntrenador->posicionEnX != mapa->pokemonActualPosicionEnX ||
+
 					infoEntrenador->posicionEnY != mapa->pokemonActualPosicionEnY) && reinicio != 1)
+
 					{
+
 						solicitarAvanzar(mapa,objetivos[contadorObjetivo]);		//(Le envio en el header el ID 2)
+
 					}
+
 					if(infoEntrenador->posicionEnX == mapa->pokemonActualPosicionEnX
+
 						&& infoEntrenador->posicionEnY == mapa->pokemonActualPosicionEnY && reinicio != 1)
+
 					{
+
 						int atrapado = 0;
+
 						while(atrapado == 0 && reinicio != 1)
+
 						{
+
 							clock_t inicioBloqueo=clock();
+
 							atrapado = atraparPokemon(mapa,objetivos[contadorObjetivo]);  								//Le envio en el header el ID 3
+
 							log_info(logger,"Del pokemon que solicite hay %d instancias",atrapado);
+
 							clock_t finBloqueo=clock();
+
 							tiempoBloqueo = tiempoBloqueo + (finBloqueo - inicioBloqueo);
+
 						}
+
 						if (atrapado == 1 && reinicio != 1)
+
 						{
+
 							atrapados ++;
+
 							log_info(logger,"Felicitaciones, capturaste a %c (pokemon nro %d de la hoja de viaje de este mapa) \n",objetivos[contadorObjetivo],contadorObjetivo);
+
 							if(atrapados == list_size(mapa->objetivos))
+
 							{
+
 								copiarMedalla(infoEntrenador->nombre, mapa->nombreMapa);
+
 								log_info(logger, "Felicitaciones!Capturaste todos los pokemons del mapa %s (nro %d) \n",mapa->nombreMapa,contadorMapa);
+
 								nivelesCompletados++;
+
 								informarFinalizacion();
+
 							}
+
 						}
+
 						else if(atrapado == 2 && reinicio != 1)
+
 						{//Esperando el pokemon para atrapar el mapa me indica que mori por deadlock
+
 							informarFinalizacion();
+
 							muertePorDeadlock();
+
 							log_info(logger,"Parece que te mataron, Reiniciando entrenador....");
+
 						}
+
 					}
+
 				}
+
 				sleep(3); // Lo pongo a descansar al terminar un mapa!
-			}
-			if(nivelesCompletados == list_size(listaDeMapas)){
-				gane = 1;
+
 			}
 
+			if(nivelesCompletados == list_size(listaDeMapas)){
+
+				gane = 1;
+
+			}
+
+
+
 	return gane;
+
 }
-//-------------------MANEJADOR DE SEÑALES----------------//
+
+
+
 void sig_handler(int signo)
+
 {
+
     if (signo == SIGUSR1)
+
     	sumarVida(signo);
+
     else if (signo == SIGINT)
+
     	muerteDefinitivaPorSenial(signo);
+
     else if (signo == SIGTERM)
+
     	muertePorSenial(signo);
+
 }
+
+
+
+
 
 void cargarParametros(int argc, char **argv){
 
+
+
 	switch(argc)
+
 		{
+
 		case (1):	//Si la cant de param es 1 osea solo ./Entrenador aplica por defecto los 2 argumentos de abajo
+
 		//		log_info(logger, "Cantidad de parametros: %d, Aplicando datos por Defecto",argc);
+
 		 		strcpy(infoEntrenador->nombre, "Red");
+
 				strcpy(rutaArgv, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Pokedex");
+
 		 		break;
+
 		case (2):	//Si la cant de param es 2 osea ./Entrenador 'pokemon x'
+
 		 //		log_info(logger, "Cantidad de parametros: %d, Aplicando datos por Defecto para la Ruta",argc);
+
 		 		strcpy(infoEntrenador->nombre,argv[1]);
+
 		 		strcpy(rutaArgv, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Pokedex");
+
 		 		break;
+
 		case (3):	//Si la cant de param es 3 osea ./Entrenador 'pokemon x' 'rutaDelPokedex'
+
 		 //		log_info(logger, "Cantidad de parametros: %d",argc);
+
 		 		strcpy(infoEntrenador->nombre,argv[1]);
+
 		 		strcpy(rutaArgv,argv[2]);
+
 				break;
+
 		default:
+
 		// 		log_info(logger, "ERROR: Ingresaste %d parametros",argc);
+
 		 		printf("INGRESAR NOMBRE DEL ENTRENADOR ");
+
 		 		scanf("%s",infoEntrenador->nombre);
+
 		 		printf("INGRESAR RUTA DE LA POKEDEX ");
+
 		 		scanf("%s",rutaArgv);
+
 		 		break;
+
 		 }
+
 }
+
+
+
+
+
 
 int main(int argc, char **argv)
 {
 	completado = 0;
-	pid = getpid();
-	tiempoBloqueo = 0;
-	reinicio = 0;
 
-	infoEntrenador = malloc(sizeof(entrenador_datos));
-	infoEntrenador->reintentos=0;
-	//----------------------CARGO LAS RUTAS Y NOMBRES
-	cargarParametros(argc,argv);
+		pid = getpid();
 
-	//-----------
+		tiempoBloqueo = 0;
 
-	char* nombreLog = string_new();
-	string_append(&nombreLog,infoEntrenador->nombre);
-	string_append(&nombreLog,LOG_FILE);
-	logger = log_create(nombreLog, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
-	log_info(logger, PROGRAM_DESCRIPTION);
-	log_info(logger, "ID DEL PROCESO ENTRENADOR: %d NOMBRE: %s",pid,infoEntrenador->nombre);
-	log_info(logger, "Ruta Pokedex %s",rutaArgv);
-	log_info(logger, "Id del proceso: %d",pid);
+		reinicio = 0;
 
 
-	if ( leerConfiguracionEntrenador() == 1 )
-		log_info(logger, "Archivo de configuracion leido correctamente");
-	else
-		log_error(logger,"Error al leer archivo de configuracion");
+
+		infoEntrenador = malloc(sizeof(entrenador_datos));
+
+		infoEntrenador->reintentos=0;
+
+		//----------------------CARGO LAS RUTAS Y NOMBRES
+
+		cargarParametros(argc,argv);
 
 
-	//-------------------MANEJADOR DE SEÑALES----------------//
-	if (signal(SIGUSR1, sig_handler) == SIG_ERR)
-	        printf("\ncan't catch SIGUSR1\n");
-	if (signal(SIGINT, sig_handler) == SIG_ERR)
-	        printf("\ncan't catch SIGINT\n");
-	if (signal(SIGTERM, sig_handler) == SIG_ERR)
-	        printf("\ncan't catch SIGTERM\n");
 
-	clock_t inicio=clock();
-	while(completado == 0){
-		completado = jugar();
+		//-----------
+
+
+
+		char* nombreLog = string_new();
+
+		string_append(&nombreLog,infoEntrenador->nombre);
+
+		string_append(&nombreLog,LOG_FILE);
+
+		logger = log_create(nombreLog, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
+
+		log_info(logger, PROGRAM_DESCRIPTION);
+
+		log_info(logger, "ID DEL PROCESO ENTRENADOR: %d NOMBRE: %s",pid,infoEntrenador->nombre);
+
+		log_info(logger, "Ruta Pokedex %s",rutaArgv);
+
+		log_info(logger, "Id del proceso: %d",pid);
+
+
+
+
+
+		if ( leerConfiguracionEntrenador() == 1 )
+
+			log_info(logger, "Archivo de configuracion leido correctamente");
+
+		else
+
+			log_error(logger,"Error al leer archivo de configuracion");
+
+
+
+
+
+		//-------------------MANEJADOR DE SEÑALES----------------//
+
+		if (signal(SIGUSR1, sig_handler) == SIG_ERR)
+
+		        printf("\ncan't catch SIGUSR1\n");
+
+		if (signal(SIGINT, sig_handler) == SIG_ERR)
+
+		        printf("\ncan't catch SIGINT\n");
+
+		if (signal(SIGTERM, sig_handler) == SIG_ERR)
+
+		        printf("\ncan't catch SIGTERM\n");
+
+
+
+		clock_t inicio=clock();
+
+		while(completado == 0){
+
+			completado = jugar();
+
+		}
+
+		clock_t fin=clock();
+
+		log_info(logger, "------TE CONVERTISTE EN MAESTRO POKEMON------ \n");
+
+		log_info(logger, "El tiempo total que tardo la aventura fue: %f segundos \n", (fin-inicio)*1000/(double)CLOCKS_PER_SEC);
+
+		log_info(logger, "Estuviste esperando %f Segundos", tiempoBloqueo *1000 /(double)CLOCKS_PER_SEC);
+
+		log_info(logger, "Solo te costo %d intentos", infoEntrenador->reintentos);
+
+		list_destroy(listaDeMapas);
+
+		list_destroy(mapa->objetivos);
+
+		free(infoEntrenador);
+
+		free(mapa);
+
+
+
+		return EXIT_SUCCESS;
+
 	}
-	clock_t fin=clock();
-	log_info(logger, "------TE CONVERTISTE EN MAESTRO POKEMON------ \n");
-	log_info(logger, "El tiempo total que tardo la aventura fue: %f segundos \n", (fin-inicio)*1000/(double)CLOCKS_PER_SEC);
-	log_info(logger, "Estuviste esperando %f Segundos", tiempoBloqueo *1000 /(double)CLOCKS_PER_SEC);
-	log_info(logger, "Solo te costo %d intentos", infoEntrenador->reintentos);
-	list_destroy(listaDeMapas);
-	list_destroy(mapa->objetivos);
-	free(infoEntrenador);
-	free(mapa);
 
-	return EXIT_SUCCESS;
-}
