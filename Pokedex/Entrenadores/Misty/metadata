@@ -1,8 +1,8 @@
 nombre=Misty
 simbolo=*
-hojaDeViaje=[Test,CiudadVerde,CiudadPlateada]
-obj[Test]=[B,P,G]
+hojaDeViaje=[PuebloPaleta,CiudadVerde,CiudadPlateada]
+obj[PuebloPaleta]=[B,G,P]
 obj[CiudadVerde]=[C,Z,C,Z,C]
 obj[CiudadPlateada]=[S,M,P,M,P,M,S]
-vidas=1
+vidas=8
 reintentos=0

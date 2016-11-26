@@ -59,7 +59,7 @@ typedef struct {
 
 	/* Configuración de LOG */
 
-	#define LOG_FILE "proceso_Entrenador.log"
+	#define LOG_FILE "_Entrenador.log"
 	#define PROGRAM_NAME "ENTRENADOR"
 	#define PROGRAM_DESCRIPTION "Proceso ENTRENADOR"
 	#define IS_ACTIVE_CONSOLE true
@@ -88,7 +88,7 @@ void devolverMedallas();
 int leerConfiguracionEntrenador();
 int leerConfiguracionMapa(t_mapa*);
 void solicitarPosicion(t_mapa*,char);
-void informarFinalizacion(t_mapa*);
+void informarFinalizacion();
 void solicitarAvanzar(t_mapa*,char);
 int atraparPokemon(t_mapa*,char);
 void copiarMedalla(char*,char*);

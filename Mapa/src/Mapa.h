@@ -123,7 +123,7 @@ typedef struct
 /*----------------------- Declaraciones de Constantes ----------------------------------*/
 
 		/* Configuración de LOG */
-		#define LOG_FILE "proceso_Mapa.log"
+		#define LOG_FILE "_Mapa.log"
 		#define PROGRAM_NAME "MAPA"
 		#define PROGRAM_DESCRIPTION "Proceso MAPA"
 		#define IS_ACTIVE_CONSOLE false

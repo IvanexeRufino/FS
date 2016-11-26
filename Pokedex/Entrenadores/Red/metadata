@@ -1,7 +1,7 @@
 nombre=Red
 simbolo=@
-hojaDeViaje=[Test,Verde,Azul]
-obj[Test]=[P,B,G]
-obj[Verde]=[P,B,P]
+hojaDeViaje=[Verde,Azul]
+obj[Verde]=[P,B,G]
 obj[Azul]=[C,Z]
 vidas=1
+reintentos=0
