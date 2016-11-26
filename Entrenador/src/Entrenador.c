@@ -51,7 +51,7 @@ void devolverMedallas()
 void muerteDefinitivaPorSenial(int aSignal)
 {
 	log_info(logger,"El personaje se desconecto");
-	if(conectado == 1) informarFinalizacion(mapa);
+	if(conectado == 1) informarFinalizacion();
 	exit(1);
 }
 
@@ -61,7 +61,7 @@ void gameOver()
 	char respuesta = 's';
 	log_info(logger,"GAME OVER!!! Parece que el personaje %s ha muerto y se ha quedado sin vidas,¿Desea continuar?(S).\n",infoEntrenador->nombre);
 	scanf("%c", &respuesta);
-	informarFinalizacion(mapa);
+	informarFinalizacion();
 
 	switch(respuesta)
 	{
