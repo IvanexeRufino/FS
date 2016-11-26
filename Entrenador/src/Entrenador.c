@@ -1,6 +1,6 @@
 #include "Entrenador.h"
 
-int conectado;
+
 t_log* logger;
 entrenador_datos* infoEntrenador;
 pid_t pid;
@@ -51,7 +51,7 @@ void devolverMedallas()
 void muerteDefinitivaPorSenial(int aSignal)
 {
 	log_info(logger,"El personaje se desconecto");
-	if(conectado == 1) informarFinalizacion();
+	informarFinalizacion();
 	exit(1);
 }
 
@@ -68,7 +68,7 @@ void gameOver()
 		case 'S':
 		case 's':
 			reinicio = 1;
-			conectado = 0;
+
 			log_info(logger,"reiniciando...");
 			contadorObjetivo = 99;
 			contadorMapa = - 1;
@@ -92,7 +92,7 @@ void muertePorSenial(int num)
 	}
 	else
 	{
-		conectado = 0;
+
 		gameOver();
 	}
 }
@@ -100,7 +100,7 @@ void muertePorDeadlock(){
 
 	infoEntrenador->vidas--;
 	reinicio = 1;
-	conectado = 0;
+
 	contadorObjetivo = 99;
 	if(infoEntrenador->vidas<=0)
 	{
@@ -335,10 +335,10 @@ void copiarMedalla(char entrenador[20],char* nombre)
 
 void desconectar()
 {
-	if(conectado == 1 && reinicio == 1)
+	if(reinicio == 1)
 	{
 		informarFinalizacion();
-		conectado = 0;
+
 	}
 }
 

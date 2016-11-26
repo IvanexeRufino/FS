@@ -547,7 +547,7 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje)
 	case ('3'):
 		log_info(logger,"Intentando Atrapar...");
 		envioQueSeAtrapoPokemon(nuevoPersonaje,nuevoPersonaje->pokemonActual);
-		sleep(1);
+
 		break;
 
 	default:
