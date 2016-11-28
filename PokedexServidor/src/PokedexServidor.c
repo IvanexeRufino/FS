@@ -88,14 +88,13 @@ int AceptarConexionCliente(int socketServer) {
 
 }
 
-//t_paquete* enviarQueSos(int nroop, void* path, int size){
-//	t_paquete* paquete = empaquetar(nroop,path,size);
-//	void* cosaparaenviar = acoplador(paquete);
-//	if(send(newfd,enviar,paqueteSend->tamanio + size_header ,0)<0) {
-//				puts("ERROR ENVIO");
-//				exit(1);
-//	}
-//}
+void enviarQueSos(int newfd,t_paquete* paqueteSend){
+	void* enviar = acoplador(paqueteSend);
+	if(send(newfd,enviar,paqueteSend->tamanio + size_header ,0)<0) {
+				puts("ERROR ENVIO");
+				exit(1);
+	}
+}
 
 void* getattr(t_paquete* paqueterecv) {
 
@@ -113,7 +112,6 @@ void recibirQueSos(int newfd){
 	char* buforecibidox;
 	char* buforecibido;
 	osada_file* archivo;
-	void* enviar;
 	t_paquete* paqueteSend;
 	t_paquete* paqueteRead;
 	char buffer[MAX_BUFFERSIZE];
@@ -139,11 +137,9 @@ void recibirQueSos(int newfd){
 			osada_file* archivo = obtenerArchivo(paqueterecv->datos);
 			if(archivo == NULL || archivo->state == 0) {
 				paqueteSend = empaquetar(100,"error",6);
-				enviar = acoplador(paqueteSend);
 			}
 			else {
 				paqueteSend = empaquetar(1,archivo,sizeof(osada_file));
-				enviar = acoplador(paqueteSend);
 			}
 			break;
 			case 2:
@@ -162,12 +158,8 @@ void recibirQueSos(int newfd){
 
 			if(list_size(listaDeHijos) != NULL){
 				paqueteSend= empaquetar(2,bufo,strlen(bufo)+1);
-				enviar= acoplador(paqueteSend);
-				printf ("voy a enviar\n");
 			} else {
 				paqueteSend= empaquetar(100,"error",6);
-				enviar= acoplador(paqueteSend);
-				printf ("voy a enviar\n");
 			}
 			break;
 			case 3:
@@ -176,17 +168,14 @@ void recibirQueSos(int newfd){
 					int error = crear_archivo(paqueterecv->datos,2);
 					if (error == -1) {
 						paqueteSend = empaquetar(101,"tabla de archivos",18);
-						enviar = acoplador(paqueteSend);
 					}
 					else {
 						paqueteSend = empaquetar(99,"ok",3);
-						enviar = acoplador(paqueteSend);
 					}
 
 				}
 				else {
 					paqueteSend= empaquetar(100,"error",6);
-					enviar= acoplador(paqueteSend);
 				}
 				break;
 			case 4:
@@ -194,15 +183,12 @@ void recibirQueSos(int newfd){
 				if(paqueterecv->tamanio - 2 <= 17) {
 					int  error = crear_archivo(paqueterecv->datos,1);
 					paqueteSend = empaquetar(99,"ok",3);
-					enviar = acoplador(paqueteSend);
 					if (error == -1) {
 						paqueteSend = empaquetar(101,"tabla de archivos",18);
-						enviar = acoplador(paqueteSend);
 					}
 				}
 				else {
 					paqueteSend= empaquetar(100,"error",6);
-					enviar= acoplador(paqueteSend);
 				}
 				break;
 			case 5:
@@ -210,11 +196,9 @@ void recibirQueSos(int newfd){
 				archivo = obtenerArchivo(paqueterecv->datos);
 				if(archivo == NULL || archivo->state == 0) {
 					paqueteSend = empaquetar(100,"error",6);
-					enviar = acoplador(paqueteSend);
 				}
 				else {
 					paqueteSend = empaquetar(1,archivo,sizeof(osada_file));
-					enviar = acoplador(paqueteSend);
 				}
 				break;
 			case 6:
@@ -229,7 +213,6 @@ void recibirQueSos(int newfd){
 				char* buf = malloc(archivo->file_size);
 				int size = leer_archivo(paqueterecv->datos, 0, 4096,buf);
 				paqueteSend = empaquetar(6,buf,size);
-				enviar = acoplador(paqueteSend);
 				break;
 			case 7:
 				paqueteRead = desacoplador1(paqueterecv->datos,paqueterecv->tamanio);
@@ -240,7 +223,6 @@ void recibirQueSos(int newfd){
 //				memcpy(bufbuf,paqueteRead->datos + strlen(bufpath), paqueteRead->tamanio);
 				int tam = escribir_archivo(bufonuevo[0],paqueteRead->codigo,paqueteRead->tamanio,bufonuevo[1]);
 				paqueteSend = empaquetar(7,bufonuevo[1],tam);
-				enviar = acoplador(paqueteSend);
 
 				break;
 			case 8:
@@ -253,7 +235,6 @@ void recibirQueSos(int newfd){
 				}
 				if(archivo == NULL || archivo->state == 0) {
 					paqueteSend = empaquetar(100,"error",6);
-					enviar = acoplador(paqueteSend);
 				}
 				break;
 			case 9:
@@ -263,7 +244,6 @@ void recibirQueSos(int newfd){
 				archivo = obtenerArchivo(paqueterecv->datos);
 				if(archivo == NULL) {
 					paqueteSend = empaquetar(100,"error",6);
-					enviar = acoplador(paqueteSend);
 				} else {
 					truncar_archivo(archivo,(uint32_t)paqueteRead->tamanio);
 				}
@@ -281,10 +261,7 @@ void recibirQueSos(int newfd){
 				copiar_archivo(bufonuevoxx[0],bufonuevoxx[1]);
 				break;
 			}
-		if(send(newfd,enviar,paqueteSend->tamanio + size_header ,0)<0) {
-					puts("ERROR ENVIO");
-					exit(1);
-		}
+		enviarQueSos(newfd,paqueteSend);
 }
 
 void sigchld_handler(int s){
