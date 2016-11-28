@@ -88,6 +88,27 @@ int AceptarConexionCliente(int socketServer) {
 
 }
 
+//t_paquete* enviarQueSos(int nroop, void* path, int size){
+//	t_paquete* paquete = empaquetar(nroop,path,size);
+//	void* cosaparaenviar = acoplador(paquete);
+//	if(send(newfd,enviar,paqueteSend->tamanio + size_header ,0)<0) {
+//				puts("ERROR ENVIO");
+//				exit(1);
+//	}
+//}
+
+void* getattr(t_paquete* paqueterecv) {
+
+	osada_file* archivo = obtenerArchivo(paqueterecv->datos);
+	free(paqueterecv);
+	if(archivo == NULL || archivo->state == 0) {
+		return acoplador(empaquetar(100,"error",6));
+	}
+	else {
+		return acoplador(empaquetar(1,archivo,sizeof(osada_file)));
+	}
+}
+
 void recibirQueSos(int newfd){
 	char* buforecibidox;
 	char* buforecibido;
@@ -114,19 +135,19 @@ void recibirQueSos(int newfd){
 		switch(paqueterecv->codigo){
 		case 1:
 			printf("el path es %s \n", paqueterecv->datos);
-			archivo = obtenerArchivo(paqueterecv->datos);
+//			enviar = getattr(paqueterecv);
+			osada_file* archivo = obtenerArchivo(paqueterecv->datos);
 			if(archivo == NULL || archivo->state == 0) {
 				paqueteSend = empaquetar(100,"error",6);
 				enviar = acoplador(paqueteSend);
-				printf ("voy a enviar\n");
 			}
 			else {
 				paqueteSend = empaquetar(1,archivo,sizeof(osada_file));
 				enviar = acoplador(paqueteSend);
-				printf ("voy a enviar\n");
 			}
 			break;
 			case 2:
+			printf("el path es %s \n", paqueterecv->datos);
 			indice= obtenerIndice(paqueterecv->datos);
 			t_list* listaDeHijos= listaDeHijosDelArchivo(indice);
 			char* bufo= memoria(17*list_size(listaDeHijos));
@@ -148,9 +169,9 @@ void recibirQueSos(int newfd){
 				enviar= acoplador(paqueteSend);
 				printf ("voy a enviar\n");
 			}
-			free(nombre);
 			break;
 			case 3:
+				printf("el path es %s \n", paqueterecv->datos);
 				if(paqueterecv->tamanio - 2 <= 17) {
 					int error = crear_archivo(paqueterecv->datos,2);
 					if (error == -1) {
@@ -169,6 +190,7 @@ void recibirQueSos(int newfd){
 				}
 				break;
 			case 4:
+				printf("el path es %s \n", paqueterecv->datos);
 				if(paqueterecv->tamanio - 2 <= 17) {
 					int  error = crear_archivo(paqueterecv->datos,1);
 					paqueteSend = empaquetar(99,"ok",3);
@@ -179,14 +201,12 @@ void recibirQueSos(int newfd){
 					}
 				}
 				else {
-					if(string_ends_with(adquirirNombreAnterior(paqueterecv),".jpg")) {
-						printf("termina en .jpg");
-					}
 					paqueteSend= empaquetar(100,"error",6);
 					enviar= acoplador(paqueteSend);
 				}
 				break;
 			case 5:
+				printf("el path es %s \n", paqueterecv->datos);
 				archivo = obtenerArchivo(paqueterecv->datos);
 				if(archivo == NULL || archivo->state == 0) {
 					paqueteSend = empaquetar(100,"error",6);
@@ -198,10 +218,16 @@ void recibirQueSos(int newfd){
 				}
 				break;
 			case 6:
-				paqueteRead = desacoplador1(paqueterecv->datos,paqueterecv->tamanio);
-				archivo = obtenerArchivo(paqueteRead->datos);
-				char* buf = malloc(minimoEntre(archivo->file_size, paqueteRead->tamanio));
-				int size = leer_archivo(paqueteRead->datos,0,archivo->file_size,buf);
+//				paqueteRead = desacoplador1(paqueterecv->datos,paqueterecv->tamanio);
+//				printf("el path es %s \n", paqueteRead->datos);
+//				printf("el offset es %d \n", paqueteRead->codigo);
+//				printf("el size es %d \n", paqueteRead->tamanio);
+//				archivo = obtenerArchivo(paqueteRead->datos);
+//				char* buf = malloc(minimoEntre(archivo->file_size, paqueteRead->tamanio));
+//				int size = leer_archivo(paqueteRead->datos,paqueteRead->codigo,paqueteRead->tamanio,buf);
+				archivo = obtenerArchivo(paqueterecv->datos);
+				char* buf = malloc(archivo->file_size);
+				int size = leer_archivo(paqueterecv->datos, 0, 4096,buf);
 				paqueteSend = empaquetar(6,buf,size);
 				enviar = acoplador(paqueteSend);
 				break;
@@ -247,21 +273,18 @@ void recibirQueSos(int newfd){
 				buforecibido= paqueterecv->datos;
 				char** bufonuevox= string_split(buforecibido,"%");
 				renombrar_archivo(bufonuevox[0],bufonuevox[1]);
-				free(bufonuevox);
 				break;
 			case 12:
 				buforecibidox= malloc(paqueterecv->tamanio);
 				buforecibidox= paqueterecv->datos;
 				char** bufonuevoxx= string_split(buforecibidox,"%");
 				copiar_archivo(bufonuevoxx[0],bufonuevoxx[1]);
-				free(bufonuevoxx);
 				break;
 			}
 		if(send(newfd,enviar,paqueteSend->tamanio + size_header ,0)<0) {
 					puts("ERROR ENVIO");
 					exit(1);
 		}
-		free(paqueterecv);
 }
 
 void sigchld_handler(int s){
@@ -270,9 +293,9 @@ void sigchld_handler(int s){
 
 int main(void) {
 
-	system("truncate -s 200k disco.bin");
-	system("./osada-format disco.bin");
-	reconocerOSADA("disco.bin");
+//	system("truncate -s 200k disco.bin");
+//	system("./osada-format disco.bin");
+	reconocerOSADA("/home/utnso/base.bin");
 
 	int sockfd, new_fd;  // Escuchar sobre sock_fd, nuevas conexiones sobre new_fd
 	struct sockaddr_in my_addr;    // información sobre mi dirección

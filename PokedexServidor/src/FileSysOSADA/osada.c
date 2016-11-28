@@ -238,7 +238,6 @@ uint16_t buscarArchivoDelPadre(char* path)
 {
 	char* nombreABuscar = adquirirNombreAnterior(path);
 	uint16_t indice = obtenerIndice(nombreABuscar);
-	free(nombreABuscar);
 	return indice;
 }
 
@@ -526,7 +525,6 @@ int copiar_archivo(char* pathFuente, char*pathDestino) {
 		char* buffer = malloc(archivoACopiar->file_size);
 		leer_archivo(pathFuente, 0, archivoACopiar->file_size,buffer);
 		escribir_archivo(pathDestino, 0, archivoACopiar->file_size, buffer);
-		free(buffer);
 	}
 	return 0;
 }
