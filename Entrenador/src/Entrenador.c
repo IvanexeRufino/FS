@@ -1,6 +1,5 @@
 #include "Entrenador.h"
 
-
 t_log* logger;
 entrenador_datos* infoEntrenador;
 pid_t pid;
@@ -22,26 +21,26 @@ void devolverMedallas()
 	strcpy(ruta,rutaArgv);
 	strcat(ruta,"/Entrenadores/");
 	strcat(ruta,infoEntrenador->nombre);
-	strcat(ruta,"/medallas/");
+	strcat(ruta,"/medallas/");				//Arma la ruta definitiva donde tengo las medallas guardadas
 
-	DIR *dp;
-	struct dirent *ep;
-	dp = opendir (ruta);
-	if (dp != NULL)
+	DIR *dp;					//Es una estructura para manejar los directorios como flujos de datos
+	struct dirent *ep;			//Este es un tipo de estructura utilizado para devolver información sobre entradas al directorio
+	dp = opendir (ruta);		//Abre y retorna el directorio de la ruta como flujo de datos para su lectura
+	if (dp != NULL)				// Si la lectura ha sido safisfactoria
 	{
-		ep = readdir (dp);
-		while (ep)
+		ep = readdir (dp);		//Lee la primer archivo dentro del directorio y retorna un puntero con la info necesaria de ese directorio
+		while (ep)				//Mientras haya archivos que leer
 		{
-			if(ep->d_name[0]!='.')
+			if(ep->d_name[0]!='.')	//Si el nombre no es vacio, es decir, no tiene el "." de la extension de primer caracter
 			{
 				strcpy(comando, "rm ");
 				strcat(comando,ruta);
 			    strcat(comando,ep->d_name);
-			    system(comando);
+			    system(comando);	//Ejecuto el comando de borrado armado anteriomente, como si lo hubiera hecho en consola
 			}
-			ep = readdir (dp);
+			ep = readdir (dp);	//Reacomoda el puntero al proximo archivo del directorio
 		}
-		(void) closedir (dp);
+		(void) closedir (dp);	//Cierra el flujo de datos del directorio
 	}
 	else
 		perror ("Couldn't open the directory");
@@ -61,17 +60,16 @@ void gameOver()
 	char respuesta = 's';
 	log_info(logger,"GAME OVER!!! Parece que el personaje %s ha muerto y se ha quedado sin vidas,¿Desea continuar?(S).\n",infoEntrenador->nombre);
 	scanf("%c", &respuesta);
-	informarFinalizacion();
+	informarFinalizacion();		//Le envia un 4 y espera que le responda que finalizo la interaccion entre ambos
 
 	switch(respuesta)
 	{
 		case 'S':
 		case 's':
-			reinicio = 1;
-
-			log_info(logger,"reiniciando...");
-			contadorObjetivo = 99;
-			contadorMapa = - 1;
+			reinicio = 1;	//Para que se saltee todas las validaciones de los for y los if de la funcion jugar() y reinicie rapido el entrenador
+			log_info(logger,"Reiniciando...");
+			contadorObjetivo = 99;	//Idem la sentencia de arriba
+			contadorMapa = - 1;		//Idem la sentencia de arriba
 			infoEntrenador->reintentos ++;
 			infoEntrenador->vidas = 3;
 			log_info(logger, "Gracias por continuar jugando! Se le han otorgado 3 vidas mas!\n");
@@ -101,15 +99,15 @@ void muertePorDeadlock(){
 	infoEntrenador->vidas--;
 	reinicio = 1;
 
-	contadorObjetivo = 99;
+	contadorObjetivo = 99;		//Le pongo un numero alto para que se saltee el for de los objetivos y termine de jugar
 	if(infoEntrenador->vidas<=0)
 	{
 			gameOver();
 	}
 	else
 	{
-		contadorMapa = contadorMapa-1;
-		atrapados = 0;
+		contadorMapa = contadorMapa-1;		//Le resto uno para volver al mapa que estaba originariamente
+		atrapados = 0;						//Flag que simboliza que me sacan todos los pokemons
 		log_info(logger,"El personaje %s perdio una vida por deadlock y actualmente tiene %d vidas.\n",infoEntrenador->nombre,infoEntrenador->vidas);
 	}
 }
@@ -135,12 +133,6 @@ char* objetivosDelMapa(char* mapaParaAgregar)
 	return new;
 }
 
-void imprimirClaveYValor(char* key, void* data)
-{
-	char* pokemon = (char *) data;
-	printf("Variable: %s  Valor: %s \n", key, pokemon);
-}
-
 int leerConfiguracionEntrenador()
 {
 	char pathconfigMetadata[100];
@@ -161,7 +153,7 @@ int leerConfiguracionEntrenador()
 		listaDeMapas = list_create();
 		int k = 0;
 				//Recorre la hoja de viaje, ciudad por ciudad
-		while (&(*config_get_array_value(config, "hojaDeViaje")[k])!= NULL)
+		while (&(*config_get_array_value(config, "hojaDeViaje")[k])!= NULL)	//Mientras haya ciudades por leer
 		{
 			char* palabraAAgregar =config_get_array_value(config, "hojaDeViaje")[k];
 			mapa = malloc(sizeof(t_mapa));
@@ -357,10 +349,7 @@ int jugar(){
 	char *vector=malloc(sizeof(char)*10);
 
 			for(contadorMapa = 0 ; contadorMapa< list_size(listaDeMapas) && reinicio != 1; contadorMapa++)
-
 			{
-
-
 
 				contadorObjetivo = 0;
 
@@ -400,15 +389,9 @@ int jugar(){
 
 					objetivos[contadorObjetivo] = *vector;
 
-
-
 					log_info(logger, "El objetivo actual es %c \n", objetivos[contadorObjetivo]);
 
-
-
-					solicitarPosicion(mapa,objetivos[contadorObjetivo]);		//Le envio en el header el ID 1
-
-
+					solicitarPosicion(mapa,objetivos[contadorObjetivo]);		//Le envio en el header el ID 1 y el simbolo del pok a capturar
 
 					while((infoEntrenador->posicionEnX != mapa->pokemonActualPosicionEnX ||
 
@@ -452,7 +435,7 @@ int jugar(){
 
 							log_info(logger,"Felicitaciones, capturaste a %c (pokemon nro %d de la hoja de viaje de este mapa) \n",objetivos[contadorObjetivo],contadorObjetivo);
 
-							if(atrapados == list_size(mapa->objetivos))
+							if(atrapados == list_size(mapa->objetivos))	//Si la cantidad de pokemon que atrape son la cantidad que deberia atrapar de ese mapa
 
 							{
 
@@ -462,7 +445,7 @@ int jugar(){
 
 								nivelesCompletados++;
 
-								informarFinalizacion();
+								informarFinalizacion();	//Le envia un 4 y espera que le responda que finalizo la interaccion entre ambos
 
 							}
 
@@ -472,7 +455,7 @@ int jugar(){
 
 						{//Esperando el pokemon para atrapar el mapa me indica que mori por deadlock
 
-							informarFinalizacion();
+							informarFinalizacion(); //Le envia un 4 y espera que le responda que finalizo la interaccion entre ambos
 
 							muertePorDeadlock();
 
@@ -488,22 +471,19 @@ int jugar(){
 
 			}
 
-			if(nivelesCompletados == list_size(listaDeMapas)){
-
+			if(nivelesCompletados == list_size(listaDeMapas))
+			{
 				gane = 1;
-
 			}
 
-
+	//Puede devolver 1 si termino todo normal, o un 0 si me mori y debo reiniciar toda la partida
 
 	return gane;
 
 }
 
 
-
 void sig_handler(int signo)
-
 {
 
     if (signo == SIGUSR1)
@@ -517,16 +497,9 @@ void sig_handler(int signo)
     else if (signo == SIGTERM)
 
     	muertePorSenial(signo);
-
 }
 
-
-
-
-
 void cargarParametros(int argc, char **argv){
-
-
 
 	switch(argc)
 
@@ -581,55 +554,37 @@ void cargarParametros(int argc, char **argv){
 }
 
 
-
-
-
-
 int main(int argc, char **argv)
 {
-	completado = 0;
+	completado = 0;	//Es el flag que determina si tengo que seguir jugando (mas que nada despues de morir)
 
-		pid = getpid();
+	pid = getpid();	//Obtengo el PID del proceso
 
-		tiempoBloqueo = 0;
+	tiempoBloqueo = 0; //Seteo el tiempo que estoy en deadlock al empezar en 0
 
-		reinicio = 0;
+	reinicio = 0;
 
+	infoEntrenador = malloc(sizeof(entrenador_datos));
 
+	infoEntrenador->reintentos=0;
 
-		infoEntrenador = malloc(sizeof(entrenador_datos));
+	/*----------------------CARGO LAS RUTAS Y NOMBRES----------------------*/
 
-		infoEntrenador->reintentos=0;
+	cargarParametros(argc,argv);	//Va switcheando lo que ingresamos como parametro, guardando la ruta y el nombre del entrenador
 
-		//----------------------CARGO LAS RUTAS Y NOMBRES
+	char* nombreLog = string_new();
 
-		cargarParametros(argc,argv);
+	string_append(&nombreLog,infoEntrenador->nombre);
 
+	string_append(&nombreLog,LOG_FILE);
 
+	logger = log_create(nombreLog, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
 
-		//-----------
+	log_info(logger, PROGRAM_DESCRIPTION);
 
+	log_info(logger, "ID DEL PROCESO ENTRENADOR: %d NOMBRE: %s",pid,infoEntrenador->nombre);
 
-
-		char* nombreLog = string_new();
-
-		string_append(&nombreLog,infoEntrenador->nombre);
-
-		string_append(&nombreLog,LOG_FILE);
-
-		logger = log_create(nombreLog, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
-
-		log_info(logger, PROGRAM_DESCRIPTION);
-
-		log_info(logger, "ID DEL PROCESO ENTRENADOR: %d NOMBRE: %s",pid,infoEntrenador->nombre);
-
-		log_info(logger, "Ruta Pokedex %s",rutaArgv);
-
-		log_info(logger, "Id del proceso: %d",pid);
-
-
-
-
+	log_info(logger, "Ruta Pokedex %s",rutaArgv);
 
 		if ( leerConfiguracionEntrenador() == 1 )
 
@@ -638,10 +593,6 @@ int main(int argc, char **argv)
 		else
 
 			log_error(logger,"Error al leer archivo de configuracion");
-
-
-
-
 
 		//-------------------MANEJADOR DE SEÑALES----------------//
 
@@ -657,17 +608,14 @@ int main(int argc, char **argv)
 
 		        printf("\ncan't catch SIGTERM\n");
 
+		clock_t inicio=clock();		//Inicio el reloj del comienzo de la aventura del entrenador
 
-
-		clock_t inicio=clock();
-
-		while(completado == 0){
-
+		while(completado == 0)			//Si recien empece o perdi y me mori tengo un 0, cuando termine de hacer todo tendria un 1
+		{
 			completado = jugar();
-
 		}
 
-		clock_t fin=clock();
+		clock_t fin=clock();	//Finalizo el reloj al finalizar nuestra aventura
 
 		log_info(logger, "------TE CONVERTISTE EN MAESTRO POKEMON------ \n");
 
@@ -684,8 +632,6 @@ int main(int argc, char **argv)
 		free(infoEntrenador);
 
 		free(mapa);
-
-
 
 		return EXIT_SUCCESS;
 

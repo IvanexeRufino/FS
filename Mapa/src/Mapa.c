@@ -218,7 +218,7 @@ int leerConfiguracionMapa()
 								infoMapa->retardo,
 								infoMapa->ipEscucha,
 								infoMapa->puertoEscucha);
-		//Leo todas la pokenest ******************************************************* POR AHORA UNA
+		//Leo todas la pokenest
 
 		DIR *dp;
 		struct dirent *ep;
@@ -230,7 +230,6 @@ int leerConfiguracionMapa()
 			{
 				if(ep->d_name[0]!='.')
 				{
-//					puts (ep->d_name);
 					leerConfiguracionPokenest(infoMapa->nombre,ep->d_name);
 				}
 				ep = readdir (dp);
@@ -635,6 +634,7 @@ void planificarNuevo()
 				if(entrenador->distanciaARecurso == -1)
 				{
 					entrenador =  list_remove(entrenadores_listos,k);
+					log_info(logger,"El entrenador %s no conoce su ubicacion, por eso lo atiendo primero",entrenador->nombre);
 					recibirQueHacer(entrenador);
 					usleep(infoMapa->retardo);
 					list_add(entrenadores_listos,entrenador);
@@ -662,22 +662,20 @@ void planificarNuevo()
 		if(entrenador->estado!='T')
 		{
 			pthread_mutex_lock(&mutex_EntrenadoresActivos);
-			list_add(entrenadores_listos,entrenador);
+			list_add(entrenadores_listos,entrenador);			//Si no termino de hacer todo lo que necesita, se vuelve a agregar a la cola
 			pthread_mutex_unlock(&mutex_EntrenadoresActivos);
 			if(entrenador->estado == 'L') sem_post(&colaDeListos);  //Agrego este if para que el mapa no se quede loopeando si estan bloqueados los entrenadores
 		}
 		else
-			free(entrenador);//el sem_post deberia llamarse cuando el deadlock lo diga;
+			free(entrenador);
 	}	//Aca termina y  vuelve al while(1)
 }
 
 void releerconfig(int aSignal)
 {
 	 reLeerConfiguracionMapa();
-	 signal(SIGUSR2,releerconfig);
 	 return ;
 }
-
 
 char *liberar_recursos(char *nombre_personaje){
 	char *recursosString = string_new();
@@ -980,7 +978,7 @@ int main(int argc, char **argv)
 	{
 	case (1):
 		log_info(logger, "Cantidad de parametros incorrectos, Aplicando por defecto");
-		strcpy(infoMapa->nombre,"Test");
+		strcpy(infoMapa->nombre,"Verde");
 		strcpy(rutaArgv, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Pokedex");
 		break;
 	case (2):
