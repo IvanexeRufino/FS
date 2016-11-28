@@ -1,6 +1,6 @@
 nombre=Red
 simbolo=@
-hojaDeViaje=[Test,Verde,Azul]
+hojaDeViaje=[Verde,Test,Azul]
 obj[Test]=[B,C,S]
 obj[Verde]=[P,B,G]
 obj[Azul]=[C,Z]
