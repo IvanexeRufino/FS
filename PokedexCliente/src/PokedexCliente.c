@@ -200,6 +200,7 @@ static int ejemplo_write (char *path, char *buf, size_t size, off_t offset, stru
 
 static int ejemplo_remove (char* path) {
 	t_paquete* paquete = enviarQueSos(8, path, strlen(path) + 1);
+
 	if(paquete->codigo == 100) {
 		return ENAMETOOLONG;
 	}

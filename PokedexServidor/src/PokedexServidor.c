@@ -54,19 +54,6 @@ t_paquete* desacoplador(char* buffer)/*transforma multiples streams en estructur
   	return paquete;
   }
 
-int AceptarConexionCliente(int socketServer) {
-	socklen_t longitudCliente;//esta variable tiene inicialmente el tamaño de la estructura cliente que se le pase
-	struct sockaddr cliente;
-	int socketNuevaConexion;//esta variable va a tener la descripcion del nuevo socket que estaria creando
-	longitudCliente = sizeof(cliente);
-	socketNuevaConexion = accept (socketServer, &cliente, &longitudCliente);//acepto la conexion del cliente
-	if (socketNuevaConexion < 0){
-		return -1;
-	}
-	return socketNuevaConexion;
-
-}
-
 void enviarQueSos(int newfd,t_paquete* paqueteSend){
 	void* enviar = acoplador(paqueteSend);
 	if(send(newfd,enviar,paqueteSend->tamanio + size_header ,0)<0) {
