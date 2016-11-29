@@ -164,12 +164,16 @@ static int ejemplo_readdir(char *path, void *buf, fuse_fill_dir_t filler,
 
 static int ejemplo_mkdir(char* filename, mode_t modo){
 	t_paquete* paquete = enviarQueSos(3, filename, strlen(filename) + 1);
+	if(paquete->codigo == 99) {
+		return 0;
+	}
 	if(paquete->codigo == 100) {
 		return ENAMETOOLONG;
 	}
 	if(paquete->codigo == 101) {
 		return EDQUOT;
 	}
+
 	return 0;
 }
 
@@ -196,9 +200,9 @@ static int ejemplo_open(char * path, int info) {
 
 static int ejemplo_read(char *path, char *buf, size_t size, off_t offset,
 		struct fuse_file_info *fi) {
-//	t_paquete* paqueteRead1 = empaquetar(offset, path, size);
-//	void* streamRead1 = acoplador1(paqueteRead1);
-//	t_paquete* paqueteRec = enviarQueSos(6, streamRead1, strlen(path) + 1 + size_header);
+	t_paquete* paqueteRead1 = empaquetar(offset, path, size);
+	void* streamRead1 = acoplador1(paqueteRead1);
+	t_paquete* paqueteRec = enviarQueSos(6, streamRead1, strlen(path) + 1 + size_header);
 //	memcpy(buf,paqueteRec->datos,paqueteRec->tamanio);
 	return leer_archivo(path,offset,size,buf);
 }
@@ -219,8 +223,8 @@ static int ejemplo_write (char *path, char *buf, size_t size, off_t offset, stru
 
 static int ejemplo_remove (char* path) {
 	t_paquete* paquete = enviarQueSos(8, path, strlen(path) + 1);
-	if(strcmp(paquete->datos,"error")) {
-		return -ENOENT;
+	if(paquete->codigo == 100) {
+		return ENAMETOOLONG;
 	}
 	return 0;
 }

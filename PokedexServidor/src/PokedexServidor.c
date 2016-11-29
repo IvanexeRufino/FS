@@ -94,6 +94,7 @@ void enviarQueSos(int newfd,t_paquete* paqueteSend){
 				puts("ERROR ENVIO");
 				exit(1);
 	}
+	free(enviar);
 }
 
 void getattr(int newfd, t_paquete* paqueterecv) {
@@ -166,31 +167,27 @@ void crear (int newfd, t_paquete* paqueterecv){
 }
 
 void leer (int newfd, t_paquete* paqueterecv){
-	osada_file* archivo;
-	archivo = obtenerArchivo(paqueterecv->datos);
+	t_paquete* paqueteRead = desacoplador1(paqueterecv->datos,paqueterecv->tamanio);
+	osada_file* archivo = obtenerArchivo(paqueteRead->datos);
 	char* buf = malloc(archivo->file_size);
-	int size = leer_archivo(paqueterecv->datos, 0, 4096,buf);
+	int size = leer_archivo(paqueteRead->datos, paqueteRead->codigo, paqueteRead->tamanio,buf);
 	enviarQueSos(newfd, empaquetar(6,buf,size));
 }
 
 void escribir (int newfd, t_paquete* paqueterecv){
-	t_paquete* paqueteRead;
-	paqueteRead = desacoplador1(paqueterecv->datos,paqueterecv->tamanio);
-	char** bufonuevo= string_split(paqueteRead->datos,"|");
+	t_paquete* paqueteWrite = desacoplador1(paqueterecv->datos,paqueterecv->tamanio);
+	char** bufonuevo= string_split(paqueteWrite->datos,"|");
 //				char* bufpath = malloc(paqueterecv->tamanio - size_header - paqueteRead->tamanio);
 //				char* bufbuf = malloc(paqueterecv->tamanio);
 //				memcpy(bufpath, paqueteRead->datos, paqueterecv->tamanio -size_header - paqueteRead->tamanio);
 //				memcpy(bufbuf,paqueteRead->datos + strlen(bufpath), paqueteRead->tamanio);
-	int tam = escribir_archivo(bufonuevo[0],paqueteRead->codigo,paqueteRead->tamanio,bufonuevo[1]);
+	int tam = escribir_archivo(bufonuevo[0],paqueteWrite->codigo,paqueteWrite->tamanio,bufonuevo[1]);
 	enviarQueSos(newfd, empaquetar(7,bufonuevo[1],tam));
 }
 
 void remover (int newfd, t_paquete* paqueterecv){
 	osada_file* archivo;
 	archivo = obtenerArchivo(paqueterecv->datos);
-	if(archivo == NULL || archivo->state == 0) {
-		enviarQueSos(newfd, empaquetar(100,"error",6));
-	}
 	if(archivo->state == 1) {
 		borrar_archivo(paqueterecv->datos);
 		enviarQueSos(newfd, empaquetar(99,"ok",3));
@@ -198,6 +195,9 @@ void remover (int newfd, t_paquete* paqueterecv){
 	else if(archivo->state == 2) {
 		borrar_directorio_vacio(paqueterecv->datos);
 		enviarQueSos(newfd, empaquetar(99,"ok",3));
+	}
+	if(archivo == NULL || archivo->state == 0) {
+		enviarQueSos(newfd, empaquetar(100,"error",6));
 	}
 }
 
