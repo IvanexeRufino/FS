@@ -152,23 +152,16 @@ void escribir (int newfd, t_paquete* paqueterecv){
 void remover (int newfd, t_paquete* paqueterecv){
 	osada_file* archivo;
 	archivo = obtenerArchivo(paqueterecv->datos);
-	if(archivo->state == 1) {
-		if(borrar_archivo(paqueterecv->datos) == 0) {
-			enviarQueSos(newfd, empaquetar(99,"ok",3));
-		}
-		else {
-			enviarQueSos(newfd, empaquetar(100,"error",6));
-		}
-	}
-	else if(archivo->state == 2) {
-		if(borrar_directorio_vacio(paqueterecv->datos) == 0) {
-			enviarQueSos(newfd, empaquetar(99,"ok",3));
-		} else {
-			enviarQueSos(newfd, empaquetar(100,"error",6));
-		}
-	}
-	if(archivo == NULL || archivo->state == 0) {
+	if(archivo == NULL || archivo->state == DELETED) {
 		enviarQueSos(newfd, empaquetar(100,"error",6));
+	}
+	if(archivo->state == REGULAR) {
+		borrar_archivo(paqueterecv->datos);
+		enviarQueSos(newfd, empaquetar(99,"ok",3));
+	}
+	if(archivo->state == DIRECTORY) {
+		borrar_directorio_vacio(paqueterecv->datos);
+		enviarQueSos(newfd, empaquetar(99,"ok",3));
 	}
 }
 
