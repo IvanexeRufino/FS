@@ -170,35 +170,32 @@ static int ejemplo_create (char* path, mode_t modo, struct fuse_file_info * info
 
 static int ejemplo_open(char * path, int info) {
 	t_paquete* paquete = enviarQueSos(5, path, strlen(path) + 1);
-	osada_file* archivo = paquete->datos;
-	if(paquete->codigo == 100 || archivo->state == 0) {
+	if(paquete->codigo == 100) {
 		return -ENOENT;
 	}
 	return 0;
 }
 
 
-static int ejemplo_read(char *path, char *buf, size_t size, off_t offset,
-		struct fuse_file_info *fi) {
-	t_paquete* paqueteRead1 = empaquetar(offset, path, size);
-	void* streamRead1 = acoplador1(paqueteRead1);
-	t_paquete* paqueteRec = enviarQueSos(6, streamRead1, strlen(path) + 1 + size_header);
-	memcpy(buf,paqueteRec->datos,paqueteRec->tamanio);
-	return paqueteRec->tamanio;
+static int ejemplo_read(char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
+//	t_paquete* paqueteRead1 = empaquetar(offset, path, size);
+//	void* streamRead1 = acoplador1(paqueteRead1);
+//	t_paquete* paqueteRec = enviarQueSos(6, streamRead1, strlen(path) + 1 + size_header);
+//	memcpy(buf,paqueteRec->datos,paqueteRec->tamanio);
+//	return paqueteRec->tamanio;
+	return leer_archivo(path, offset, size,buf);
 }
 
 static int ejemplo_write (char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
-	char* bufo=malloc(strlen(path)+strlen(buf)+2);
-	strcpy(bufo,path);
-	strcat(bufo,"|");
-	strcat(bufo,buf);
-//	char* bufosend= malloc(strlen(path) + size + 1);
-//	memcpy(bufosend,path,strlen(path) + 1);
-//	memcpy(bufosend + strlen(path), buf, size + 1);
-	t_paquete* paquetewrite= empaquetar(offset,bufo,size);
-	void* streamwrite= acoplador1(paquetewrite);
-	t_paquete* paqueterec= enviarQueSos(7,streamwrite,strlen(path) + 1 + size + size_header);
-	return paqueterec->tamanio;
+//	char* bufo=malloc(strlen(path)+strlen(buf)+2);
+//	strcpy(bufo,path);
+//	strcat(bufo,"|");
+//	strcat(bufo,buf);
+//	t_paquete* paquetewrite= empaquetar(offset,bufo,size);
+//	void* streamwrite= acoplador1(paquetewrite);
+//	t_paquete* paqueterec= enviarQueSos(7,streamwrite,strlen(path) + 1 + size + size_header);
+//	return paqueterec->tamanio;
+	return escribir_archivo(path,offset,size,buf);
 }
 
 static int ejemplo_remove (char* path) {

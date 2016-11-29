@@ -73,6 +73,7 @@ void enviarQueSos(int newfd,t_paquete* paqueteSend){
 				puts("ERROR ENVIO");
 				exit(1);
 	}
+	free(paqueteSend);
 	free(enviar);
 }
 
@@ -148,19 +149,16 @@ void crear (int newfd, t_paquete* paqueterecv){
 void leer (int newfd, t_paquete* paqueterecv){
 	t_paquete* paqueteRead = desacoplador1(paqueterecv->datos,paqueterecv->tamanio);
 	osada_file* archivo = obtenerArchivo(paqueteRead->datos);
-	char* buf = malloc(archivo->file_size);
-	int size = leer_archivo(paqueteRead->datos, paqueteRead->codigo, paqueteRead->tamanio,buf);
+	char* buf = malloc(minimoEntre(archivo->file_size, paqueteRead->tamanio));
+	int size = leer_archivo(paqueteRead->datos, paqueteRead->codigo, minimoEntre(paqueteRead->tamanio, archivo->file_size),buf);
 	enviarQueSos(newfd, empaquetar(6,buf,size));
 }
 
 void escribir (int newfd, t_paquete* paqueterecv){
 	t_paquete* paqueteWrite = desacoplador1(paqueterecv->datos,paqueterecv->tamanio);
 	char** bufonuevo= string_split(paqueteWrite->datos,"|");
-//				char* bufpath = malloc(paqueterecv->tamanio - size_header - paqueteRead->tamanio);
-//				char* bufbuf = malloc(paqueterecv->tamanio);
-//				memcpy(bufpath, paqueteRead->datos, paqueterecv->tamanio -size_header - paqueteRead->tamanio);
-//				memcpy(bufbuf,paqueteRead->datos + strlen(bufpath), paqueteRead->tamanio);
-	int tam = escribir_archivo(bufonuevo[0],paqueteWrite->codigo,paqueteWrite->tamanio,bufonuevo[1]);
+	osada_file* archivo = obtenerArchivo(bufonuevo[0]);
+	int tam = escribir_archivo(bufonuevo[0],paqueteWrite->codigo,minimoEntre(paqueteWrite->tamanio, archivo->file_size),bufonuevo[1]);
 	enviarQueSos(newfd, empaquetar(7,bufonuevo[1],tam));
 }
 
@@ -248,28 +246,9 @@ void recibirQueSos(int newfd){
 				break;
 			case 6:
 				leer(newfd, paqueterecv);
-//				paqueteRead = desacoplador1(paqueterecv->datos,paqueterecv->tamanio);
-//				printf("el path es %s \n", paqueteRead->datos);
-//				printf("el offset es %d \n", paqueteRead->codigo);
-//				printf("el size es %d \n", paqueteRead->tamanio);
-//				archivo = obtenerArchivo(paqueteRead->datos);
-//				char* buf = malloc(minimoEntre(archivo->file_size, paqueteRead->tamanio));
-//				int size = leer_archivo(paqueteRead->datos,paqueteRead->codigo,paqueteRead->tamanio,buf);
-//				archivo = obtenerArchivo(paqueterecv->datos);
-//				char* buf = malloc(archivo->file_size);
-//				int size = leer_archivo(paqueterecv->datos, 0, 4096,buf);
-//				paqueteSend = empaquetar(6,buf,size);
 				break;
 			case 7:
 				escribir(newfd, paqueterecv);
-//				paqueteRead = desacoplador1(paqueterecv->datos,paqueterecv->tamanio);
-//				char** bufonuevo= string_split(paqueteRead->datos,"|");
-//				char* bufpath = malloc(paqueterecv->tamanio - size_header - paqueteRead->tamanio);
-//				char* bufbuf = malloc(paqueterecv->tamanio);
-//				memcpy(bufpath, paqueteRead->datos, paqueterecv->tamanio -size_header - paqueteRead->tamanio);
-//				memcpy(bufbuf,paqueteRead->datos + strlen(bufpath), paqueteRead->tamanio);
-//				int tam = escribir_archivo(bufonuevo[0],paqueteRead->codigo,paqueteRead->tamanio,bufonuevo[1]);
-//				paqueteSend = empaquetar(7,bufonuevo[1],tam);
 				break;
 			case 8:
 				remover(newfd, paqueterecv);
