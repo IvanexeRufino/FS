@@ -65,21 +65,12 @@ t_paquete* enviarQueSos(int nroop, void* path, int size){
 	t_paquete* paquete = empaquetar(nroop,path,size);
 	void* cosaparaenviar = acoplador(paquete);
 	pthread_mutex_lock(&sendRecv);
-	int tam = send(sockfd,cosaparaenviar,paquete->tamanio + size_header ,0);
-	if (tam > 0) {
-	int acumulado = 0;
-	while(tam < paquete->tamanio + size_header) {
-		acumulado = send(sockfd,cosaparaenviar,paquete->tamanio + size_header ,0);
-		if(acumulado < 0) {
-				puts("ERROR ENVIO");
-				exit(1);
-		}
-	tam += acumulado;
-	}
-	} else {
+	if(send(sockfd,cosaparaenviar,paquete->tamanio + size_header ,0) < 0) {
 		puts("ERROR ENVIO");
 		exit(1);
 	}
+	free(cosaparaenviar);
+	free(paquete);
 	char buffer[MAX_BUFFERSIZE];
 	int sizebytes;
 	if((sizebytes = recv(sockfd, &buffer, MAX_BUFFERSIZE - 1, 0)) <= 0)
@@ -89,7 +80,7 @@ t_paquete* enviarQueSos(int nroop, void* path, int size){
 		exit(1);
 	}
 	pthread_mutex_unlock(&sendRecv);
-	return paquete = desacoplador(buffer);
+	return desacoplador(buffer);
 }
 
 static int ejemplo_getattr(char *path, struct stat *stbuf) {
@@ -144,9 +135,7 @@ static int ejemplo_readdir(char *path, void *buf, fuse_fill_dir_t filler,
 
 static int ejemplo_mkdir(char* filename, mode_t modo){
 	t_paquete* paquete = enviarQueSos(3, filename, strlen(filename) + 1);
-	if(paquete->codigo == 99) {
-		return 0;
-	}
+
 	if(paquete->codigo == 100) {
 		return ENAMETOOLONG;
 	}
@@ -202,7 +191,7 @@ static int ejemplo_remove (char* path) {
 	t_paquete* paquete = enviarQueSos(8, path, strlen(path) + 1);
 
 	if(paquete->codigo == 100) {
-		return ENAMETOOLONG;
+		return ENOENT;
 	}
 	return 0;
 }

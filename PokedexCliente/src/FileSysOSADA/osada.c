@@ -240,14 +240,6 @@ uint32_t buscarArchivoDelPadre(char* path)
 	return indice;
 }
 
-void borrarDelBitmap(int punteroAEliminar) {
-
-	int j = inicioDeBloqueDeDatos;
-	pthread_mutex_lock(&semaforoBitmap);
-	bitarray_clean_bit(bitmap,j + punteroAEliminar);
-	pthread_mutex_unlock(&semaforoBitmap);
-}
-
 int buscarBloqueVacio() {
 	int i = 0;
 	int j = inicioDeBloqueDeDatos;
@@ -291,28 +283,11 @@ int crear_archivo(char* path, int direcOArch)
 	return posicionEnLaTabla;
 }
 
-void liberarBloquesDeBitmap(osada_file* archivo) {
-	int size = archivo->file_size;
-	int puntero = archivo->first_block;
-	int tamanioLeido = 0;
-	while(tamanioLeido<size) {
-		tamanioLeido = OSADA_BLOCK_SIZE;
-		if(tamanioLeido + OSADA_BLOCK_SIZE > size) {tamanioLeido = size;}
-		borrarDelBitmap(puntero);
-		puntero = tablaDeAsignaciones[puntero];
-	}
-}
-
 int borrar_archivo(char* path) {
 
 	osada_file* archivo = obtenerArchivo(path);
 
-	if(archivo->state == 0 || archivo == NULL) {
-		//archivo ya borrado o no encontrado en la tabla(ya superpuesto)
-		return -1;
-	}
-
-	liberarBloquesDeBitmap(archivo);
+	truncar_archivo(archivo,0);
 	archivo->state = 0;
 
 	return 0;
@@ -425,12 +400,12 @@ int agregarBloques(osada_file* archivo, int diferenciaDeTamanios) {
 	return 0;
 }
 
-int quitarBloquesDelBitmap(int bloquesAQuitar, osada_file* archivo) {
+int quitarBloquesDelBitmap(int bloquesAQuitar, osada_file* archivo, int size_nuevo) {
 	int cant_bloques = divisionMaxima(archivo->file_size);
 	int ultimoBloqueADejar = cant_bloques - bloquesAQuitar;
 	int i;
 	for(i = ultimoBloqueADejar; i < cant_bloques; i++) {
-		int bloqueABorrar = numeroBloqueDelArchivo(i, archivo);
+		int bloqueABorrar = numeroBloqueDelArchivo(i + 1, archivo);
 		bitarray_clean_bit(bitmap,bloqueABorrar);
 	}
 	return 0;
@@ -455,7 +430,7 @@ osada_file* truncar_archivo(osada_file* archivo, uint32_t size) {
 		if(archivo->file_size % OSADA_BLOCK_SIZE < abs(diferenciaDeTamanios)) {
 			int bloquesARestar = divisionMaxima(archivo->file_size) - divisionMaxima(size);
 			pthread_mutex_lock(&semaforoBitmap);
-			quitarBloquesDelBitmap(bloquesARestar, archivo);
+			quitarBloquesDelBitmap(bloquesARestar, archivo,size);
 			pthread_mutex_unlock(&semaforoBitmap);
 		}//Si el tamaño ocupado es mayor a lo que quiero quitar, no hace falta sacar bloques
 	}

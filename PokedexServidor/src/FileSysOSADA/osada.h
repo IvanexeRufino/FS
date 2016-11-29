@@ -49,7 +49,7 @@ void reconocerOSADA(char* path);
 
 int buscarIndiceConPadre(char* nombreABuscar, int padre);
 
-uint16_t obtenerIndice(char* path);
+int obtenerIndice(char* path);
 
 osada_file* obtenerArchivo(char* path);
 
@@ -65,7 +65,7 @@ char* adquirirNombreAnterior(char* path);
 
 char* adquirirNombre(char* path);
 
-uint16_t buscarArchivoDelPadre(char* path);
+uint32_t buscarArchivoDelPadre(char* path);
 
 int crear_archivo(char* path, int direcOArch);
 
