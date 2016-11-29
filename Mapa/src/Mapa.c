@@ -18,7 +18,7 @@ void pokemonMasFuerteDe(t_registroPersonaje *personaje){
 	strcpy(ruta,rutaArgv);
 	strcat(ruta,"/Entrenadores/");
 	strcat(ruta,personaje->nombre);
-	strcat(ruta,"/DirdeBill/");
+	strcat(ruta,"/Dir de Bill/");
 	int nivelAlto = 0;
 	char* nombreFuerte = string_new();
 	DIR *dp;
@@ -85,7 +85,7 @@ void recuperarPokemonDeEntrenador(t_registroPersonaje *personaje)
 	strcpy(origen,rutaArgv);
 	strcat(origen,"/Entrenadores/");
 	strcat(origen,personaje->nombre);
-	strcat(origen,"/DirdeBill/");
+	strcat(origen,"/Dir de Bill/");
 
 	strcpy(destino, rutaArgv);
 	strcat(destino,"/Mapas/");
@@ -147,7 +147,7 @@ void copiarPokemonAEntrenador(t_registroPersonaje *personaje, t_registroPokenest
 	strcpy(destino,rutaArgv);
 	strcat(destino,"/Entrenadores/");
 	strcat(destino,personaje->nombre);
-	strcat(destino,"/DirdeBill/");
+	strcat(destino,"/Dir de Bill/");
 
 	DIR *dp;
 	struct dirent *ep;
