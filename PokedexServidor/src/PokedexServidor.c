@@ -244,7 +244,6 @@ void recibirQueSos(int newfd){
 	printf("El cliente me envía un paquete \n");
 	t_paquete* paqueterecv = desacoplador(buffer);
 
-
 	printf("el codigo es %d \n", paqueterecv->codigo);
 	printf("el tamaño es %d \n", paqueterecv->tamanio);
 

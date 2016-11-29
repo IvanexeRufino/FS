@@ -198,7 +198,7 @@ static int ejemplo_read(char *path, char *buf, size_t size, off_t offset,
 		struct fuse_file_info *fi) {
 //	t_paquete* paqueteRead1 = empaquetar(offset, path, size);
 //	void* streamRead1 = acoplador1(paqueteRead1);
-	t_paquete* paqueteRec = enviarQueSos(6, path, strlen(path) + 1);
+//	t_paquete* paqueteRec = enviarQueSos(6, streamRead1, strlen(path) + 1 + size_header);
 //	memcpy(buf,paqueteRec->datos,paqueteRec->tamanio);
 	return leer_archivo(path,offset,size,buf);
 }
