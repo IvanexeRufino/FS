@@ -153,7 +153,7 @@ void abrir (int newfd, t_paquete* paqueterecv){
 }
 
 void crear (int newfd, t_paquete* paqueterecv){
-	if(paqueterecv->tamanio - 2 <= 17) {
+	if(strlen(adquirirNombre(paqueterecv->datos)) <= 17) {
 		int  error = crear_archivo(paqueterecv->datos,1);
 		enviarQueSos(newfd, empaquetar(99,"ok",3));
 		if (error == -1) {
@@ -232,6 +232,10 @@ void linkear (int newfd, t_paquete* paqueterecv){
 	enviarQueSos(newfd, empaquetar(99,"ok",3));
 }
 
+void utimens (int newfd) {
+	enviarQueSos(newfd, empaquetar(99,"ok",3));
+}
+
 void recibirQueSos(int newfd){
 	char buffer[MAX_BUFFERSIZE];
 	int sizebytes;
@@ -292,6 +296,7 @@ void recibirQueSos(int newfd){
 				remover(newfd, paqueterecv);
 				break;
 			case 9:
+				utimens(newfd);
 				break;
 			case 10:
 				truncar(newfd, paqueterecv);
