@@ -40,7 +40,7 @@ typedef struct {
 
 /* -- declaraciones de constantes -- */
 
-#define MAX_BUFFERSIZE 1024
+#define MAX_BUFFERSIZE 4096
 #define size_header  sizeof(uint16_t) * 2
 
 /* -- configuracion de sockets -- */

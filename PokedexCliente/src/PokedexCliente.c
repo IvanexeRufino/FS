@@ -61,48 +61,28 @@ t_paquete* desacoplador(char* buffer)/*transforma multiples streams en estructur
   	return paquete;
   }
 
-int conectarConServer()
-  {
-  	struct sockaddr_in socket_info;
-  	int nuevoSocket;
-  	// Se carga informacion del socket
-  	socket_info.sin_family = AF_INET;
-  	socket_info.sin_addr.s_addr = inet_addr("127.0.0.1");
-  	socket_info.sin_port = htons(9999);
-
-  	// Crear un socket:
-  	// AF_INET, SOCK_STREM, 0
-  	nuevoSocket = socket (AF_INET, SOCK_STREAM, 0);
-  	if (nuevoSocket < 0)
-  		return -1;
-  	// Conectar el socket con la direccion 'socketInfo'.
-  	int conecto = connect (nuevoSocket,(struct sockaddr *)&socket_info,sizeof (socket_info));
-  	int mostrarEsperaAconectar=0;
-  	while (conecto != 0){
-  		mostrarEsperaAconectar++;
-  		if (mostrarEsperaAconectar == 1){
-  			printf("Esperando...\n");
-  		}
-  		conecto = connect (nuevoSocket,(struct sockaddr *)&socket_info,sizeof (socket_info));
-  		printf("Conectado");
-  	}
-
-  	return nuevoSocket;
-};
-
 t_paquete* enviarQueSos(int nroop, void* path, int size){
 	t_paquete* paquete = empaquetar(nroop,path,size);
 	void* cosaparaenviar = acoplador(paquete);
 	pthread_mutex_lock(&sendRecv);
-	if(send(sockfd,cosaparaenviar,paquete->tamanio + size_header ,0)<0)
-		{
-			puts("ERROR ENVIO");
-//			log_error(logDelPersonaje,"Error al enviar datos del cliente \n");
-			exit(1);
+	int tam = send(sockfd,cosaparaenviar,paquete->tamanio + size_header ,0);
+	if (tam > 0) {
+	int acumulado = 0;
+	while(tam < paquete->tamanio + size_header) {
+		acumulado = send(sockfd,cosaparaenviar,paquete->tamanio + size_header ,0);
+		if(acumulado < 0) {
+				puts("ERROR ENVIO");
+				exit(1);
+		}
+	tam += acumulado;
+	}
+	} else {
+		puts("ERROR ENVIO");
+		exit(1);
 	}
 	char buffer[MAX_BUFFERSIZE];
 	int sizebytes;
-	if((sizebytes = recv(sockfd, &buffer, MAX_BUFFERSIZE - 1,0)) <= 0)
+	if((sizebytes = recv(sockfd, &buffer, MAX_BUFFERSIZE - 1, 0)) <= 0)
 	{
 		puts("ERROR RECIBIR");
 		//log_error(logDelPersonaje, "Error al recibir paquete del cliente \n");
@@ -203,8 +183,8 @@ static int ejemplo_read(char *path, char *buf, size_t size, off_t offset,
 	t_paquete* paqueteRead1 = empaquetar(offset, path, size);
 	void* streamRead1 = acoplador1(paqueteRead1);
 	t_paquete* paqueteRec = enviarQueSos(6, streamRead1, strlen(path) + 1 + size_header);
-//	memcpy(buf,paqueteRec->datos,paqueteRec->tamanio);
-	return leer_archivo(path,offset,size,buf);
+	memcpy(buf,paqueteRec->datos,paqueteRec->tamanio);
+	return paqueteRec->tamanio;
 }
 
 static int ejemplo_write (char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
