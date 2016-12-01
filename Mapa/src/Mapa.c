@@ -19,6 +19,8 @@ void pokemonMasFuerteDe(t_registroPersonaje *personaje){
 	strcat(ruta,"/Entrenadores/");
 	strcat(ruta,personaje->nombre);
 	strcat(ruta,"/Dir\\ de\\ Bill/");
+
+	log_info(logger, "La ruta en pokemonMasFuerteDe es: %s",ruta);
 	int nivelAlto = 0;
 	char* nombreFuerte = string_new();
 	DIR *dp;
@@ -87,18 +89,22 @@ void recuperarPokemonDeEntrenador(t_registroPersonaje *personaje)
 	strcat(origen,personaje->nombre);
 	strcat(origen,"/Dir\\ de\\ Bill/");
 
+	log_info(logger, "La ruta en recuperarPokemonDeEntrenador de origen es: %s",origen);
+
 	strcpy(destino, rutaArgv);
 	strcat(destino,"/Mapas/");
 	strcat(destino, infoMapa->nombre);
 	strcat(destino, "/PokeNests/");
-
+	log_info(logger, "La ruta en recuperarPokemonDeEntrenador de destino es: %s",destino);
 //	puts(personaje->nombre);
 	DIR *dp;
 	struct dirent *ep;
 	dp = opendir (origen);
+
 	if (dp != NULL)
 	{
 		ep = readdir (dp);
+
 		while (ep)
 		{
 			if(ep->d_name[0]!='.' && ep->d_name[0]!='m' )
@@ -107,19 +113,20 @@ void recuperarPokemonDeEntrenador(t_registroPersonaje *personaje)
 				int i = strlen(ep->d_name) -7;
 				ep->d_name[i] = '\0';
 	//			puts(ep->d_name);
-				strcpy(comando,"cp -r ");
+				strcpy(comando,"cp -r");
 				strcat(comando,  origen);
 				strcat(comando,  pokemon);
 				strcat(comando,  " ");
 				strcat(comando, destino);
 				strcat(comando, ep->d_name);
 				strcat(comando, "/");
+				log_info(logger,"El comando aplicado de copiar es: %s",comando);
 	//			puts(comando);
-				log_debug(logger,"La ruta para devolver es: %s",comando);
 				system(comando);
-				strcpy(comando, "rm ");
+				strcpy(comando, "rm -r");
 				strcat(comando, origen);
 				strcat(comando, pokemon);
+				log_info(logger,"El comando aplicado de remover es: %s",comando);
 	//			puts(comando);
 				system(comando);
 			}
@@ -148,6 +155,8 @@ void copiarPokemonAEntrenador(t_registroPersonaje *personaje, t_registroPokenest
 	strcat(destino,"/Entrenadores/");
 	strcat(destino,personaje->nombre);
 	strcat(destino,"/Dir\\ de\\ Bill/");
+
+	log_info(logger, "La ruta en copiarPokemonAEntrenador es: %s",destino);
 
 	DIR *dp;
 	struct dirent *ep;
@@ -350,17 +359,25 @@ void leerConfiguracionPokenest(char mapa[20], char pokemon[256])
 			exit(1);
 		}
 
-		bool distanciaEntreCajas (t_registroPokenest* unaNest)
-		{
-			return (abs(unaNest->x - pokenest->x) + abs(unaNest->y - pokenest->y) <= 4);
-		}
+//		bool distanciaEntreCajas (t_registroPokenest* unaNest)
+//		{
+//			return (abs(unaNest->x - pokenest->x) + abs(unaNest->y - pokenest->y) <= 4);
+//		}
 
-		if(list_any_satisfy(listaPokenest, (void*) distanciaEntreCajas))
-		{
-			log_error(logger, "La Pokenest %c no respeta las distancias con otra Pokenest. \n", pokenest->identificador);
-			nivel_gui_terminar();
-			exit(1);
-		}
+//		bool distanciaEntreCajas (t_registroPokenest* unaNest)
+//		{
+//			bool a = (abs(unaNest->x - pokenest->x) <= 2);
+//			bool b = (abs(unaNest->y - pokenest->y) <= 2);
+//			return (a && b);
+//
+//		}
+//
+//		if(list_any_satisfy(listaPokenest, (void*) distanciaEntreCajas))
+//		{
+//			log_error(logger, "La Pokenest %c no respeta las distancias con otra Pokenest. \n", pokenest->identificador);
+//			nivel_gui_terminar();
+//			exit(1);
+//		}
 	CrearCaja(items, config_get_string_value(configNest, "Identificador")[0] , pokenest->x , pokenest->y ,pokenest->cantidadDisp);
 	list_add(listaPokenest,pokenest);
 	}
@@ -620,7 +637,7 @@ void planificarNuevo()
 			for(i=0;i!=infoMapa->quantum && j == 0 && entrenador->estado == 'L' ;i++)
 			{
 				recibirQueHacer(entrenador);
-				usleep(infoMapa->retardo);
+				usleep(infoMapa->retardo*300);
 				if(entrenador->estado == 'T') j = 1;
 			}
 		}
@@ -636,7 +653,7 @@ void planificarNuevo()
 					entrenador =  list_remove(entrenadores_listos,k);
 					log_info(logger,"El entrenador %s no conoce su ubicacion, por eso lo atiendo primero",entrenador->nombre);
 					recibirQueHacer(entrenador);
-					usleep(infoMapa->retardo);
+					usleep(infoMapa->retardo*300);
 					list_add(entrenadores_listos,entrenador);
 				}
 				pthread_mutex_unlock(&mutex_EntrenadoresActivos);
@@ -655,7 +672,7 @@ void planificarNuevo()
 				if(entrenador->estado != 'T')
 				{
 					recibirQueHacer(entrenador);
-					usleep(infoMapa->retardo);
+					usleep(infoMapa->retardo*300);
 				}
 			}
 		}
@@ -960,7 +977,7 @@ void *detectar_interbloqueo(void *milis)
 		}
 		list_iterate(entrenadores_listos, (void*) desbloquear);
 		dictionary_destroy(copiaAvailable);
-		usleep(((int)milis*1000));
+		usleep(((int)milis*10));
 	}
 }
 
@@ -970,35 +987,44 @@ int main(int argc, char **argv)
 	columnas =30;
 	items = list_create();	//Para usar despues en las cajas
 	/* Inicializacion y registro inicial de ejecucion */
-	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
-	log_info(logger, PROGRAM_DESCRIPTION);
+//	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
+//	log_info(logger, PROGRAM_DESCRIPTION);
+
+
 	infoMapa = malloc(sizeof(mapa_datos));
 
 	switch(argc)
 	{
 	case (1):
-		log_info(logger, "Cantidad de parametros incorrectos, Aplicando por defecto");
+		//log_info(logger, "Cantidad de parametros incorrectos, Aplicando por defecto");
 		strcpy(infoMapa->nombre,"Verde");
 		strcpy(rutaArgv, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Pokedex");
 		break;
 	case (2):
-		log_info(logger,"Cantidad de parametros Incorrectos, aplicando por defecto para la ruta");
+		//log_info(logger,"Cantidad de parametros Incorrectos, aplicando por defecto para la ruta");
 		strcpy(infoMapa->nombre,argv[1]);
 		strcpy(rutaArgv, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Pokedex");
 		break;
 	case (3):
-		log_info(logger, "Cantidad de parametros CORRECTOS");
+		//log_info(logger, "Cantidad de parametros CORRECTOS");
 		strcpy(infoMapa->nombre,argv[1]);
 		strcpy(rutaArgv, argv[2]);
 		break;
 	default:
-	 	log_info(logger, "ERROR: Ingresaste %d parametros",argc);
+	 	//log_info(logger, "ERROR: Ingresaste %d parametros",argc);
 	 	printf("INGRESAR NOMBRE DEL MAPA ");
 	 	scanf("%s",infoMapa->nombre);
 	 	printf("INGRESAR RUTA DE LA POKEDEX ");
 	 	scanf("%s",rutaArgv);
 	 	break;
 	}
+
+	char* nombreLog = string_new();
+	string_append(&nombreLog,infoMapa->nombre);
+	string_append(&nombreLog,LOG_FILE);
+	logger = log_create(nombreLog, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
+	log_info(logger, PROGRAM_DESCRIPTION);
+
 
 	log_info(logger, "Nombre Mapa: %s Ruta: %s", infoMapa->nombre, rutaArgv);
 	listapokEn = malloc(sizeof(t_pokEn));
