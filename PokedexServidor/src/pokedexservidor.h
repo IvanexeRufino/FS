@@ -30,18 +30,10 @@
 #include <pthread.h>
 #include "FileSysOSADA/osada.h"
 
-/* -- declaraciones de estructuras -- */
-
-typedef struct {
-	uint16_t codigo;
-	uint16_t tamanio;
-	void* datos;
-}__attribute__((__packed__)) t_paquete ;
 
 /* -- declaraciones de constantes -- */
 
-#define MAX_BUFFERSIZE 4096
-#define size_header  sizeof(uint16_t) * 2
+#define size_header  sizeof(uint16_t) * 4
 
 /* -- configuracion de sockets -- */
 

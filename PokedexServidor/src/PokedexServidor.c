@@ -18,45 +18,54 @@ void* memoria(int cantidad) {
   	return puntero;
 }
 
-t_paquete* empaquetar(int codigo, void* datos, int size){
-	t_paquete* paquete= malloc(sizeof(t_paquete));
+typedef struct {
+	uint16_t codigo;
+	uint16_t tamanio;
+	uint16_t offset;
+	uint16_t size;
+}__attribute__((__packed__)) t_paquetePro ;
+
+t_paquetePro* empaquetarPro(int codigo, int tamanio, int offset, int size){
+	t_paquetePro* paquete= malloc(sizeof(t_paquetePro));
 	paquete->codigo= codigo;
-	paquete->datos= datos;
-	paquete->tamanio= size;
+	paquete->tamanio= tamanio;
+	paquete->offset = offset;
+	paquete->size = size;
 	return paquete;
 }
 
-
-void* acoplador(t_paquete* paquete) /*transforma una estructura de tipo t_paquete en un stream*/
-{
-	void* paqueteSalida = memoria(size_header + paquete->tamanio);
+void* acopladorPro(t_paquetePro* paquete) {
+	void* paqueteSalida = memoria(size_header);
 	memcpy(paqueteSalida, paquete, size_header);
-	memcpy(paqueteSalida + size_header, paquete->datos, paquete->tamanio);
 	return paqueteSalida;
 }
 
-t_paquete* desacoplador1(char* buffer,int sizeBuffer) {
-     	t_paquete* paquete;
-     	paquete= memoria(sizeof(t_paquete));
-     	memcpy(paquete,buffer,size_header);
-    	paquete->datos = memoria(sizeBuffer);
-    	memcpy(paquete->datos, buffer + size_header, sizeBuffer);
-    	return paquete;
+void* recibirNormal(int newfd, int size) {
+	char buffer[size];
+	if(recv(newfd, &buffer, size, MSG_WAITALL) <= 0) {
+		puts("ERROR RECIBIR");
+		exit(1);
+	}
+	void* path = malloc(size);
+	memcpy(path,buffer,size);
+	return path;
 }
 
-t_paquete* desacoplador(char* buffer)/*transforma multiples streams en estructuras de t_paquete y los agrega a una lista*/
+t_paquetePro* desacopladorPro(char* buffer)/*transforma multiples streams en estructuras de t_paquete y los agrega a una lista*/
   {
-  	t_paquete* paquete;
-  	paquete= memoria(sizeof(t_paquete));
+  	t_paquetePro* paquete;
+  	paquete= memoria(sizeof(t_paquetePro));
   	memcpy(paquete,buffer,size_header);
-  	paquete->datos= memoria(paquete->tamanio);
-  	memcpy(paquete->datos, buffer + size_header, paquete->tamanio);
   	return paquete;
   }
 
-void enviarQueSos(int newfd,t_paquete* paqueteSend){
-	void* enviar = acoplador(paqueteSend);
-	if(send(newfd,enviar,paqueteSend->tamanio + size_header ,0)<0) {
+void enviarQueSos(int newfd, t_paquetePro* paqueteSend, void* buffer){
+	void* enviar = acopladorPro(paqueteSend);
+	if(send(newfd,enviar, size_header ,0)<0) {
+				puts("ERROR ENVIO");
+				exit(1);
+	}
+	if(send(newfd,buffer, paqueteSend->tamanio ,0)<0) {
 				puts("ERROR ENVIO");
 				exit(1);
 	}
@@ -64,19 +73,20 @@ void enviarQueSos(int newfd,t_paquete* paqueteSend){
 	free(enviar);
 }
 
-void getattr(int newfd, t_paquete* paqueterecv) {
-	osada_file* archivo = obtenerArchivo(paqueterecv->datos);
+void getattr(int newfd, t_paquetePro* paqueterecv) {
+	void* buffer = recibirNormal(newfd, paqueterecv->tamanio);
+	osada_file* archivo = obtenerArchivo(buffer);
 	if(archivo == NULL || archivo->state == 0) {
-		enviarQueSos(newfd, empaquetar(100,"error",6));
+		enviarQueSos(newfd, empaquetarPro(100,6,0,0), "error");
 	}
 	else {
-		enviarQueSos(newfd, empaquetar(1,archivo,sizeof(osada_file)));
+		enviarQueSos(newfd, empaquetarPro(1, sizeof(osada_file),0,0), archivo);
 	}
 }
 
-void readdir(int newfd, t_paquete* paqueterecv){
-	int indice;
-	indice= obtenerIndice(paqueterecv->datos);
+void readdir(int newfd, t_paquetePro* paqueterecv){
+	char* buffer = recibirNormal(newfd, paqueterecv->tamanio);
+	int indice = obtenerIndice(buffer);
 	t_list* listaDeHijos= listaDeHijosDelArchivo(indice);
 	char* bufo= memoria(17*list_size(listaDeHijos));
 	unsigned char* nombre = malloc(17);
@@ -89,131 +99,134 @@ void readdir(int newfd, t_paquete* paqueterecv){
 	}
 
 	if(list_size(listaDeHijos) != 0){
-		enviarQueSos(newfd, empaquetar(2,bufo,strlen(bufo)+1));
+		enviarQueSos(newfd, empaquetarPro(2, strlen(bufo)+1,0,0), bufo);
 	} else {
-		enviarQueSos(newfd, empaquetar(100,"error",6));
+		enviarQueSos(newfd, empaquetarPro(100,6,0,0), "error");
 	}
 }
 
-void hacerdir (int newfd, t_paquete* paqueterecv){
-	if(strlen(adquirirNombre(paqueterecv->datos)) <= 17) {
-		int error = crear_archivo(paqueterecv->datos,2);
+void hacerdir (int newfd, t_paquetePro* paqueterecv){
+	char* buffer = recibirNormal(newfd, paqueterecv->tamanio);
+	if(strlen(adquirirNombre(buffer)) <= 17) {
+		int error = crear_archivo(buffer,2);
 		if (error == -1) {
-			enviarQueSos(newfd, empaquetar(101,"tabla de archivos",18));
+			enviarQueSos(newfd, empaquetarPro(101, 18,0,0), "Tabla de Archivos");
 		} else {
-			enviarQueSos(newfd, empaquetar(99,"ok",3));
+			enviarQueSos(newfd, empaquetarPro(99, 3,0,0), "ok");
 		}
 	}
 	else {
-		enviarQueSos(newfd, empaquetar(100,"error",6));
+		enviarQueSos(newfd, empaquetarPro(100,6,0,0), "error");
 	}
 }
 
-void abrir (int newfd, t_paquete* paqueterecv){
-	osada_file* archivo;
-	archivo = obtenerArchivo(paqueterecv->datos);
+void abrir (int newfd, t_paquetePro* paqueterecv){
+	char* buffer = recibirNormal(newfd, paqueterecv->tamanio);
+	osada_file* archivo = obtenerArchivo(buffer);
 	if(archivo == NULL || archivo->state == 0) {
-		enviarQueSos(newfd, empaquetar(100,"error",6));
+		enviarQueSos(newfd, empaquetarPro(100,6,0,0), "error");
 	}
 	else {
-		enviarQueSos(newfd, empaquetar(1,archivo,sizeof(osada_file)));
+		enviarQueSos(newfd, empaquetarPro(1, sizeof(osada_file),0,0), archivo);
 	}
 }
 
-void crear (int newfd, t_paquete* paqueterecv){
-	if(strlen(adquirirNombre(paqueterecv->datos)) <= 17) {
-		int  error = crear_archivo(paqueterecv->datos,1);
-		enviarQueSos(newfd, empaquetar(99,"ok",3));
+void crear (int newfd, t_paquetePro* paqueterecv){
+	char* buffer = recibirNormal(newfd, paqueterecv->tamanio);
+	if(strlen(adquirirNombre(buffer)) <= 17) {
+		int  error = crear_archivo(buffer,1);
 		if (error == -1) {
-			enviarQueSos(newfd, empaquetar(101,"tabla de archivos",18));
+			enviarQueSos(newfd, empaquetarPro(101, 18,0,0), "Tabla de Archivos");
+		} else {
+			enviarQueSos(newfd, empaquetarPro(99, 3,0,0), "ok");
 		}
 	}
 	else {
-		enviarQueSos(newfd, empaquetar(100,"error",6));
+		enviarQueSos(newfd, empaquetarPro(100,6,0,0), "error");
 	}
 }
 
-void leer (int newfd, t_paquete* paqueterecv){
-	t_paquete* paqueteRead = desacoplador1(paqueterecv->datos,paqueterecv->tamanio);
-	osada_file* archivo = obtenerArchivo(paqueteRead->datos);
-	char* buf = malloc(minimoEntre(archivo->file_size, paqueteRead->tamanio));
-	int size = leer_archivo(paqueteRead->datos, paqueteRead->codigo, minimoEntre(paqueteRead->tamanio, archivo->file_size),buf);
-	enviarQueSos(newfd, empaquetar(6,buf,size));
+void leer (int newfd, t_paquetePro* paqueterecv){
+	char* buffer = recibirNormal(newfd, paqueterecv->tamanio);
+	osada_file* archivo = obtenerArchivo(buffer);
+	if(paqueterecv->size != 0 && archivo->file_size != 0) {
+		char* buf = malloc(minimoEntre(archivo->file_size, paqueterecv->size));
+		int size = leer_archivo(buffer, paqueterecv->offset, minimoEntre(archivo->file_size,paqueterecv->size),buf);
+		enviarQueSos(newfd, empaquetarPro(6, size,0,0), buf);
+	} else {
+		enviarQueSos(newfd, empaquetarPro(100,6,0,0), "error");
+	}
 }
 
-void escribir (int newfd, t_paquete* paqueterecv){
-	t_paquete* paqueteWrite = desacoplador1(paqueterecv->datos,paqueterecv->tamanio);
-	char** bufonuevo= string_split(paqueteWrite->datos,"|");
-	osada_file* archivo = obtenerArchivo(bufonuevo[0]);
-	int tam = escribir_archivo(bufonuevo[0],paqueteWrite->codigo,minimoEntre(paqueteWrite->tamanio, archivo->file_size),bufonuevo[1]);
-	enviarQueSos(newfd, empaquetar(7,bufonuevo[1],tam));
+void escribir (int newfd, t_paquetePro* paqueterecv){
+	char* path = recibirNormal(newfd, paqueterecv->tamanio);
+	char* buffer = recibirNormal(newfd, paqueterecv->size);
+	int tam = escribir_archivo(path,paqueterecv->offset, paqueterecv->size, buffer);
+	enviarQueSos(newfd, empaquetarPro(7, tam,0,0), buffer);
 }
 
-void remover (int newfd, t_paquete* paqueterecv){
-	osada_file* archivo;
-	archivo = obtenerArchivo(paqueterecv->datos);
+void remover (int newfd, t_paquetePro* paqueterecv){
+	char* buffer = recibirNormal(newfd, paqueterecv->tamanio);
+	osada_file* archivo = obtenerArchivo(buffer);
 	if(archivo == NULL || archivo->state == DELETED) {
-		enviarQueSos(newfd, empaquetar(100,"error",6));
+		enviarQueSos(newfd, empaquetarPro(100,6,0,0), "error");
 	}
 	if(archivo->state == REGULAR) {
-		borrar_archivo(paqueterecv->datos);
-		enviarQueSos(newfd, empaquetar(99,"ok",3));
+		borrar_archivo(buffer);
+		enviarQueSos(newfd, empaquetarPro(99, 3,0,0), "ok");
 	}
 	if(archivo->state == DIRECTORY) {
-		borrar_directorio_vacio(paqueterecv->datos);
-		enviarQueSos(newfd, empaquetar(99,"ok",3));
+		borrar_directorio_vacio(buffer);
+		enviarQueSos(newfd, empaquetarPro(99, 3,0,0), "ok");
 	}
 }
 
-void truncar(int newfd, t_paquete* paqueterecv){
-	osada_file* archivo;
-	t_paquete* paqueteRead;
-	paqueteRead = desacoplador1(paqueterecv->datos,paqueterecv->tamanio);
-	archivo = obtenerArchivo(paqueterecv->datos);
+void truncar(int newfd, t_paquetePro* paqueterecv){
+	char* buffer = recibirNormal(newfd, paqueterecv->tamanio);
+	osada_file* archivo = obtenerArchivo(buffer);
 	if(archivo == NULL) {
-		enviarQueSos(newfd, empaquetar(100,"error",6));
+		enviarQueSos(newfd, empaquetarPro(100,6,0,0), "error");
 	} else {
-		truncar_archivo(archivo,(uint32_t)paqueteRead->tamanio);
-		enviarQueSos(newfd, empaquetar(99,"ok",3));
+		truncar_archivo(archivo,(uint32_t)paqueterecv->size);
+		enviarQueSos(newfd, empaquetarPro(99, 3,0,0), "ok");
 	}
 }
 
-void renombrar (int newfd, t_paquete* paqueterecv){
-	char* buforecibido;
-	buforecibido= malloc(paqueterecv->tamanio);
-	buforecibido= paqueterecv->datos;
-	char** bufonuevox= string_split(buforecibido,"%");
+void renombrar (int newfd, t_paquetePro* paqueterecv){
+	char* buffer = recibirNormal(newfd, paqueterecv->tamanio);
+	char** bufonuevox= string_split(buffer,"%");
 	renombrar_archivo(bufonuevox[0],bufonuevox[1]);
-	enviarQueSos(newfd, empaquetar(99,"ok",3));
+	enviarQueSos(newfd, empaquetarPro(99, 3,0,0), "ok");
 }
 
-void linkear (int newfd, t_paquete* paqueterecv){
-	char* buforecibido;
-	buforecibido= malloc(paqueterecv->tamanio);
-	buforecibido= paqueterecv->datos;
-	char** bufonuevox= string_split(buforecibido,"%");
+void linkear (int newfd, t_paquetePro* paqueterecv){
+	char* buffer = recibirNormal(newfd, paqueterecv->tamanio);
+	char** bufonuevox= string_split(buffer,"%");
 	copiar_archivo(bufonuevox[0],bufonuevox[1]);
-	enviarQueSos(newfd, empaquetar(99,"ok",3));
+	enviarQueSos(newfd, empaquetarPro(99, 3,0,0), "ok");
 }
 
-void utimens (int newfd) {
-	enviarQueSos(newfd, empaquetar(99,"ok",3));
+void utimens (int newfd, t_paquetePro* paqueterecv) {
+	recibirNormal(newfd, paqueterecv->tamanio);
+	enviarQueSos(newfd, empaquetarPro(99, 3,0,0), "ok");
 }
 
 void recibirQueSos(int newfd){
-	char buffer[MAX_BUFFERSIZE];
+
+	char bufferHead[size_header];
 	int sizebytes;
-	if((sizebytes = recv(newfd, &buffer, MAX_BUFFERSIZE - 1,0)) <= 0)
-	{
+	if((sizebytes = recv(newfd, &bufferHead, size_header, MSG_WAITALL)) <= 0) {
 		puts("ERROR RECIBIR");
-		//log_error(logDelPersonaje, "Error al recibir paquete del cliente \n");
 		exit(1);
 	}
-	printf("El cliente me envía un paquete \n");
-	t_paquete* paqueterecv = desacoplador(buffer);
 
+	t_paquetePro* paqueterecv = desacopladorPro(bufferHead);
+
+	printf("El cliente me envía un paquete \n");
 	printf("el codigo es %d \n", paqueterecv->codigo);
 	printf("el tamaño es %d \n", paqueterecv->tamanio);
+	printf("el offset es %d \n", paqueterecv->offset);
+	printf("el size es %d \n", paqueterecv->size);
 
 		switch(paqueterecv->codigo){
 			case 1:
@@ -235,13 +248,13 @@ void recibirQueSos(int newfd){
 				leer(newfd, paqueterecv);
 				break;
 			case 7:
-				escribir(newfd, paqueterecv);
+				escribir(newfd,paqueterecv);
 				break;
 			case 8:
 				remover(newfd, paqueterecv);
 				break;
 			case 9:
-				utimens(newfd);
+				utimens(newfd, paqueterecv);
 				break;
 			case 10:
 				truncar(newfd, paqueterecv);

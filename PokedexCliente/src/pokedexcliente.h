@@ -41,8 +41,7 @@ typedef uint32_t osada_block_pointer;
 
 /* -- declaraciones de constantes -- */
 
-#define MAX_BUFFERSIZE 4096
-#define size_header  sizeof(uint16_t) * 2
+#define size_header  sizeof(uint16_t) * 4
 
 /* -- configuracion de sockets -- */
 
@@ -53,7 +52,7 @@ typedef uint32_t osada_block_pointer;
 /* -- configuracion de log -- */
 
 #define LOG_FILE "pokedexcliente.log"
-#define PROGRAM_NAME "Char* Mander"
+#define PROGRAM_NAME "CLIENTE"
 #define PROGRAM_DESCRIPTION "Proceso POKEDEX CLIENTE"
 #define IS_ACTIVE_CONSOLE true
 #define T_LOG_LEVEL LOG_LEVEL_INFO
