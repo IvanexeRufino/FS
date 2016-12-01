@@ -149,9 +149,9 @@ void crear (int newfd, t_paquetePro* paqueterecv){
 void leer (int newfd, t_paquetePro* paqueterecv){
 	char* buffer = recibirNormal(newfd, paqueterecv->tamanio);
 	osada_file* archivo = obtenerArchivo(buffer);
-	if(paqueterecv->size != 0 && archivo->file_size != 0) {
-		char* buf = malloc(minimoEntre(archivo->file_size, paqueterecv->size));
-		int size = leer_archivo(buffer, paqueterecv->offset, minimoEntre(archivo->file_size,paqueterecv->size),buf);
+	char* buf = malloc(minimoEntre(archivo->file_size, paqueterecv->size));
+	int size = leer_archivo(buffer, paqueterecv->offset, minimoEntre(archivo->file_size,paqueterecv->size),buf);
+	if(size != 0) {
 		enviarQueSos(newfd, empaquetarPro(6, size,0,0), buf);
 	} else {
 		enviarQueSos(newfd, empaquetarPro(100,6,0,0), "error");
@@ -162,6 +162,8 @@ void escribir (int newfd, t_paquetePro* paqueterecv){
 	char* path = recibirNormal(newfd, paqueterecv->tamanio);
 	char* buffer = recibirNormal(newfd, paqueterecv->size);
 	int tam = escribir_archivo(path,paqueterecv->offset, paqueterecv->size, buffer);
+	osada_file* archivo = obtenerArchivo(path);
+	archivo->lastmod = time(0);
 	enviarQueSos(newfd, empaquetarPro(7, tam,0,0), buffer);
 }
 
@@ -207,7 +209,9 @@ void linkear (int newfd, t_paquetePro* paqueterecv){
 }
 
 void utimens (int newfd, t_paquetePro* paqueterecv) {
-	recibirNormal(newfd, paqueterecv->tamanio);
+	char* path = recibirNormal(newfd, paqueterecv->tamanio);
+	osada_file* archivo = obtenerArchivo(path);
+	archivo->lastmod = time(0);
 	enviarQueSos(newfd, empaquetarPro(99, 3,0,0), "ok");
 }
 
