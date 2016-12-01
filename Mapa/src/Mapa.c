@@ -80,6 +80,7 @@ void recuperarPokemonDeEntrenador(t_registroPersonaje *personaje)
 {
 	log_info(logger,"Recuperando Pokemons de %s", personaje->nombre);
 	char origen[512];
+	char directorio[512];
 	char destino[512];
 	char comando[512];
 	char pokemon[30];
@@ -87,8 +88,10 @@ void recuperarPokemonDeEntrenador(t_registroPersonaje *personaje)
 	strcpy(origen,rutaArgv);
 	strcat(origen,"/Entrenadores/");
 	strcat(origen,personaje->nombre);
-	strcat(origen,"/Dir\\ de\\ Bill/");
+	strcpy(directorio,origen);
 
+	strcat(directorio,"/Dir de Bill/");
+	strcat(origen,"/Dir\\ de\\ Bill/");
 	log_info(logger, "La ruta en recuperarPokemonDeEntrenador de origen es: %s",origen);
 
 	strcpy(destino, rutaArgv);
@@ -99,7 +102,7 @@ void recuperarPokemonDeEntrenador(t_registroPersonaje *personaje)
 //	puts(personaje->nombre);
 	DIR *dp;
 	struct dirent *ep;
-	dp = opendir (origen);
+	dp = opendir (directorio);
 
 	if (dp != NULL)
 	{
@@ -113,7 +116,7 @@ void recuperarPokemonDeEntrenador(t_registroPersonaje *personaje)
 				int i = strlen(ep->d_name) -7;
 				ep->d_name[i] = '\0';
 	//			puts(ep->d_name);
-				strcpy(comando,"cp -r");
+				strcpy(comando,"cp -r ");
 				strcat(comando,  origen);
 				strcat(comando,  pokemon);
 				strcat(comando,  " ");
@@ -123,7 +126,7 @@ void recuperarPokemonDeEntrenador(t_registroPersonaje *personaje)
 				log_info(logger,"El comando aplicado de copiar es: %s",comando);
 	//			puts(comando);
 				system(comando);
-				strcpy(comando, "rm -r");
+				strcpy(comando, "rm -r ");
 				strcat(comando, origen);
 				strcat(comando, pokemon);
 				log_info(logger,"El comando aplicado de remover es: %s",comando);
