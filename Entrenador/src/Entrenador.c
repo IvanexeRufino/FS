@@ -419,7 +419,7 @@ void sig_handler(int signo)
     	muerteDefinitivaPorSenial(signo);
     else if (signo == SIGTERM)
     	muertePorSenial(signo);
-
+}
 void cargarParametros(int argc, char **argv){
 	switch(argc)
 		{
@@ -457,7 +457,11 @@ int main(int argc, char **argv)
 	reinicio = 0;
 	infoEntrenador = malloc(sizeof(entrenador_datos));
 	infoEntrenador->reintentos=0;
+	clock_t t_ini, t_fin;
+	double secs;
+
 	/*----------------------CARGO LAS RUTAS Y NOMBRES----------------------*/
+
 	cargarParametros(argc,argv);	//Va switcheando lo que ingresamos como parametro, guardando la ruta y el nombre del entrenador
 	char* nombreLog = string_new();
 	string_append(&nombreLog,infoEntrenador->nombre);
@@ -466,7 +470,8 @@ int main(int argc, char **argv)
 	log_info(logger, PROGRAM_DESCRIPTION);
 	log_info(logger, "ID DEL PROCESO ENTRENADOR: %d NOMBRE: %s",pid,infoEntrenador->nombre);
 	log_info(logger, "Ruta Pokedex %s",rutaArgv);
-		if ( leerConfiguracionEntrenador() == 1 )
+
+	if ( leerConfiguracionEntrenador() == 1 )
 			log_info(logger, "Archivo de configuracion leido correctamente");
 		else
 			log_error(logger,"Error al leer archivo de configuracion");
@@ -477,14 +482,17 @@ int main(int argc, char **argv)
 		        printf("\ncan't catch SIGINT\n");
 		if (signal(SIGTERM, sig_handler) == SIG_ERR)
 		        printf("\ncan't catch SIGTERM\n");
-		clock_t inicio=clock();		//Inicio el reloj del comienzo de la aventura del entrenador
+
+		t_ini = clock();
 		while(completado == 0)			//Si recien empece o perdi y me mori tengo un 0, cuando termine de hacer todo tendria un 1
 		{
-		completado = jugar();
+			completado = jugar();
 		}
-		clock_t fin=clock();	//Finalizo el reloj al finalizar nuestra aventura
+		t_fin = clock();
+		secs = (double)(t_fin - t_ini) / CLOCKS_PER_SEC;
+
 		log_info(logger, "------TE CONVERTISTE EN MAESTRO POKEMON------ \n");
-		log_info(logger, "El tiempo total que tardo la aventura fue: %f segundos \n", (fin-inicio)*1000/(double)CLOCKS_PER_SEC);
+		log_info(logger, "El tiempo total que tardo la aventura fue: %.16g segundos \n",secs*100);
 		log_info(logger, "Estuviste esperando %f Segundos", tiempoBloqueo *1000 /(double)CLOCKS_PER_SEC);
 		log_info(logger, "Solo te costo %d intentos", infoEntrenador->reintentos);
 		list_destroy(listaDeMapas);
