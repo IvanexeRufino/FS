@@ -211,6 +211,7 @@ int buscarArchivoVacio() {
 	while(i < 2048) {
 		if (tablaDeArchivos[i].state == DELETED) {
 			 return i;
+			 bitarray_set_bit(bitmap, + i);
 		}
 		i++;
 	}
@@ -257,6 +258,18 @@ int buscarBloqueVacio() {
 	return -1;
 }
 
+int quitarBloquesDelBitmap(int bloquesAQuitar, osada_file* archivo, int size_nuevo) {
+	int cant_bloques = divisionMaxima(archivo->file_size);
+	int ultimoBloqueADejar = cant_bloques - bloquesAQuitar;
+	int i;
+	for(i = ultimoBloqueADejar; i < cant_bloques; i++) {
+		int bloqueABorrar = numeroBloqueDelArchivo(i + 1, archivo);
+
+		bitarray_clean_bit(bitmap, inicioDeBloqueDeDatos + bloqueABorrar);
+	}
+	return 0;
+}
+
 int crear_archivo(char* path, int direcOArch)
 {
 	pthread_mutex_lock(&semaforoTablaDeArchivos);
@@ -290,7 +303,7 @@ int crear_archivo(char* path, int direcOArch)
 int borrar_archivo(char* path) {
 
 	osada_file* archivo = obtenerArchivo(path);
-
+	int indice = obtenerIndice(path);
 	int bloquesARestar = divisionMaxima(archivo->file_size);
 	if(archivo->file_size == 0) {bloquesARestar = 1;}
 	pthread_mutex_lock(&semaforoBitmap);
@@ -405,18 +418,6 @@ int agregarBloques(osada_file* archivo, int diferenciaDeTamanios) {
 	pthread_mutex_unlock(&semaforoTablaDeAsignaciones);
 	if(agregado != diferenciaDeTamanios) {
 		return -ENOENT;
-	}
-	return 0;
-}
-
-int quitarBloquesDelBitmap(int bloquesAQuitar, osada_file* archivo, int size_nuevo) {
-	int cant_bloques = divisionMaxima(archivo->file_size);
-	int ultimoBloqueADejar = cant_bloques - bloquesAQuitar;
-	int i;
-	for(i = ultimoBloqueADejar; i < cant_bloques; i++) {
-		int bloqueABorrar = numeroBloqueDelArchivo(i + 1, archivo);
-
-		bitarray_clean_bit(bitmap, inicioDeBloqueDeDatos + bloqueABorrar);
 	}
 	return 0;
 }

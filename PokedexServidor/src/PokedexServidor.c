@@ -282,7 +282,7 @@ int main(void) {
 
 //	system("truncate -s 200k disco.bin");
 //	system("./osada-format disco.bin");
-	reconocerOSADA("/home/utnso/disco.bin");
+	reconocerOSADA("/home/utnso/base.bin");
 
 	int sockfd, new_fd;  // Escuchar sobre sock_fd, nuevas conexiones sobre new_fd
 	struct sockaddr_in my_addr;    // información sobre mi dirección
