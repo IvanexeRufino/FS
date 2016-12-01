@@ -275,12 +275,14 @@ void recibirQueSos(int newfd){
 void sigchld_handler(int s){
 	while(wait(NULL) > 0);
 }
-
+//limpio 11505 used blocks - 152335 free - 0 padding bits
+//2049 MAL 13595 used blocks - 150245 free - 0 padding bits
+//13608 used blocks - 150232 free - 0 padding bits
 int main(void) {
 
 //	system("truncate -s 200k disco.bin");
 //	system("./osada-format disco.bin");
-	reconocerOSADA("/home/utnso/base.bin");
+	reconocerOSADA("/home/utnso/disco.bin");
 
 	int sockfd, new_fd;  // Escuchar sobre sock_fd, nuevas conexiones sobre new_fd
 	struct sockaddr_in my_addr;    // información sobre mi dirección
