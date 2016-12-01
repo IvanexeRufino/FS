@@ -341,6 +341,8 @@ int jugar(){
 	reinicio=0;
 	log_info(logger,"------------------------*Tu Aventura pokemon esta por comenzar*----------------------");
 	char *vector=malloc(sizeof(char)*10);
+	bool probableDeadlock=false;
+
 			for(contadorMapa = 0 ; contadorMapa< list_size(listaDeMapas) && reinicio != 1; contadorMapa++)
 			{
 				contadorObjetivo = 0;
@@ -375,11 +377,12 @@ int jugar(){
 						int atrapado = 0;
 						while(atrapado == 0 && reinicio != 1)
 						{
-							clock_t inicioBloqueo=clock();
+
 							atrapado = atraparPokemon(mapa,objetivos[contadorObjetivo]);  								//Le envio en el header el ID 3
+							if (atrapado == 0)
+								probableDeadlock=true;
 							log_info(logger,"Del pokemon que solicite hay %d instancias",atrapado);
-							clock_t finBloqueo=clock();
-							tiempoBloqueo = tiempoBloqueo + (finBloqueo - inicioBloqueo);
+
 						}
 						if (atrapado == 1 && reinicio != 1)
 						{
@@ -399,6 +402,10 @@ int jugar(){
 							muertePorDeadlock();
 							log_info(logger,"Parece que te mataron, Reiniciando entrenador....");
 						}
+					if (probableDeadlock==true)
+						infoEntrenador->cantDeadlock = infoEntrenador->cantDeadlock + 1;
+
+					probableDeadlock=false;
 					}
 				}
 				sleep(3); // Lo pongo a descansar al terminar un mapa!
@@ -426,12 +433,12 @@ void cargarParametros(int argc, char **argv){
 		case (1):	//Si la cant de param es 1 osea solo ./Entrenador aplica por defecto los 2 argumentos de abajo
 		//		log_info(logger, "Cantidad de parametros: %d, Aplicando datos por Defecto",argc);
 		 		strcpy(infoEntrenador->nombre, "Red");
-				strcpy(rutaArgv, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Pokedex");
+				strcpy(rutaArgv, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Pokedex/01-base");
 		 		break;
 		case (2):	//Si la cant de param es 2 osea ./Entrenador 'pokemon x'
 		 //		log_info(logger, "Cantidad de parametros: %d, Aplicando datos por Defecto para la Ruta",argc);
 		 		strcpy(infoEntrenador->nombre,argv[1]);
-		 		strcpy(rutaArgv, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Pokedex");
+		 		strcpy(rutaArgv, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Pokedex/01-base");
 		 		break;
 		case (3):	//Si la cant de param es 3 osea ./Entrenador 'pokemon x' 'rutaDelPokedex'
 		 //		log_info(logger, "Cantidad de parametros: %d",argc);
@@ -456,7 +463,8 @@ int main(int argc, char **argv)
 	tiempoBloqueo = 0; //Seteo el tiempo que estoy en deadlock al empezar en 0
 	reinicio = 0;
 	infoEntrenador = malloc(sizeof(entrenador_datos));
-	infoEntrenador->reintentos=0;
+	infoEntrenador->cantDeadlock = 0;
+	infoEntrenador->reintentos = 0;
 	clock_t t_ini, t_fin;
 	double secs;
 
@@ -472,15 +480,15 @@ int main(int argc, char **argv)
 	log_info(logger, "Ruta Pokedex %s",rutaArgv);
 
 	if ( leerConfiguracionEntrenador() == 1 )
-			log_info(logger, "Archivo de configuracion leido correctamente");
-		else
-			log_error(logger,"Error al leer archivo de configuracion");
+		log_info(logger, "Archivo de configuracion leido correctamente");
+	else
+		log_error(logger,"Error al leer archivo de configuracion");
 		//-------------------MANEJADOR DE SEÑALES----------------//
-		if (signal(SIGUSR1, sig_handler) == SIG_ERR)
-		        printf("\ncan't catch SIGUSR1\n");
-		if (signal(SIGINT, sig_handler) == SIG_ERR)
+	if (signal(SIGUSR1, sig_handler) == SIG_ERR)
+				printf("\ncan't catch SIGUSR1\n");
+	if (signal(SIGINT, sig_handler) == SIG_ERR)
 		        printf("\ncan't catch SIGINT\n");
-		if (signal(SIGTERM, sig_handler) == SIG_ERR)
+	if (signal(SIGTERM, sig_handler) == SIG_ERR)
 		        printf("\ncan't catch SIGTERM\n");
 
 		t_ini = clock();
@@ -492,12 +500,11 @@ int main(int argc, char **argv)
 		secs = (double)(t_fin - t_ini) / CLOCKS_PER_SEC;
 
 		log_info(logger, "------TE CONVERTISTE EN MAESTRO POKEMON------ \n");
-		log_info(logger, "El tiempo total que tardo la aventura fue: %.16g segundos \n",secs*100);
-		log_info(logger, "Estuviste esperando %f Segundos", tiempoBloqueo *1000 /(double)CLOCKS_PER_SEC);
-		log_info(logger, "Solo te costo %d intentos", infoEntrenador->reintentos);
+		log_info(logger, "Tu aventura duro: %.16g segundos \n",secs*100);
+		log_info(logger,"Estuviste en deadlock %d veces, te costo %d intentos y te quedo %d vidas",infoEntrenador->cantDeadlock,infoEntrenador->reintentos,infoEntrenador->vidas);
 		list_destroy(listaDeMapas);
 		list_destroy(mapa->objetivos);
 		free(infoEntrenador);
 		free(mapa);
 		return EXIT_SUCCESS;
-	}
+}
