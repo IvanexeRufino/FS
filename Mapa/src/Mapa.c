@@ -24,7 +24,7 @@ void pokemonMasFuerteDe(t_registroPersonaje *personaje){
 	strcat(directorio,"/Dir de Bill/");
 	strcat(ruta,"/Dir\\ de\\ Bill/");
 
-	log_info(logger, "La ruta en pokemonMasFuerteDe es: %s",ruta);
+	//log_info(logger, "La ruta en pokemonMasFuerteDe es: %s",ruta);
 	int nivelAlto = 0;
 	char* nombreFuerte = string_new();
 	DIR *dp;
@@ -40,7 +40,7 @@ void pokemonMasFuerteDe(t_registroPersonaje *personaje){
 				nivel = leerDatosBill(ep->d_name , directorio);
 				int i = strlen(ep->d_name) -7; //Si tengo Charmander002.dat, le saco el 002.dat que son 7 caracteres justos y me queda el nombre Charmander en limpio
 				ep->d_name[i] ='\0';
-				log_info(logger,"El pokemon %s de %s Tiene un nivel %d \n",ep->d_name ,personaje->nombre ,nivel);
+				//if(infoMapa->batalla == 1)log_info(logger,"El pokemon %s de %s Tiene un nivel %d \n",ep->d_name ,personaje->nombre ,nivel);
 				if(nivel > nivelAlto)
 				{
 					nivelAlto = nivel ;
@@ -59,7 +59,8 @@ void pokemonMasFuerteDe(t_registroPersonaje *personaje){
 	pokEn->entrenador=personaje;
 	pokEn->pok = pokemonNuevo;
 	list_add(listapokEn,pokEn);
-	log_info(logger,"El pokemon mas fuerte de %s es : %s nivel %d, de tipo %d y segundo tipo %d",
+	if(infoMapa->batalla == 1)
+		log_info(logger,"El pokemon mas fuerte de %s es : %s nivel %d, de tipo %d y segundo tipo %d",
 			personaje->nombre,nombreFuerte,nivelAlto,pokEn->pok->type,pokEn->pok->second_type);
 }
 
@@ -837,14 +838,19 @@ void batallaPokemon()
 	{
 		pokEn2 = list_remove(listapokEn,0);
 		pokPerdedor = pkmn_battle(pokEn->pok , pokEn2->pok);
-		log_info(logger,"El perdedor de la pelea entre %s y %s, es %s %d",pokEn->entrenador->nombre,pokEn2->entrenador->nombre,pokPerdedor->species, pokPerdedor->level);
 		if(pokPerdedor == pokEn2->pok)
 		{
 			//Si gana el pokEn1
+			if(infoMapa->batalla == 1){
+				log_info(logger,"Gano el entrenador %s con su pokemon %s ", pokEn->entrenador->nombre, pokEn->pok->species);
+			}
 		}
 			else
 		{
 		//Si gana el pokEn2
+				if(infoMapa->batalla == 1)
+						log_info(logger,"Gano el entrenador %s con su pokemon %s ", pokEn2->entrenador->nombre, pokEn2->pok->species);
+
 				aux = pokEn;
 				pokEn = pokEn2;
 				pokEn2 = aux;
@@ -855,7 +861,8 @@ void batallaPokemon()
 				if(entrenador->identificador == pokEn2->entrenador->identificador)
 				{
 					char* buffer = string_new();
-					log_info(logger,"Informo a %s , que murio en una batalla.",entrenador->nombre);
+					if(infoMapa->batalla == 1)
+						log_info(logger,"Informo a %s , que murio en una batalla.",entrenador->nombre);
 					string_append(&buffer,string_itoa(2)); 	//El 2 que mando es el de muerte por deadlock
 					send(entrenador->socket,buffer,4, 0);
 					recibirQueHacer(entrenador);
@@ -865,7 +872,7 @@ void batallaPokemon()
 			list_iterate(entrenadores_listos, (void*) eliminar);
 	}
 	pthread_mutex_unlock(&mutex_EntrenadoresActivos);
-	log_info(logger,"El ganador de todas las batallas es:%s", pokEn->entrenador->nombre);
+	if(infoMapa->batalla == 1)log_info(logger,"El ganador de todas las batallas es:%s", pokEn->entrenador->nombre);
 }
 
 // Funcion que detecta si existen personajes interbloqueados
@@ -967,7 +974,7 @@ void *detectar_interbloqueo(void *milis)
 		if (bloqueados > 1)
 		{
 			//Batalla pokemon---------------------------------------------------------//
-			log_info(logger,"Se ha detectado un interbloqueo! %s", str);
+			if(infoMapa->batalla == 1)log_info(logger,"--------------------Se ha detectado un interbloqueo! %s", str);
 			batallaPokemon();
 		}
 		else
