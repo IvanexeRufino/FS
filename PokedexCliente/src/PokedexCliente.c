@@ -84,12 +84,12 @@ t_paquete* enviarQueSos(t_paquetePro* paquete, void* path){
 		cosaparaenviar = acopladorPro(paquete);
 		if(send(sockfd,cosaparaenviar, size_header ,0) < 0) {
 			puts("ERROR ENVIO");
-			log_info(logger, "ERROR AL ENVIAR GETATTR.");
+			log_error(logger, "ERROR AL ENVIAR GETATTR.");
 			exit(1);
 		}
 		if(send(sockfd, path, paquete->tamanio,0) < 0) {
 			puts("ERROR ENVIO");
-			log_info(logger, "ERROR AL ENVIAR GETATTR.");
+			log_error(logger, "ERROR AL ENVIAR GETATTR.");
 			exit(1);
 		}
 		break;
@@ -97,12 +97,12 @@ t_paquete* enviarQueSos(t_paquetePro* paquete, void* path){
 		cosaparaenviar = acopladorPro(paquete);
 		if(send(sockfd,cosaparaenviar, size_header ,0) < 0) {
 			puts("ERROR ENVIO");
-			log_info(logger, "ERROR AL ENVIAR READDIR.");
+			log_error(logger, "ERROR AL ENVIAR READDIR.");
 			exit(1);
 		}
 		if(send(sockfd, path, paquete->tamanio,0) < 0) {
 			puts("ERROR ENVIO");
-			log_info(logger, "ERROR AL ENVIAR READDIR.");
+			log_error(logger, "ERROR AL ENVIAR READDIR.");
 			exit(1);
 		}
 		break;
@@ -110,12 +110,12 @@ t_paquete* enviarQueSos(t_paquetePro* paquete, void* path){
 		cosaparaenviar = acopladorPro(paquete);
 		if(send(sockfd,cosaparaenviar, size_header ,0) < 0) {
 			puts("ERROR ENVIO");
-			log_info(logger, "ERROR AL ENVIAR MKDIR.");
+			log_error(logger, "ERROR AL ENVIAR MKDIR.");
 			exit(1);
 		}
 		if(send(sockfd, path, paquete->tamanio,0) < 0) {
 			puts("ERROR ENVIO");
-			log_info(logger, "ERROR AL ENVIAR MKDIR.");
+			log_error(logger, "ERROR AL ENVIAR MKDIR.");
 			exit(1);
 		}
 		break;
@@ -123,12 +123,12 @@ t_paquete* enviarQueSos(t_paquetePro* paquete, void* path){
 		cosaparaenviar = acopladorPro(paquete);
 		if(send(sockfd,cosaparaenviar, size_header ,0) < 0) {
 			puts("ERROR ENVIO");
-			log_info(logger, "ERROR AL ENVIAR CREATE.");
+			log_error(logger, "ERROR AL ENVIAR CREATE.");
 			exit(1);
 		}
 		if(send(sockfd, path, paquete->tamanio,0) < 0) {
 			puts("ERROR ENVIO");
-			log_info(logger, "ERROR AL ENVIAR CREATE.");
+			log_error(logger, "ERROR AL ENVIAR CREATE.");
 			exit(1);
 		}
 		break;
@@ -136,12 +136,12 @@ t_paquete* enviarQueSos(t_paquetePro* paquete, void* path){
 		cosaparaenviar = acopladorPro(paquete);
 		if(send(sockfd,cosaparaenviar, size_header ,0) < 0) {
 			puts("ERROR ENVIO");
-			log_info(logger, "ERROR AL ENVIAR OPEN.");
+			log_error(logger, "ERROR AL ENVIAR OPEN.");
 			exit(1);
 		}
 		if(send(sockfd, path, paquete->tamanio,0) < 0) {
 			puts("ERROR ENVIO");
-			log_info(logger, "ERROR AL ENVIAR OPEN.");
+			log_error(logger, "ERROR AL ENVIAR OPEN.");
 			exit(1);
 		}
 		break;
@@ -149,12 +149,12 @@ t_paquete* enviarQueSos(t_paquetePro* paquete, void* path){
 		cosaparaenviar = acopladorPro(paquete);
 		if(send(sockfd,cosaparaenviar, size_header ,0) < 0) {
 			puts("ERROR ENVIO");
-			log_info(logger, "ERROR AL ENVIAR READ.");
+			log_error(logger, "ERROR AL ENVIAR READ.");
 			exit(1);
 		}
 		if(send(sockfd, path, paquete->tamanio,0) < 0) {
 			puts("ERROR ENVIO");
-			log_info(logger, "ERROR AL ENVIAR READ.");
+			log_error(logger, "ERROR AL ENVIAR READ.");
 			exit(1);
 		}
 		break;
@@ -162,12 +162,12 @@ t_paquete* enviarQueSos(t_paquetePro* paquete, void* path){
 		cosaparaenviar = acopladorPro(paquete);
 		if(send(sockfd,cosaparaenviar, size_header ,0) < 0) {
 			puts("ERROR ENVIO");
-			log_info(logger, "ERROR AL ENVIAR REMOVE.");
+			log_error(logger, "ERROR AL ENVIAR REMOVE.");
 			exit(1);
 		}
 		if(send(sockfd, path, paquete->tamanio,0) < 0) {
 			puts("ERROR ENVIO");
-			log_info(logger, "ERROR AL ENVIAR REMOVE.");
+			log_error(logger, "ERROR AL ENVIAR REMOVE.");
 			exit(1);
 		}
 		break;
@@ -175,12 +175,12 @@ t_paquete* enviarQueSos(t_paquetePro* paquete, void* path){
 		cosaparaenviar = acopladorPro(paquete);
 		if(send(sockfd,cosaparaenviar, size_header ,0) < 0) {
 			puts("ERROR ENVIO");
-			log_info(logger, "ERROR AL ENVIAR UTIMENS.");
+			log_error(logger, "ERROR AL ENVIAR UTIMENS.");
 			exit(1);
 		}
 		if(send(sockfd, path, paquete->tamanio,0) < 0) {
 			puts("ERROR ENVIO");
-			log_info(logger, "ERROR AL ENVIAR UTIMENS.");
+			log_error(logger, "ERROR AL ENVIAR UTIMENS.");
 			exit(1);
 		}
 		break;
@@ -188,12 +188,12 @@ t_paquete* enviarQueSos(t_paquetePro* paquete, void* path){
 		cosaparaenviar = acopladorPro(paquete);
 		if(send(sockfd,cosaparaenviar, size_header ,0) < 0) {
 			puts("ERROR ENVIO");
-			log_info(logger, "ERROR AL ENVIAR TRUNCATE.");
+			log_error(logger, "ERROR AL ENVIAR TRUNCATE.");
 			exit(1);
 		}
 		if(send(sockfd, path, paquete->tamanio,0) < 0) {
 			puts("ERROR ENVIO");
-			log_info(logger, "ERROR AL ENVIAR TRUNCATE.");
+			log_error(logger, "ERROR AL ENVIAR TRUNCATE.");
 			exit(1);
 		}
 		break;
@@ -201,12 +201,12 @@ t_paquete* enviarQueSos(t_paquetePro* paquete, void* path){
 		cosaparaenviar = acopladorPro(paquete);
 		if(send(sockfd,cosaparaenviar, size_header ,0) < 0) {
 			puts("ERROR ENVIO");
-			log_info(logger, "ERROR AL ENVIAR RENAME.");
+			log_error(logger, "ERROR AL ENVIAR RENAME.");
 			exit(1);
 		}
 		if(send(sockfd, path, paquete->tamanio,0) < 0) {
 			puts("ERROR ENVIO");
-			log_info(logger, "ERROR AL ENVIAR RENAME.");
+			log_error(logger, "ERROR AL ENVIAR RENAME.");
 			exit(1);
 		}
 		break;
@@ -214,12 +214,12 @@ t_paquete* enviarQueSos(t_paquetePro* paquete, void* path){
 		cosaparaenviar = acopladorPro(paquete);
 		if(send(sockfd,cosaparaenviar, size_header ,0) < 0) {
 			puts("ERROR ENVIO");
-			log_info(logger, "ERROR AL ENVIAR LINK.");
+			log_error(logger, "ERROR AL ENVIAR LINK.");
 			exit(1);
 		}
 		if(send(sockfd, path, paquete->tamanio,0) < 0) {
 			puts("ERROR ENVIO");
-			log_info(logger, "ERROR AL ENVIAR LINK.");
+			log_error(logger, "ERROR AL ENVIAR LINK.");
 			exit(1);
 		}
 		break;
@@ -231,7 +231,7 @@ t_paquete* enviarQueSos(t_paquetePro* paquete, void* path){
 	char bufferHead[size_header];
 	if(recv(sockfd, &bufferHead, size_header, MSG_WAITALL) <= 0) {
 		puts("ERROR RECIBIR");
-		log_info(logger, "ERROR AL RECIBIR HEADER.");
+		log_error(logger, "ERROR AL RECIBIR HEADER.");
 		exit(1);
 	}
 	t_paquetePro* paqueterecv = desacopladorPro(bufferHead);
@@ -243,7 +243,7 @@ t_paquete* enviarQueSos(t_paquetePro* paquete, void* path){
 	char buffer[paqueterecv->tamanio];
 	if(recv(sockfd, &buffer, paqueterecv->tamanio, MSG_WAITALL) <= 0) {
 		puts("ERROR RECIBIR");
-		log_info(logger, "ERROR AL RECIBIR PAYLOAD.");
+		log_error(logger, "ERROR AL RECIBIR PAYLOAD.");
 		exit(1);
 	}
 	void* pathBuffer = malloc(paqueterecv->tamanio);
@@ -368,17 +368,17 @@ static int ejemplo_write (char *path, char *buf, size_t size, off_t offset, stru
 	void* cosaparaenviar = acopladorPro(empaquetarPro(7, strlen(path) + 1, offset, size));
 	if(send(sockfd,cosaparaenviar, size_header ,0) < 0) {
 		puts("ERROR ENVIO");
-		log_info(logger, "ERROR AL ENVIAR WRITE.");
+		log_error(logger, "ERROR AL ENVIAR WRITE.");
 		exit(1);
 	}
 	if(send(sockfd, path, strlen(path) + 1,0) < 0) {
 		puts("ERROR ENVIO");
-		log_info(logger, "ERROR AL ENVIAR WRITE.");
+		log_error(logger, "ERROR AL ENVIAR WRITE.");
 		exit(1);
 	}
 	if(send(sockfd, buf, size,0) < 0) {
 		puts("ERROR ENVIO");
-		log_info(logger, "ERROR AL ENVIAR WRITE.");
+		log_error(logger, "ERROR AL ENVIAR WRITE.");
 		exit(1);
 	}
 
@@ -387,7 +387,7 @@ static int ejemplo_write (char *path, char *buf, size_t size, off_t offset, stru
 	char bufferHead[size_header];
 	if(recv(sockfd, &bufferHead, size_header, MSG_WAITALL) <= 0) {
 		puts("ERROR RECIBIR");
-		log_info(logger, "ERROR AL RECIBIR WRITE (HEADER).");
+		log_error(logger, "ERROR AL RECIBIR WRITE (HEADER).");
 		exit(1);
 	}
 	t_paquetePro* paqueterecv = desacopladorPro(bufferHead);
@@ -395,7 +395,7 @@ static int ejemplo_write (char *path, char *buf, size_t size, off_t offset, stru
 	char buffer[paqueterecv->tamanio];
 	if(recv(sockfd, &buffer, paqueterecv->tamanio, MSG_WAITALL) <= 0) {
 		puts("ERROR RECIBIR");
-		log_info(logger, "ERROR AL RECIBIR WRITE (PAYLOAD).");
+		log_error(logger, "ERROR AL RECIBIR WRITE (PAYLOAD).");
 		exit(1);
 	}
 	void* pathBuffer = malloc(paqueterecv->tamanio);
