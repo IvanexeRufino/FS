@@ -7,6 +7,7 @@
 
 #include "pokedexcliente.h"
 int sockfd;
+t_log* logger;
 pthread_mutex_t sendRecv = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t sendRecv;
 
@@ -66,16 +67,20 @@ t_paquete* enviarQueSos(int nroop, void* path, int size){
 	void* cosaparaenviar = acoplador(paquete);
 	pthread_mutex_lock(&sendRecv);
 	if(send(sockfd,cosaparaenviar,paquete->tamanio + size_header ,0) < 0) {
-		puts("ERROR ENVIO");
+		log_info(logger,"ERROR AL ENVIAR.");
 		exit(1);
 	}
+	log_info(logger, "Se envia un paquete a POKEDEX SERVIDOR.");
+	log_info(logger,"Codigo: %d",paquete->codigo);
+	log_info(logger, "Contenido: %s",paquete->datos);
+	log_info(logger, "Tamanio: %d",paquete->tamanio);
 	free(cosaparaenviar);
 	free(paquete);
 	char buffer[MAX_BUFFERSIZE];
 	int sizebytes;
 	if((sizebytes = recv(sockfd, &buffer, MAX_BUFFERSIZE - 1, 0)) <= 0)
 	{
-		puts("ERROR RECIBIR");
+		log_info(logger,"ERROR AL RECIBIR.");
 		//log_error(logDelPersonaje, "Error al recibir paquete del cliente \n");
 		exit(1);
 	}
@@ -84,8 +89,13 @@ t_paquete* enviarQueSos(int nroop, void* path, int size){
 }
 
 static int ejemplo_getattr(char *path, struct stat *stbuf) {
+	log_info(logger, "Se ejecuta GETATTR.");
 	int res = 0;
 	t_paquete* paquete = enviarQueSos(1,path, strlen(path) + 1);
+
+	log_info(logger, "GETATTR recibe un paquete.");
+	log_info(logger, "Contenido: %s", paquete->datos);
+
 	memset(stbuf, 0, sizeof(struct stat));
 	if (strcmp(path, "/") == 0) {
 		stbuf->st_mode = S_IFDIR | 0755;
@@ -111,10 +121,13 @@ static int ejemplo_getattr(char *path, struct stat *stbuf) {
 
 static int ejemplo_readdir(char *path, void *buf, fuse_fill_dir_t filler,
 		off_t offset, struct fuse_file_info *fi) {
-
+	log_info(logger, "Se ejecuta READDIR.");
 	int res=0;
 	int i=0;
 	t_paquete* paquete= enviarQueSos(2,path,strlen(path)+1);
+
+	log_info(logger, "READDIR recibe un paquete.");
+	log_info(logger, "Contenido: %s", paquete->datos);
 
 	filler(buf,".",NULL,0);
 	filler(buf,"..",NULL,0);
@@ -134,7 +147,11 @@ static int ejemplo_readdir(char *path, void *buf, fuse_fill_dir_t filler,
 
 
 static int ejemplo_mkdir(char* filename, mode_t modo){
+	log_info(logger, "Se ejecuta MKDIR.");
 	t_paquete* paquete = enviarQueSos(3, filename, strlen(filename) + 1);
+
+	log_info(logger, "MKDIR recibe un paquete.");
+	log_info(logger, "Contenido: %s", paquete->datos);
 
 	if(paquete->codigo == 100) {
 		return ENAMETOOLONG;
@@ -147,7 +164,12 @@ static int ejemplo_mkdir(char* filename, mode_t modo){
 }
 
 static int ejemplo_create (char* path, mode_t modo, struct fuse_file_info * info) {
+	log_info(logger, "Se ejecuta CREATE.");
 	t_paquete* paquete = enviarQueSos(4, path, strlen(path) + 1);
+
+	log_info(logger, "CREATE recibe un paquete.");
+	log_info(logger, "Contenido: %s", paquete->datos);
+
 	if(paquete->codigo == 100) {
 		return ENAMETOOLONG;
 	}
@@ -158,7 +180,12 @@ static int ejemplo_create (char* path, mode_t modo, struct fuse_file_info * info
 }
 
 static int ejemplo_open(char * path, int info) {
+	log_info(logger, "Se ejecuta OPEN.");
 	t_paquete* paquete = enviarQueSos(5, path, strlen(path) + 1);
+
+	log_info(logger, "OPEN recibe un paquete.");
+	log_info(logger, "Contenido: %s", paquete->datos);
+
 	if(paquete->codigo == 100) {
 		return -ENOENT;
 	}
@@ -167,15 +194,19 @@ static int ejemplo_open(char * path, int info) {
 
 
 static int ejemplo_read(char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
+	log_info(logger, "Se ejecuta READ.");
 //	t_paquete* paqueteRead1 = empaquetar(offset, path, size);
 //	void* streamRead1 = acoplador1(paqueteRead1);
 //	t_paquete* paqueteRec = enviarQueSos(6, streamRead1, strlen(path) + 1 + size_header);
+//	log_info(logger, "READ recibe un paquete.");
+//	log_info(logger, "Contenido: %s", paquete->datos);
 //	memcpy(buf,paqueteRec->datos,paqueteRec->tamanio);
 //	return paqueteRec->tamanio;
 	return leer_archivo(path, offset, size,buf);
 }
 
 static int ejemplo_write (char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
+	log_info(logger, "Se ejecuta WRITE.");
 //	char* bufo=malloc(strlen(path)+strlen(buf)+2);
 //	strcpy(bufo,path);
 //	strcat(bufo,"|");
@@ -183,12 +214,18 @@ static int ejemplo_write (char *path, char *buf, size_t size, off_t offset, stru
 //	t_paquete* paquetewrite= empaquetar(offset,bufo,size);
 //	void* streamwrite= acoplador1(paquetewrite);
 //	t_paquete* paqueterec= enviarQueSos(7,streamwrite,strlen(path) + 1 + size + size_header);
+//	log_info(logger, "WRITE recibe un paquete.");
+//	log_info(logger, "Contenido: %s", paquete->datos);
 //	return paqueterec->tamanio;
 	return escribir_archivo(path,offset,size,buf);
 }
 
 static int ejemplo_remove (char* path) {
+	log_info(logger, "Se ejecuta REMOVE.");
 	t_paquete* paquete = enviarQueSos(8, path, strlen(path) + 1);
+
+	log_info(logger, "REMOVE recibe un paquete.");
+	log_info(logger, "Contenido: %s", paquete->datos);
 
 	if(paquete->codigo == 100) {
 		return ENOENT;
@@ -197,14 +234,20 @@ static int ejemplo_remove (char* path) {
 }
 
 static int ejemplo_utimens (char * param1, const struct timespec tv[2] ){
+	log_info(logger, "Se ejecuta ULTIMENS.");
 	enviarQueSos(9, param1, strlen(param1) + 1);
 	return 0;
 }
 
 static int ejemplo_truncate(char* path, off_t size) {
+	log_info(logger, "Se ejecuta TRUNCATE.");
 	t_paquete* paquetet = empaquetar(0, path, size);
 	void* streamtrun = acoplador1(paquetet);
 	t_paquete* paqueterecv= enviarQueSos(10, streamtrun, strlen(path) + 1 + size_header);
+
+	log_info(logger, "TRUNCATE recibe un paquete.");
+	log_info(logger, "Contenido: %s", paqueterecv->datos);
+
 	if(paqueterecv->codigo == 100 ) {
 		return 0;
 	}
@@ -212,6 +255,7 @@ static int ejemplo_truncate(char* path, off_t size) {
 }
 
 static int ejemplo_rename(char *nombreViejo, char *nombreNuevo){
+	log_info(logger, "Se ejecuta RENAME.");
 	char* bufo=malloc(strlen(nombreViejo)+strlen(nombreNuevo)+2);
 	strcpy(bufo,nombreViejo);
 	strcat(bufo,"%");
@@ -221,6 +265,7 @@ static int ejemplo_rename(char *nombreViejo, char *nombreNuevo){
 }
 
 static int ejemplo_link (char *archivoOrigen, char *archivoDestino){
+	log_info(logger, "Se ejecuta LINK.");
 	char* bufo=malloc(strlen(archivoOrigen)+strlen(archivoDestino)+2);
 	strcpy(bufo,archivoOrigen);
 	strcat(bufo,"%");
@@ -246,6 +291,8 @@ static struct fuse_operations ejemplo_oper = {
 };
 
 int main(int argc, char *argv[]) {
+	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
+	log_info(logger, PROGRAM_DESCRIPTION);
 
 	reconocerOSADA("/home/utnso/base.bin");
 
@@ -266,10 +313,10 @@ int main(int argc, char *argv[]) {
 	while (conecto != 0){
 		mostrarEsperaAconectar++;
 		if (mostrarEsperaAconectar == 1){
-			printf("Esperando...\n");
+			log_info(logger,"Esperando...\n");
 		}
 		conecto = connect (sockfd,(struct sockaddr *)&socket_info,sizeof (socket_info));
-		printf("Conectado");
+		log_info(logger,"Conectado al servidor \n");
 	}
 	pthread_mutex_init (&sendRecv,NULL);
 
