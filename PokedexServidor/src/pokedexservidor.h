@@ -42,7 +42,7 @@
 /* -- configuracion de log -- */
 
 #define LOG_FILE "pokedexservidor.log"
-#define PROGRAM_NAME "POKEDEX SERVIDOR"
+#define PROGRAM_NAME "Char* Mander"
 #define PROGRAM_DESCRIPTION "Proceso POKEDEX SERVIDOR"
 #define IS_ACTIVE_CONSOLE true
 #define T_LOG_LEVEL LOG_LEVEL_INFO

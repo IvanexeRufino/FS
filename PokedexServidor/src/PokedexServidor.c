@@ -6,6 +6,7 @@
  */
 
 #include "pokedexservidor.h"
+t_log* logger;
 
 
 void* memoria(int cantidad) {
@@ -82,6 +83,7 @@ void getattr(int newfd, t_paquetePro* paqueterecv) {
 	else {
 		enviarQueSos(newfd, empaquetarPro(1, sizeof(osada_file),0,0), archivo);
 	}
+	free(buffer);
 }
 
 void readdir(int newfd, t_paquetePro* paqueterecv){
@@ -103,6 +105,9 @@ void readdir(int newfd, t_paquetePro* paqueterecv){
 	} else {
 		enviarQueSos(newfd, empaquetarPro(100,6,0,0), "error");
 	}
+	free(buffer);
+	free(bufo);
+	free(nombre);
 }
 
 void hacerdir (int newfd, t_paquetePro* paqueterecv){
@@ -118,6 +123,7 @@ void hacerdir (int newfd, t_paquetePro* paqueterecv){
 	else {
 		enviarQueSos(newfd, empaquetarPro(100,6,0,0), "error");
 	}
+	free(buffer);
 }
 
 void abrir (int newfd, t_paquetePro* paqueterecv){
@@ -129,6 +135,7 @@ void abrir (int newfd, t_paquetePro* paqueterecv){
 	else {
 		enviarQueSos(newfd, empaquetarPro(1, sizeof(osada_file),0,0), archivo);
 	}
+	free(buffer);
 }
 
 void crear (int newfd, t_paquetePro* paqueterecv){
@@ -144,6 +151,7 @@ void crear (int newfd, t_paquetePro* paqueterecv){
 	else {
 		enviarQueSos(newfd, empaquetarPro(100,6,0,0), "error");
 	}
+	free(buffer);
 }
 
 void leer (int newfd, t_paquetePro* paqueterecv){
@@ -156,6 +164,7 @@ void leer (int newfd, t_paquetePro* paqueterecv){
 	} else {
 		enviarQueSos(newfd, empaquetarPro(100,6,0,0), "error");
 	}
+	free(buffer);
 }
 
 void escribir (int newfd, t_paquetePro* paqueterecv){
@@ -163,6 +172,8 @@ void escribir (int newfd, t_paquetePro* paqueterecv){
 	char* buffer = recibirNormal(newfd, paqueterecv->size);
 	int tam = escribir_archivo(path,paqueterecv->offset, paqueterecv->size, buffer);
 	enviarQueSos(newfd, empaquetarPro(7, tam,0,0), buffer);
+	free(buffer);
+	free(path);
 }
 
 void remover (int newfd, t_paquetePro* paqueterecv){
@@ -179,6 +190,7 @@ void remover (int newfd, t_paquetePro* paqueterecv){
 		borrar_directorio_vacio(buffer);
 		enviarQueSos(newfd, empaquetarPro(99, 3,0,0), "ok");
 	}
+	free(buffer);
 }
 
 void truncar(int newfd, t_paquetePro* paqueterecv){
@@ -190,6 +202,7 @@ void truncar(int newfd, t_paquetePro* paqueterecv){
 		truncar_archivo(archivo,(uint32_t)paqueterecv->size);
 		enviarQueSos(newfd, empaquetarPro(99, 3,0,0), "ok");
 	}
+	free(buffer);
 }
 
 void renombrar (int newfd, t_paquetePro* paqueterecv){
@@ -197,6 +210,7 @@ void renombrar (int newfd, t_paquetePro* paqueterecv){
 	char** bufonuevox= string_split(buffer,"%");
 	renombrar_archivo(bufonuevox[0],bufonuevox[1]);
 	enviarQueSos(newfd, empaquetarPro(99, 3,0,0), "ok");
+	free(buffer);
 }
 
 void linkear (int newfd, t_paquetePro* paqueterecv){
@@ -204,6 +218,7 @@ void linkear (int newfd, t_paquetePro* paqueterecv){
 	char** bufonuevox= string_split(buffer,"%");
 	copiar_archivo(bufonuevox[0],bufonuevox[1]);
 	enviarQueSos(newfd, empaquetarPro(99, 3,0,0), "ok");
+	free(buffer);
 }
 
 void utimens (int newfd, t_paquetePro* paqueterecv) {
@@ -266,6 +281,7 @@ void recibirQueSos(int newfd){
 				linkear(newfd, paqueterecv);
 				break;
 			}
+		free(paqueterecv);
 }
 
 void sigchld_handler(int s){
@@ -277,6 +293,9 @@ int main(void) {
 //	system("truncate -s 200k disco.bin");
 //	system("./osada-format disco.bin");
 	reconocerOSADA("/home/utnso/base.bin");
+
+	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
+	log_info(logger, PROGRAM_DESCRIPTION);
 
 	int sockfd, new_fd;  // Escuchar sobre sock_fd, nuevas conexiones sobre new_fd
 	struct sockaddr_in my_addr;    // información sobre mi dirección
@@ -320,7 +339,7 @@ int main(void) {
 			perror("accept");
 			continue;
 		}
-		printf("server: got connection from %s\n", inet_ntoa(their_addr.sin_addr));
+		log_info(logger,"Conexion de POKEDEX CLIENTE desde la IP: %s",inet_ntoa(their_addr.sin_addr));
 		if (!fork()) { // Este es el proceso hijo
 			close(sockfd); // El hijo no necesita este descriptor
 			while(1) {
