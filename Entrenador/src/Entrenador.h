@@ -25,6 +25,8 @@
 #include <signal.h>
 #include <arpa/inet.h>
 #include <time.h>
+#include <sys/time.h>
+
 
 #include <Payback/enviarCoordenada.c>
 #include <Payback/recibirCoordenada.c>

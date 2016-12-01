@@ -12,6 +12,15 @@ float tiempoBloqueo;
 int atrapados;
 int reinicio ;
 int completado;
+
+/* retorna "a - b" en segundos */
+double timeval_diff(struct timeval *a, struct timeval *b)
+{
+  return
+    (double)(a->tv_sec + (double)a->tv_usec/1000000) -
+    (double)(b->tv_sec + (double)b->tv_usec/1000000);
+}
+
 void devolverMedallas()
 {
 	log_info(logger, "Devolviendo medallas..");
@@ -465,7 +474,7 @@ int main(int argc, char **argv)
 	infoEntrenador = malloc(sizeof(entrenador_datos));
 	infoEntrenador->cantDeadlock = 0;
 	infoEntrenador->reintentos = 0;
-	clock_t t_ini, t_fin;
+	struct timeval t_ini, t_fin;
 	double secs;
 
 	/*----------------------CARGO LAS RUTAS Y NOMBRES----------------------*/
@@ -491,16 +500,18 @@ int main(int argc, char **argv)
 	if (signal(SIGTERM, sig_handler) == SIG_ERR)
 		        printf("\ncan't catch SIGTERM\n");
 
-		t_ini = clock();
+		gettimeofday(&t_ini, NULL);
+
 		while(completado == 0)			//Si recien empece o perdi y me mori tengo un 0, cuando termine de hacer todo tendria un 1
 		{
 			completado = jugar();
 		}
-		t_fin = clock();
-		secs = (double)(t_fin - t_ini) / CLOCKS_PER_SEC;
+
+		gettimeofday(&t_fin, NULL);
+		secs = timeval_diff(&t_fin, &t_ini);
 
 		log_info(logger, "------TE CONVERTISTE EN MAESTRO POKEMON------ \n");
-		log_info(logger, "Tu aventura duro: %.16g segundos \n",secs*100);
+		log_info(logger, "Tu aventura duro: %.16g segundos \n",secs);
 		log_info(logger,"Estuviste en deadlock %d veces, te costo %d intentos y te quedo %d vidas",infoEntrenador->cantDeadlock,infoEntrenador->reintentos,infoEntrenador->vidas);
 		list_destroy(listaDeMapas);
 		list_destroy(mapa->objetivos);
