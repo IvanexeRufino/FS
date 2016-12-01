@@ -10,6 +10,7 @@
 int sockfd;
 pthread_mutex_t sendRecv = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t sendRecv;
+t_log* logger;
 
 typedef struct {
 	uint16_t codigo;
@@ -71,15 +72,24 @@ t_paquete* enviarQueSos(t_paquetePro* paquete, void* path){
 
 	void* cosaparaenviar;
 
+	log_info(logger, "Se envia un paquete a POKEDEX SERVIDOR.");
+	log_info(logger,"Codigo: %d",paquete->codigo);
+	log_info(logger,"Tamanio: %d",paquete->tamanio);
+	log_info(logger,"Offset: %d",paquete->offset);
+	log_info(logger,"Size: %d",paquete->size);
+	log_info(logger,"Datos: %s",path);
+
 	switch(paquete->codigo) {
 	case 1:
 		cosaparaenviar = acopladorPro(paquete);
 		if(send(sockfd,cosaparaenviar, size_header ,0) < 0) {
 			puts("ERROR ENVIO");
+			log_info(logger, "ERROR AL ENVIAR GETATTR.");
 			exit(1);
 		}
 		if(send(sockfd, path, paquete->tamanio,0) < 0) {
 			puts("ERROR ENVIO");
+			log_info(logger, "ERROR AL ENVIAR GETATTR.");
 			exit(1);
 		}
 		break;
@@ -87,10 +97,12 @@ t_paquete* enviarQueSos(t_paquetePro* paquete, void* path){
 		cosaparaenviar = acopladorPro(paquete);
 		if(send(sockfd,cosaparaenviar, size_header ,0) < 0) {
 			puts("ERROR ENVIO");
+			log_info(logger, "ERROR AL ENVIAR READDIR.");
 			exit(1);
 		}
 		if(send(sockfd, path, paquete->tamanio,0) < 0) {
 			puts("ERROR ENVIO");
+			log_info(logger, "ERROR AL ENVIAR READDIR.");
 			exit(1);
 		}
 		break;
@@ -98,10 +110,12 @@ t_paquete* enviarQueSos(t_paquetePro* paquete, void* path){
 		cosaparaenviar = acopladorPro(paquete);
 		if(send(sockfd,cosaparaenviar, size_header ,0) < 0) {
 			puts("ERROR ENVIO");
+			log_info(logger, "ERROR AL ENVIAR MKDIR.");
 			exit(1);
 		}
 		if(send(sockfd, path, paquete->tamanio,0) < 0) {
 			puts("ERROR ENVIO");
+			log_info(logger, "ERROR AL ENVIAR MKDIR.");
 			exit(1);
 		}
 		break;
@@ -109,10 +123,12 @@ t_paquete* enviarQueSos(t_paquetePro* paquete, void* path){
 		cosaparaenviar = acopladorPro(paquete);
 		if(send(sockfd,cosaparaenviar, size_header ,0) < 0) {
 			puts("ERROR ENVIO");
+			log_info(logger, "ERROR AL ENVIAR CREATE.");
 			exit(1);
 		}
 		if(send(sockfd, path, paquete->tamanio,0) < 0) {
 			puts("ERROR ENVIO");
+			log_info(logger, "ERROR AL ENVIAR CREATE.");
 			exit(1);
 		}
 		break;
@@ -120,10 +136,12 @@ t_paquete* enviarQueSos(t_paquetePro* paquete, void* path){
 		cosaparaenviar = acopladorPro(paquete);
 		if(send(sockfd,cosaparaenviar, size_header ,0) < 0) {
 			puts("ERROR ENVIO");
+			log_info(logger, "ERROR AL ENVIAR OPEN.");
 			exit(1);
 		}
 		if(send(sockfd, path, paquete->tamanio,0) < 0) {
 			puts("ERROR ENVIO");
+			log_info(logger, "ERROR AL ENVIAR OPEN.");
 			exit(1);
 		}
 		break;
@@ -131,10 +149,12 @@ t_paquete* enviarQueSos(t_paquetePro* paquete, void* path){
 		cosaparaenviar = acopladorPro(paquete);
 		if(send(sockfd,cosaparaenviar, size_header ,0) < 0) {
 			puts("ERROR ENVIO");
+			log_info(logger, "ERROR AL ENVIAR READ.");
 			exit(1);
 		}
 		if(send(sockfd, path, paquete->tamanio,0) < 0) {
 			puts("ERROR ENVIO");
+			log_info(logger, "ERROR AL ENVIAR READ.");
 			exit(1);
 		}
 		break;
@@ -142,10 +162,12 @@ t_paquete* enviarQueSos(t_paquetePro* paquete, void* path){
 		cosaparaenviar = acopladorPro(paquete);
 		if(send(sockfd,cosaparaenviar, size_header ,0) < 0) {
 			puts("ERROR ENVIO");
+			log_info(logger, "ERROR AL ENVIAR REMOVE.");
 			exit(1);
 		}
 		if(send(sockfd, path, paquete->tamanio,0) < 0) {
 			puts("ERROR ENVIO");
+			log_info(logger, "ERROR AL ENVIAR REMOVE.");
 			exit(1);
 		}
 		break;
@@ -153,10 +175,12 @@ t_paquete* enviarQueSos(t_paquetePro* paquete, void* path){
 		cosaparaenviar = acopladorPro(paquete);
 		if(send(sockfd,cosaparaenviar, size_header ,0) < 0) {
 			puts("ERROR ENVIO");
+			log_info(logger, "ERROR AL ENVIAR UTIMENS.");
 			exit(1);
 		}
 		if(send(sockfd, path, paquete->tamanio,0) < 0) {
 			puts("ERROR ENVIO");
+			log_info(logger, "ERROR AL ENVIAR UTIMENS.");
 			exit(1);
 		}
 		break;
@@ -164,10 +188,12 @@ t_paquete* enviarQueSos(t_paquetePro* paquete, void* path){
 		cosaparaenviar = acopladorPro(paquete);
 		if(send(sockfd,cosaparaenviar, size_header ,0) < 0) {
 			puts("ERROR ENVIO");
+			log_info(logger, "ERROR AL ENVIAR TRUNCATE.");
 			exit(1);
 		}
 		if(send(sockfd, path, paquete->tamanio,0) < 0) {
 			puts("ERROR ENVIO");
+			log_info(logger, "ERROR AL ENVIAR TRUNCATE.");
 			exit(1);
 		}
 		break;
@@ -175,10 +201,12 @@ t_paquete* enviarQueSos(t_paquetePro* paquete, void* path){
 		cosaparaenviar = acopladorPro(paquete);
 		if(send(sockfd,cosaparaenviar, size_header ,0) < 0) {
 			puts("ERROR ENVIO");
+			log_info(logger, "ERROR AL ENVIAR RENAME.");
 			exit(1);
 		}
 		if(send(sockfd, path, paquete->tamanio,0) < 0) {
 			puts("ERROR ENVIO");
+			log_info(logger, "ERROR AL ENVIAR RENAME.");
 			exit(1);
 		}
 		break;
@@ -186,39 +214,52 @@ t_paquete* enviarQueSos(t_paquetePro* paquete, void* path){
 		cosaparaenviar = acopladorPro(paquete);
 		if(send(sockfd,cosaparaenviar, size_header ,0) < 0) {
 			puts("ERROR ENVIO");
+			log_info(logger, "ERROR AL ENVIAR LINK.");
 			exit(1);
 		}
 		if(send(sockfd, path, paquete->tamanio,0) < 0) {
 			puts("ERROR ENVIO");
+			log_info(logger, "ERROR AL ENVIAR LINK.");
 			exit(1);
 		}
 		break;
 	}
+
 
 	/////////////////////Recibo el header/////////////////////////
 
 	char bufferHead[size_header];
 	if(recv(sockfd, &bufferHead, size_header, MSG_WAITALL) <= 0) {
 		puts("ERROR RECIBIR");
+		log_info(logger, "ERROR AL RECIBIR HEADER.");
 		exit(1);
 	}
 	t_paquetePro* paqueterecv = desacopladorPro(bufferHead);
+	log_info(logger, "Se recibe un paquete de POKEDEX SERVIDOR.");
+	log_info(logger, "Header: %d", paqueterecv->codigo);
 
 	/////////////////////Recibo el payload////////////////////////
 
 	char buffer[paqueterecv->tamanio];
 	if(recv(sockfd, &buffer, paqueterecv->tamanio, MSG_WAITALL) <= 0) {
 		puts("ERROR RECIBIR");
+		log_info(logger, "ERROR AL RECIBIR PAYLOAD.");
 		exit(1);
 	}
 	void* pathBuffer = malloc(paqueterecv->tamanio);
 	memcpy(pathBuffer,buffer,paqueterecv->tamanio);
 
 	pthread_mutex_unlock(&sendRecv);
+	log_info(logger, "Payload: %d", paqueterecv->tamanio);
+	log_info(logger, "Codigo: %d", paqueterecv->codigo);
+	log_info(logger, "Datos: %s", pathBuffer);
+	log_info(logger, "Tamanio: %d", paqueterecv->tamanio);
 	return empaquetar(paqueterecv->codigo, pathBuffer, paqueterecv->tamanio);
 }
 
 static int ejemplo_getattr(char *path, struct stat *stbuf) {
+	log_info(logger, "Se ejecuta GETATTR.");
+
 	int res = 0;
 	t_paquete* paquete = enviarQueSos(empaquetarPro(1, strlen(path) + 1,0,0),path);
 	memset(stbuf, 0, sizeof(struct stat));
@@ -246,6 +287,7 @@ static int ejemplo_getattr(char *path, struct stat *stbuf) {
 
 static int ejemplo_readdir(char *path, void *buf, fuse_fill_dir_t filler,
 		off_t offset, struct fuse_file_info *fi) {
+	log_info(logger, "Se ejecuta READDIR.");
 
 	int res=0;
 	int i=0;
@@ -269,6 +311,8 @@ static int ejemplo_readdir(char *path, void *buf, fuse_fill_dir_t filler,
 
 
 static int ejemplo_mkdir(char* filename, mode_t modo){
+	log_info(logger, "Se ejecuta MKDIR.");
+
 	t_paquete* paquete = enviarQueSos(empaquetarPro(3, strlen(filename) + 1,0,0), filename);
 
 	if(paquete->codigo == 100) {
@@ -282,6 +326,8 @@ static int ejemplo_mkdir(char* filename, mode_t modo){
 }
 
 static int ejemplo_create (char* path, mode_t modo, struct fuse_file_info * info) {
+	log_info(logger, "Se ejecuta CREATE.");
+
 	t_paquete* paquete = enviarQueSos(empaquetarPro(4, strlen(path) + 1,0,0), path);
 	if(paquete->codigo == 100) {
 		return ENAMETOOLONG;
@@ -293,6 +339,8 @@ static int ejemplo_create (char* path, mode_t modo, struct fuse_file_info * info
 }
 
 static int ejemplo_open(char * path, int info) {
+	log_info(logger, "Se ejecuta OPEN.");
+
 	t_paquete* paquete = enviarQueSos(empaquetarPro(5, strlen(path) + 1,0,0), path);
 	if(paquete->codigo == 100) {
 		return -ENOENT;
@@ -302,6 +350,7 @@ static int ejemplo_open(char * path, int info) {
 
 
 static int ejemplo_read(char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
+	log_info(logger, "Se ejecuta READ.");
 	t_paquete* paqueteRec = enviarQueSos(empaquetarPro(6, strlen(path) + 1, offset, size), path);
 	if(paqueteRec->codigo == 100) {
 			return 0;
@@ -311,18 +360,23 @@ static int ejemplo_read(char *path, char *buf, size_t size, off_t offset, struct
 }
 
 static int ejemplo_write (char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
+	log_info(logger, "Se ejecuta WRITE.");
+
 	pthread_mutex_lock(&sendRecv);
 	void* cosaparaenviar = acopladorPro(empaquetarPro(7, strlen(path) + 1, offset, size));
 	if(send(sockfd,cosaparaenviar, size_header ,0) < 0) {
 		puts("ERROR ENVIO");
+		log_info(logger, "ERROR AL ENVIAR WRITE.");
 		exit(1);
 	}
 	if(send(sockfd, path, strlen(path) + 1,0) < 0) {
 		puts("ERROR ENVIO");
+		log_info(logger, "ERROR AL ENVIAR WRITE.");
 		exit(1);
 	}
 	if(send(sockfd, buf, size,0) < 0) {
 		puts("ERROR ENVIO");
+		log_info(logger, "ERROR AL ENVIAR WRITE.");
 		exit(1);
 	}
 
@@ -331,6 +385,7 @@ static int ejemplo_write (char *path, char *buf, size_t size, off_t offset, stru
 	char bufferHead[size_header];
 	if(recv(sockfd, &bufferHead, size_header, MSG_WAITALL) <= 0) {
 		puts("ERROR RECIBIR");
+		log_info(logger, "ERROR AL RECIBIR WRITE (HEADER).");
 		exit(1);
 	}
 	t_paquetePro* paqueterecv = desacopladorPro(bufferHead);
@@ -338,6 +393,7 @@ static int ejemplo_write (char *path, char *buf, size_t size, off_t offset, stru
 	char buffer[paqueterecv->tamanio];
 	if(recv(sockfd, &buffer, paqueterecv->tamanio, MSG_WAITALL) <= 0) {
 		puts("ERROR RECIBIR");
+		log_info(logger, "ERROR AL RECIBIR WRITE (PAYLOAD).");
 		exit(1);
 	}
 	void* pathBuffer = malloc(paqueterecv->tamanio);
@@ -348,6 +404,8 @@ static int ejemplo_write (char *path, char *buf, size_t size, off_t offset, stru
 }
 
 static int ejemplo_remove (char* path) {
+	log_info(logger, "Se ejecuta REMOVE.");
+
 	t_paquete* paquete = enviarQueSos(empaquetarPro(8, strlen(path) + 1,0,0), path);
 
 	if(paquete->codigo == 100) {
@@ -357,11 +415,15 @@ static int ejemplo_remove (char* path) {
 }
 
 static int ejemplo_utimens (char * param1, const struct timespec tv[2] ){
+	log_info(logger, "Se ejecuta UTIMENS.");
+
 	enviarQueSos(empaquetarPro(9, strlen(param1) + 1, 0, 0), param1);
 	return 0;
 }
 
 static int ejemplo_truncate(char* path, off_t size) {
+	log_info(logger, "Se ejecuta TRUNCATE.");
+
 	t_paquete* paqueterecv= enviarQueSos(empaquetarPro(10, strlen(path) + 1,0,size), path);
 	if(paqueterecv->codigo == 100 ) {
 		return -ENOENT;
@@ -370,6 +432,8 @@ static int ejemplo_truncate(char* path, off_t size) {
 }
 
 static int ejemplo_rename(char *nombreViejo, char *nombreNuevo){
+	log_info(logger, "Se ejecuta RENAME.");
+
 	char* bufo=malloc(strlen(nombreViejo)+strlen(nombreNuevo)+2);
 	strcpy(bufo,nombreViejo);
 	strcat(bufo,"%");
@@ -379,6 +443,8 @@ static int ejemplo_rename(char *nombreViejo, char *nombreNuevo){
 }
 
 static int ejemplo_link (char *archivoOrigen, char *archivoDestino){
+	log_info(logger, "Se ejecuta LINK.");
+
 	char* bufo=malloc(strlen(archivoOrigen)+strlen(archivoDestino)+2);
 	strcpy(bufo,archivoOrigen);
 	strcat(bufo,"%");
@@ -404,6 +470,9 @@ static struct fuse_operations ejemplo_oper = {
 };
 
 int main(int argc, char *argv[]) {
+
+	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
+	log_info(logger, PROGRAM_DESCRIPTION);
 
 	struct sockaddr_in socket_info;
 	  	// Se carga informacion del socket
