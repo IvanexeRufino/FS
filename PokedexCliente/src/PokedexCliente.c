@@ -13,8 +13,8 @@ pthread_mutex_t sendRecv;
 t_log* logger;
 
 typedef struct {
-	uint16_t codigo;
-	uint16_t tamanio;
+	uint32_t codigo;
+	uint32_t tamanio;
 	void* datos;
 }__attribute__((__packed__)) t_paquete ;
 
@@ -30,10 +30,10 @@ void* memoria(int cantidad) {
 }
 
 typedef struct {
-	uint16_t codigo;
-	uint16_t tamanio;
-	uint16_t offset;
-	uint16_t size;
+	uint32_t codigo;
+	uint32_t tamanio;
+	uint32_t offset;
+	uint32_t size;
 }__attribute__((__packed__)) t_paquetePro ;
 
 t_paquetePro* empaquetarPro(int codigo, int tamanio, int offset, int size){

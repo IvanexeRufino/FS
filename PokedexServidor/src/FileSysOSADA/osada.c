@@ -77,9 +77,11 @@ int offsetDondeEmpezar(int offset) {
 }
 
 int buscarIndiceConPadre(char* nombreABuscar, int padre) {
+	unsigned char* nombre = malloc(17);
 	int i;
 	for(i = 0; i < 2048; i++) {
-		if(strcmp(tablaDeArchivos[i].fname, nombreABuscar) == 0 && tablaDeArchivos[i].parent_directory == padre && tablaDeArchivos[i].state != DELETED) {
+		memcpy(nombre, tablaDeArchivos[i].fname,17);
+		if(strcmp(nombre, nombreABuscar) == 0 && tablaDeArchivos[i].parent_directory == padre && tablaDeArchivos[i].state != DELETED) {
 			return i;
 		}
 	}

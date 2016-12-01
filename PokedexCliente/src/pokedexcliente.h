@@ -41,7 +41,7 @@ typedef uint32_t osada_block_pointer;
 
 /* -- declaraciones de constantes -- */
 
-#define size_header  sizeof(uint16_t) * 4
+#define size_header  sizeof(uint32_t) * 4
 
 /* -- configuracion de sockets -- */
 
