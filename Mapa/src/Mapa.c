@@ -15,9 +15,13 @@ void pokemonMasFuerteDe(t_registroPersonaje *personaje){
 	//t_pokemon* actual = malloc(sizeof(t_pokemon));
 	int nivel;
 	char ruta[512];
+	char directorio[512];
+
 	strcpy(ruta,rutaArgv);
 	strcat(ruta,"/Entrenadores/");
 	strcat(ruta,personaje->nombre);
+	strcpy(directorio,ruta);
+	strcat(directorio,"/Dir de Bill/");
 	strcat(ruta,"/Dir\\ de\\ Bill/");
 
 	log_info(logger, "La ruta en pokemonMasFuerteDe es: %s",ruta);
@@ -25,7 +29,7 @@ void pokemonMasFuerteDe(t_registroPersonaje *personaje){
 	char* nombreFuerte = string_new();
 	DIR *dp;
 	struct dirent *ep;
-	dp = opendir (ruta);
+	dp = opendir (directorio);
 	if (dp != NULL)
 	{
 		ep = readdir (dp);
@@ -33,7 +37,7 @@ void pokemonMasFuerteDe(t_registroPersonaje *personaje){
 		{
 			if(ep->d_name[0]!='.' && ep->d_name[0]!='m')
 			{
-				nivel = leerDatosBill(ep->d_name , ruta);
+				nivel = leerDatosBill(ep->d_name , directorio);
 				int i = strlen(ep->d_name) -7; //Si tengo Charmander002.dat, le saco el 002.dat que son 7 caracteres justos y me queda el nombre Charmander en limpio
 				ep->d_name[i] ='\0';
 				log_info(logger,"El pokemon %s de %s Tiene un nivel %d \n",ep->d_name ,personaje->nombre ,nivel);
