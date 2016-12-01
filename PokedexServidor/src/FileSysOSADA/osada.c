@@ -57,8 +57,8 @@ void reconocerOSADA(char* path) {
 	tablaDeArchivos = (osada_file*)  (disco + (header->allocations_table_offset - 1024)*OSADA_BLOCK_SIZE);
 	bitmap = bitarray_create(&disco[OSADA_BLOCK_SIZE],(header->bitmap_blocks));
 	tablaDeAsignaciones = (osada_block_pointer*) (disco + (header->allocations_table_offset) * OSADA_BLOCK_SIZE);
-	inicioDeBloqueDeDatos = header->fs_blocks - header->data_blocks;
-	bloquesDeDatos = (osada_block*) (disco + inicioDeBloqueDeDatos*OSADA_BLOCK_SIZE);
+	inicioDeBloqueDeDatos = (header->allocations_table_offset + 1024) * OSADA_BLOCK_SIZE;
+	bloquesDeDatos = (osada_block*) (disco + (header->fs_blocks - header->data_blocks)*OSADA_BLOCK_SIZE);
 	cantidadDeBloques = header->fs_blocks;
 	pthread_mutex_init (&semaforoBitmap,NULL);
 	pthread_mutex_init (&semaforoTablaDeArchivos,NULL);
@@ -261,36 +261,43 @@ int crear_archivo(char* path, int direcOArch)
 {
 	pthread_mutex_lock(&semaforoTablaDeArchivos);
 	int posicionEnLaTabla = buscarArchivoVacio();
-	osada_file* archivoNuevo = &tablaDeArchivos[posicionEnLaTabla];
-	if(archivoNuevo == NULL)
-	{
+	printf("la posicion en la tabla de archivos es %d \n", posicionEnLaTabla);
+	if(posicionEnLaTabla == -1) {
 		pthread_mutex_unlock(&semaforoTablaDeArchivos);
 		//tabla de archivos lleno
 		return -1;
-	}
-	strcpy(archivoNuevo->fname,adquirirNombre(path));
-	archivoNuevo->parent_directory = buscarArchivoDelPadre(path);
-	archivoNuevo->file_size = 0;
-	archivoNuevo->lastmod = time(0);
+	} else {
+		osada_file* archivoNuevo = &tablaDeArchivos[posicionEnLaTabla];
+		strcpy(archivoNuevo->fname,adquirirNombre(path));
+		archivoNuevo->parent_directory = buscarArchivoDelPadre(path);
+		archivoNuevo->file_size = 0;
+		archivoNuevo->lastmod = time(0);
 
-	if(direcOArch == 1) {
-		archivoNuevo->state = REGULAR;
-		archivoNuevo->first_block = buscarBloqueVacio();
-	}
-	else {
-		archivoNuevo->state = DIRECTORY;
-	}
-	pthread_mutex_unlock(&semaforoTablaDeArchivos);
+		if(direcOArch == 1) {
+			archivoNuevo->state = REGULAR;
+			archivoNuevo->first_block = buscarBloqueVacio();
+			printf("el primer bloque del archivo es %d \n", archivoNuevo->first_block);
+		}
+		else {
+			archivoNuevo->state = DIRECTORY;
+		}
+		pthread_mutex_unlock(&semaforoTablaDeArchivos);
 
-	return posicionEnLaTabla;
+		return posicionEnLaTabla;
+	}
 }
 
 int borrar_archivo(char* path) {
 
 	osada_file* archivo = obtenerArchivo(path);
 
-	truncar_archivo(archivo,0);
+	int bloquesARestar = divisionMaxima(archivo->file_size);
+	if(archivo->file_size == 0) {bloquesARestar = 1;}
+	pthread_mutex_lock(&semaforoBitmap);
+	quitarBloquesDelBitmap(bloquesARestar, archivo, 0);
+	pthread_mutex_unlock(&semaforoBitmap);
 	archivo->state = 0;
+	archivo->file_size = 0;
 
 	return 0;
 }
@@ -408,7 +415,8 @@ int quitarBloquesDelBitmap(int bloquesAQuitar, osada_file* archivo, int size_nue
 	int i;
 	for(i = ultimoBloqueADejar; i < cant_bloques; i++) {
 		int bloqueABorrar = numeroBloqueDelArchivo(i + 1, archivo);
-		bitarray_clean_bit(bitmap,bloqueABorrar);
+
+		bitarray_clean_bit(bitmap, inicioDeBloqueDeDatos + bloqueABorrar);
 	}
 	return 0;
 }
