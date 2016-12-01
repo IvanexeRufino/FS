@@ -276,10 +276,12 @@ static int ejemplo_getattr(char *path, struct stat *stbuf) {
 	} else if (archivo->state == 2) {
 		stbuf->st_mode = S_IFDIR | 0755;
 		stbuf->st_nlink = 2;
+		stbuf->st_mtim.tv_sec = archivo->lastmod;
 	} 	else {
 		stbuf->st_mode = S_IFREG | 0666;
 		stbuf->st_nlink = 1;
 		stbuf->st_size = archivo->file_size;
+		stbuf->st_mtim.tv_sec = archivo->lastmod;
 	}
 	}
 	return res;
