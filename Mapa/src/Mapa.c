@@ -1011,7 +1011,7 @@ int main(int argc, char **argv)
 	{
 	case (1):
 		//log_info(logger, "Cantidad de parametros incorrectos, Aplicando por defecto");
-		strcpy(infoMapa->nombre,"Verde");
+		strcpy(infoMapa->nombre,"Azul");
 		strcpy(rutaArgv, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Pokedex");
 		break;
 	case (2):
