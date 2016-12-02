@@ -6,7 +6,12 @@
  */
 
 #include "pokedexservidor.h"
+t_log* logger;
 
+void ctrl_c(int nro){
+	log_info(logger,"Cerrando conexiones y finalizando POKEDEX SERVIDOR...");
+	exit(1);
+}
 
 void* memoria(int cantidad) {
 	void* puntero = NULL;
@@ -43,7 +48,8 @@ void* acopladorPro(t_paquetePro* paquete) {
 void* recibirNormal(int newfd, int size) {
 	char buffer[size];
 	if(recv(newfd, &buffer, size, MSG_WAITALL) <= 0) {
-		puts("ERROR RECIBIR");
+		//puts("ERROR RECIBIR");
+		log_error(logger, "ERROR AL RECIBIR recibirNormal.");
 		exit(1);
 	}
 	void* path = malloc(size);
@@ -62,11 +68,13 @@ t_paquetePro* desacopladorPro(char* buffer)/*transforma multiples streams en est
 void enviarQueSos(int newfd, t_paquetePro* paqueteSend, void* buffer){
 	void* enviar = acopladorPro(paqueteSend);
 	if(send(newfd,enviar, size_header ,0)<0) {
-				puts("ERROR ENVIO");
+				//puts("ERROR ENVIO");
+				log_error(logger,"ERROR AL ENVIAR HEADER enviarQueSos.");
 				exit(1);
 	}
 	if(send(newfd,buffer, paqueteSend->tamanio ,0)<0) {
-				puts("ERROR ENVIO");
+				//puts("ERROR ENVIO");
+				log_error(logger,"ERROR AL ENVIAR TAMANIO enviarQueSos.");
 				exit(1);
 	}
 	free(paqueteSend);
@@ -220,7 +228,8 @@ void recibirQueSos(int newfd){
 	char bufferHead[size_header];
 	int sizebytes;
 	if((sizebytes = recv(newfd, &bufferHead, size_header, MSG_WAITALL)) <= 0) {
-		puts("ERROR RECIBIR");
+		//puts("ERROR RECIBIR");
+		log_error(logger,"ERROR AL RECIBIR HEADER recibirQueSos");
 		exit(1);
 	}
 
@@ -284,6 +293,9 @@ int main(int argc, char *argv[]) {
 //	system("./osada-format disco.bin");
 	reconocerOSADA(argv[1]);
 
+	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
+	log_info(logger, PROGRAM_DESCRIPTION);
+
 	int sockfd, new_fd;  // Escuchar sobre sock_fd, nuevas conexiones sobre new_fd
 	struct sockaddr_in my_addr;    // información sobre mi dirección
 	struct sockaddr_in their_addr; // información sobre la dirección del cliente
@@ -320,13 +332,14 @@ int main(int argc, char *argv[]) {
 		perror("sigaction");
 		exit(1);
 	}
+	signal(SIGINT,ctrl_c);
 	while(1) {
 		sin_size = sizeof(struct sockaddr_in);
 		if ((new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size)) == -1) {
 			perror("accept");
 			continue;
 		}
-		printf("server: got connection from %s\n", inet_ntoa(their_addr.sin_addr));
+		log_info(logger,"POKEDEX CLIENTE conectado desde la IP: %s",  inet_ntoa(their_addr.sin_addr));
 		if (!fork()) { // Este es el proceso hijo
 			close(sockfd); // El hijo no necesita este descriptor
 			while(1) {
