@@ -4,4 +4,4 @@ algoritmo=RR
 quantum=3
 retardo=1000
 IP=127.0.0.1
-Puerto=5004
+Puerto=5003

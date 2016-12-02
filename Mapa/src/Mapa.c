@@ -353,6 +353,8 @@ void leerConfiguracionPokenest(char mapa[20], char pokemon[256])
 		char** pos = string_split(array, ";");
 		pokenest->x = atoi(pos[0]);
 		pokenest->y = atoi(pos[1]);
+		if (pokenest->x == 0){ pokenest->x = pokenest->x + 1;}
+		if (pokenest->y == 0){ pokenest->y = pokenest->y + 1;}
 		pokenest->identificador=identificadorPokenest[0];
 		strcpy(pokenest->nombre , pokemon);
 
