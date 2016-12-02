@@ -1,4 +1,4 @@
- #include "osada.h"
+#include "osada.h"
  #include "Global.h"
  #include "string.h"
  #include <stdio.h>
@@ -57,17 +57,9 @@
  	tablaDeArchivos = (osada_file*)  (disco + (header->allocations_table_offset - 1024)*OSADA_BLOCK_SIZE);
  	bitmap = bitarray_create(&disco[OSADA_BLOCK_SIZE],(header->bitmap_blocks));
  	tablaDeAsignaciones = (osada_block_pointer*) (disco + (header->allocations_table_offset) * OSADA_BLOCK_SIZE);
+ 	inicioDeBloqueDeDatos = header->fs_blocks - header->data_blocks;
  	bloquesDeDatos = (osada_block*) (disco + inicioDeBloqueDeDatos*OSADA_BLOCK_SIZE);
  	cantidadDeBloques = header->fs_blocks;
- 	int j = 1;
- 	while(j < cantidadDeBloques) {
- 		 if(bitarray_test_bit(bitmap,j) == false) {
- 			 	inicioBloquesLibres = j;
- 			 	j = cantidadDeBloques;
- 		 }
- 		j++;
- 	}
-
  	pthread_mutex_init (&semaforoBitmap,NULL);
  	pthread_mutex_init (&semaforoTablaDeArchivos,NULL);
  	pthread_mutex_init (&semaforoTablaDeAsignaciones,NULL);
@@ -82,17 +74,17 @@
  int offsetDondeEmpezar(int offset) {
  	int resultado = offset % OSADA_BLOCK_SIZE;
  	return resultado;
- }
+  }
 
- int buscarIndiceConPadre(char* nombreABuscar, int padre) {
+  int buscarIndiceConPadre(char* nombreABuscar, int padre) {
  	unsigned char* nombre = malloc(17);
- 	int i;
- 	for(i = 0; i < 2048; i++) {
- 		memcpy(nombre, tablaDeArchivos[i].fname,17);
- 		if(strcmp(nombre, nombreABuscar) == 0 && tablaDeArchivos[i].parent_directory == padre && tablaDeArchivos[i].state != DELETED) {
- 			return i;
- 		}
- 	}
+  	int i;
+  	for(i = 0; i < 2048; i++) {
+		memcpy(nombre, tablaDeArchivos[i].fname,17);
+		if(strcmp(nombre, nombreABuscar) == 0 && tablaDeArchivos[i].parent_directory == padre && tablaDeArchivos[i].state != DELETED) {
+  			return i;
+  		}
+  	}
  	return -1;
  }
 
@@ -251,13 +243,15 @@
  }
 
  int buscarBloqueVacio() {
- 	int j = 0;
+ 	int i = 0;
+ 	int j = inicioDeBloqueDeDatos;
  	while(j < cantidadDeBloques) {
  		 if(bitarray_test_bit(bitmap,j) == false) {
  				bitarray_set_bit(bitmap,j);
- 				return j - inicioBloquesLibres;
+ 				return i;
  		 }
  		j++;
+ 		i++;
  	}
  	//no hay bits vacios
  	return -1;
@@ -274,25 +268,32 @@
  		//tabla de archivos lleno
  		return -1;
  	}
-  	strcpy(archivoNuevo->fname,adquirirNombre(path));
-  	archivoNuevo->parent_directory = buscarArchivoDelPadre(path);
-  	archivoNuevo->file_size = 0;
- 	archivoNuevo->lastmod = time(0);
+ 	strcpy(archivoNuevo->fname,adquirirNombre(path));
+ 	archivoNuevo->parent_directory = buscarArchivoDelPadre(path);
+ 	archivoNuevo->file_size = 0;
+ 	archivoNuevo->lastmod = time(NULL);
 
-  	if(direcOArch == 1) {
-  		archivoNuevo->state = REGULAR;
+ 	if(direcOArch == 1) {
+ 		archivoNuevo->state = REGULAR;
  		archivoNuevo->first_block = buscarBloqueVacio();
  	}
  	else {
  		archivoNuevo->state = DIRECTORY;
  	}
-  	printf("el inicio de bloques libres es %d", inicioBloquesLibres);
-  	printf("el bloque asignado es %d", archivoNuevo->first_block);
  	pthread_mutex_unlock(&semaforoTablaDeArchivos);
 
  	return posicionEnLaTabla;
  }
 
+ int borrar_archivo(char* path) {
+
+ 	osada_file* archivo = obtenerArchivo(path);
+
+ 	truncar_archivo(archivo,0);
+ 	archivo->state = 0;
+
+ 	return 0;
+ }
 
  int renombrar_archivo(char* pathViejo, char* pathNuevo) {
  	osada_file* archivo = obtenerArchivo(pathViejo);
@@ -300,6 +301,33 @@
  	archivo->parent_directory = buscarArchivoDelPadre(pathNuevo);
  	archivo->lastmod = time(NULL);
  	return 0;
+ }
+
+ int ejemplo_getattr(const char *path, struct stat *st) {
+ 	int res=0;
+ 	memset (st,0,sizeof(st));
+
+ 	    if(S_ISDIR(st->st_mode)){
+ 				st->st_mode = S_IFDIR | 0755;
+ 	    		st->st_uid = getuid();
+ 	    		st->st_gid = getgid();
+ 	    		st->st_atime = time(NULL);
+ 	    		st->st_mtime = time(NULL);
+ 	    		st->st_nlink = 2;
+ 	        }
+ 	    else if(S_ISREG(st->st_mode)){
+ 	    		st->st_mode = S_IFREG | 0644;
+ 	    		st->st_uid = getuid();
+ 	    		st->st_gid = getgid();
+ 	    		st->st_size = sizeof(st);
+ 	    		st->st_atime = time(NULL);
+ 	    		st->st_mtime = time(NULL);
+ 	        }
+ 	    else {
+ 	    	res = -ENOENT;
+ 	    }
+
+ 	    return res;
  }
 
  /////////////////////////////////////escribir archivo /////////////////////////////////////
@@ -379,7 +407,7 @@
  	int ultimoBloqueADejar = cant_bloques - bloquesAQuitar;
  	int i;
  	for(i = ultimoBloqueADejar; i < cant_bloques; i++) {
- 		int bloqueABorrar = numeroBloqueDelArchivo(i + 1, archivo) + inicioBloquesLibres;
+ 		int bloqueABorrar = numeroBloqueDelArchivo(i + 1, archivo);
  		bitarray_clean_bit(bitmap,bloqueABorrar);
  	}
  	return 0;
@@ -411,19 +439,6 @@
  	//Va a ponerle de tamaño a mi archivo lo pasado en size. Incluyendo el agregado o borrado de bloques
  	archivo->file_size = size;
  	return archivo;
- }
-
- int borrar_archivo(char* path) {
-
- 	osada_file* archivo = obtenerArchivo(path);
-
-	pthread_mutex_lock(&semaforoBitmap);
-	quitarBloquesDelBitmap(divisionMaxima(archivo->file_size), archivo,0);
-	pthread_mutex_unlock(&semaforoBitmap);
-
- 	archivo->state = 0;
-
- 	return 0;
  }
 
  int escribir_informacion(int tamanioAEscribir, int offset, char* bufferConDatos, char* inicioDeEscritura, osada_file* archivo ) {
