@@ -6,7 +6,12 @@
  */
 
 #include "pokedexservidor.h"
+t_log* logger;
 
+void ctrl_c(int nro){
+	log_info(logger,"Cerrando conexiones y finalizando POKEDEX SERVIDOR...");
+	exit(1);
+}
 
 void* memoria(int cantidad) {
 	void* puntero = NULL;
@@ -43,7 +48,8 @@ void* acopladorPro(t_paquetePro* paquete) {
 void* recibirNormal(int newfd, int size) {
 	char buffer[size];
 	if(recv(newfd, &buffer, size, MSG_WAITALL) <= 0) {
-		puts("ERROR RECIBIR");
+		//puts("ERROR RECIBIR");
+		log_error(logger, "ERROR AL RECIBIR recibirNormal.");
 		exit(1);
 	}
 	void* path = malloc(size);
@@ -62,11 +68,13 @@ t_paquetePro* desacopladorPro(char* buffer)/*transforma multiples streams en est
 void enviarQueSos(int newfd, t_paquetePro* paqueteSend, void* buffer){
 	void* enviar = acopladorPro(paqueteSend);
 	if(send(newfd,enviar, size_header ,0)<0) {
-				puts("ERROR ENVIO");
+				//puts("ERROR ENVIO");
+				log_error(logger,"ERROR AL ENVIAR HEADER enviarQueSos.");
 				exit(1);
 	}
 	if(send(newfd,buffer, paqueteSend->tamanio ,0)<0) {
-				puts("ERROR ENVIO");
+				//puts("ERROR ENVIO");
+				log_error(logger,"ERROR AL ENVIAR TAMANIO enviarQueSos.");
 				exit(1);
 	}
 	free(paqueteSend);
@@ -220,7 +228,8 @@ void recibirQueSos(int newfd){
 	char bufferHead[size_header];
 	int sizebytes;
 	if((sizebytes = recv(newfd, &bufferHead, size_header, MSG_WAITALL)) <= 0) {
-		puts("ERROR RECIBIR");
+		//puts("ERROR RECIBIR");
+		log_error(logger,"ERROR AL RECIBIR HEADER recibirQueSos");
 		exit(1);
 	}
 
@@ -279,10 +288,12 @@ void sigchld_handler(int s){
 //2049 MAL 13595 used blocks - 150245 free - 0 padding bits
 //13608 used blocks - 150232 free - 0 padding bits
 int main(int argc, char *argv[]) {
-
 //	system("truncate -s 200k disco.bin");
 //	system("./osada-format disco.bin");
 	reconocerOSADA(argv[1]);
+
+	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
+	log_info(logger, PROGRAM_DESCRIPTION);
 
 	int sockfd, new_fd;  // Escuchar sobre sock_fd, nuevas conexiones sobre new_fd
 	struct sockaddr_in my_addr;    // información sobre mi dirección
@@ -290,13 +301,14 @@ int main(int argc, char *argv[]) {
 	int sin_size;
 	struct sigaction sa;
 	int yes=1;
-
-	if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-		perror("socket");
+		if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+		//perror("socket");
+		log_error(logger,"SOCKET main.");
 		exit(1);
 	    }
 	if (setsockopt(sockfd,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof(int)) == -1) {
-		perror("setsockopt");
+		//perror("setsockopt");
+		log_error(logger,"SETSOCKOPT main.");
 		exit(1);
 	}
 	my_addr.sin_family = AF_INET;         // Ordenación de bytes de la máquina
@@ -304,29 +316,32 @@ int main(int argc, char *argv[]) {
 	my_addr.sin_addr.s_addr = INADDR_ANY; // Rellenar con mi dirección IP
 	memset(&(my_addr.sin_zero), '\0', 8); // Poner a cero el resto de la estructura
 	if (bind(sockfd, (struct sockaddr *)&my_addr, sizeof(struct sockaddr)) == -1) {
-		perror("bind");
-	   exit(1);
-	}
-
-	if (listen(sockfd, BACKLOG) == -1) {
-		perror("listen");
+		//perror("bind");
+		log_error(logger,"BIND main.");
 		exit(1);
 	}
-
+		if (listen(sockfd, BACKLOG) == -1) {
+		//perror("listen");
+		log_error(logger,"LISTEN main.");
+		exit(1);
+	}
 	sa.sa_handler = sigchld_handler; // Eliminar procesos muertos
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = SA_RESTART;
 	if (sigaction(SIGCHLD, &sa, NULL) == -1) {
-		perror("sigaction");
+		//perror("sigaction");
+		log_error(logger,"SIGACTION main.");
 		exit(1);
 	}
+	signal(SIGINT,ctrl_c);
 	while(1) {
 		sin_size = sizeof(struct sockaddr_in);
 		if ((new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size)) == -1) {
-			perror("accept");
+			//perror("accept");
+			log_error(logger,"ACCEPT main.");
 			continue;
 		}
-		printf("server: got connection from %s\n", inet_ntoa(their_addr.sin_addr));
+		log_info(logger,"POKEDEX CLIENTE conectado desde la IP: %s",  inet_ntoa(their_addr.sin_addr));
 		if (!fork()) { // Este es el proceso hijo
 			close(sockfd); // El hijo no necesita este descriptor
 			while(1) {
