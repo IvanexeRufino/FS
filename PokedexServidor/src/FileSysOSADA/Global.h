@@ -19,6 +19,7 @@ osada_block_pointer* tablaDeAsignaciones;
 osada_block* bloquesDeDatos;
 int inicioDeBloqueDeDatos;
 int cantidadDeBloques;
+int inicioBloquesLibres;
 
 
 

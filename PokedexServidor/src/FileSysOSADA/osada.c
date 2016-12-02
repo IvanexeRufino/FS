@@ -59,6 +59,15 @@
  	tablaDeAsignaciones = (osada_block_pointer*) (disco + (header->allocations_table_offset) * OSADA_BLOCK_SIZE);
  	bloquesDeDatos = (osada_block*) (disco + inicioDeBloqueDeDatos*OSADA_BLOCK_SIZE);
  	cantidadDeBloques = header->fs_blocks;
+ 	int j = 1;
+ 	while(j < cantidadDeBloques) {
+ 		 if(bitarray_test_bit(bitmap,j) == false) {
+ 			 	inicioBloquesLibres = j;
+ 			 	j = cantidadDeBloques;
+ 		 }
+ 		j++;
+ 	}
+
  	pthread_mutex_init (&semaforoBitmap,NULL);
  	pthread_mutex_init (&semaforoTablaDeArchivos,NULL);
  	pthread_mutex_init (&semaforoTablaDeAsignaciones,NULL);
@@ -246,7 +255,7 @@
  	while(j < cantidadDeBloques) {
  		 if(bitarray_test_bit(bitmap,j) == false) {
  				bitarray_set_bit(bitmap,j);
- 				return j;
+ 				return j - inicioBloquesLibres;
  		 }
  		j++;
  	}
@@ -277,6 +286,8 @@
  	else {
  		archivoNuevo->state = DIRECTORY;
  	}
+  	printf("el inicio de bloques libres es %d", inicioBloquesLibres);
+  	printf("el bloque asignado es %d", archivoNuevo->first_block);
  	pthread_mutex_unlock(&semaforoTablaDeArchivos);
 
  	return posicionEnLaTabla;
