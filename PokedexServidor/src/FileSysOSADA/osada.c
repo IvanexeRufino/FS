@@ -293,15 +293,6 @@
  	return posicionEnLaTabla;
  }
 
- int borrar_archivo(char* path) {
-
- 	osada_file* archivo = obtenerArchivo(path);
-
- 	truncar_archivo(archivo,0);
- 	archivo->state = 0;
-
- 	return 0;
- }
 
  int renombrar_archivo(char* pathViejo, char* pathNuevo) {
  	osada_file* archivo = obtenerArchivo(pathViejo);
@@ -309,33 +300,6 @@
  	archivo->parent_directory = buscarArchivoDelPadre(pathNuevo);
  	archivo->lastmod = time(NULL);
  	return 0;
- }
-
- int ejemplo_getattr(const char *path, struct stat *st) {
- 	int res=0;
- 	memset (st,0,sizeof(st));
-
- 	    if(S_ISDIR(st->st_mode)){
- 				st->st_mode = S_IFDIR | 0755;
- 	    		st->st_uid = getuid();
- 	    		st->st_gid = getgid();
- 	    		st->st_atime = time(NULL);
- 	    		st->st_mtime = time(NULL);
- 	    		st->st_nlink = 2;
- 	        }
- 	    else if(S_ISREG(st->st_mode)){
- 	    		st->st_mode = S_IFREG | 0644;
- 	    		st->st_uid = getuid();
- 	    		st->st_gid = getgid();
- 	    		st->st_size = sizeof(st);
- 	    		st->st_atime = time(NULL);
- 	    		st->st_mtime = time(NULL);
- 	        }
- 	    else {
- 	    	res = -ENOENT;
- 	    }
-
- 	    return res;
  }
 
  /////////////////////////////////////escribir archivo /////////////////////////////////////
@@ -415,7 +379,7 @@
  	int ultimoBloqueADejar = cant_bloques - bloquesAQuitar;
  	int i;
  	for(i = ultimoBloqueADejar; i < cant_bloques; i++) {
- 		int bloqueABorrar = numeroBloqueDelArchivo(i + 1, archivo);
+ 		int bloqueABorrar = numeroBloqueDelArchivo(i + 1, archivo) + inicioBloquesLibres;
  		bitarray_clean_bit(bitmap,bloqueABorrar);
  	}
  	return 0;
@@ -447,6 +411,19 @@
  	//Va a ponerle de tamaño a mi archivo lo pasado en size. Incluyendo el agregado o borrado de bloques
  	archivo->file_size = size;
  	return archivo;
+ }
+
+ int borrar_archivo(char* path) {
+
+ 	osada_file* archivo = obtenerArchivo(path);
+
+	pthread_mutex_lock(&semaforoBitmap);
+	quitarBloquesDelBitmap(divisionMaxima(archivo->file_size), archivo,0);
+	pthread_mutex_unlock(&semaforoBitmap);
+
+ 	archivo->state = 0;
+
+ 	return 0;
  }
 
  int escribir_informacion(int tamanioAEscribir, int offset, char* bufferConDatos, char* inicioDeEscritura, osada_file* archivo ) {
