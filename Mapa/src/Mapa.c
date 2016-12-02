@@ -647,7 +647,7 @@ void planificarNuevo()
 			for(i=0;i!=infoMapa->quantum && j == 0 && entrenador->estado == 'L' ;i++)
 			{
 				recibirQueHacer(entrenador);
-				usleep(infoMapa->retardo*300);
+				usleep(infoMapa->retardo*1000);
 				if(entrenador->estado == 'T') j = 1;
 			}
 		}
@@ -663,7 +663,7 @@ void planificarNuevo()
 					entrenador =  list_remove(entrenadores_listos,k);
 					log_info(logger,"El entrenador %s no conoce su ubicacion, por eso lo atiendo primero",entrenador->nombre);
 					recibirQueHacer(entrenador);
-					usleep(infoMapa->retardo*300);
+					usleep(infoMapa->retardo*1000);
 					list_add(entrenadores_listos,entrenador);
 				}
 				pthread_mutex_unlock(&mutex_EntrenadoresActivos);
@@ -682,7 +682,7 @@ void planificarNuevo()
 				if(entrenador->estado != 'T')
 				{
 					recibirQueHacer(entrenador);
-					usleep(infoMapa->retardo*300);
+					usleep(infoMapa->retardo*1000);
 				}
 			}
 		}
@@ -993,7 +993,7 @@ void *detectar_interbloqueo(void *milis)
 		}
 		list_iterate(entrenadores_listos, (void*) desbloquear);
 		dictionary_destroy(copiaAvailable);
-		usleep(((int)milis*10));
+		usleep(((int)milis*1000));
 	}
 }
 
@@ -1002,32 +1002,24 @@ int main(int argc, char **argv)
 	filas = 30;
 	columnas =30;
 	items = list_create();	//Para usar despues en las cajas
-	/* Inicializacion y registro inicial de ejecucion */
-//	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
-//	log_info(logger, PROGRAM_DESCRIPTION);
-
 
 	infoMapa = malloc(sizeof(mapa_datos));
 
 	switch(argc)
 	{
 	case (1):
-		//log_info(logger, "Cantidad de parametros incorrectos, Aplicando por defecto");
 		strcpy(infoMapa->nombre,"Azul");
 		strcpy(rutaArgv, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Pokedex");
 		break;
 	case (2):
-		//log_info(logger,"Cantidad de parametros Incorrectos, aplicando por defecto para la ruta");
 		strcpy(infoMapa->nombre,argv[1]);
 		strcpy(rutaArgv, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Pokedex");
 		break;
 	case (3):
-		//log_info(logger, "Cantidad de parametros CORRECTOS");
 		strcpy(infoMapa->nombre,argv[1]);
 		strcpy(rutaArgv, argv[2]);
 		break;
 	default:
-	 	//log_info(logger, "ERROR: Ingresaste %d parametros",argc);
 	 	printf("INGRESAR NOMBRE DEL MAPA ");
 	 	scanf("%s",infoMapa->nombre);
 	 	printf("INGRESAR RUTA DE LA POKEDEX ");
@@ -1035,6 +1027,7 @@ int main(int argc, char **argv)
 	 	break;
 	}
 
+	/* Inicializacion y registro inicial de ejecucion */
 	char* nombreLog = string_new();
 	string_append(&nombreLog,infoMapa->nombre);
 	string_append(&nombreLog,LOG_FILE);
