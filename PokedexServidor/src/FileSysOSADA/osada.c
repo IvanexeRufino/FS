@@ -57,12 +57,16 @@
  	tablaDeArchivos = (osada_file*)  (disco + (header->allocations_table_offset - 1024)*OSADA_BLOCK_SIZE);
  	bitmap = bitarray_create(&disco[OSADA_BLOCK_SIZE],(header->bitmap_blocks));
  	tablaDeAsignaciones = (osada_block_pointer*) (disco + (header->allocations_table_offset) * OSADA_BLOCK_SIZE);
- 	inicioDeBloqueDeDatos = header->fs_blocks - header->data_blocks;
  	bloquesDeDatos = (osada_block*) (disco + inicioDeBloqueDeDatos*OSADA_BLOCK_SIZE);
  	cantidadDeBloques = header->fs_blocks;
  	pthread_mutex_init (&semaforoBitmap,NULL);
  	pthread_mutex_init (&semaforoTablaDeArchivos,NULL);
  	pthread_mutex_init (&semaforoTablaDeAsignaciones,NULL);
+
+ 	printf("%bloques totales d \n",header->fs_blocks);
+ 	printf("data blocks son %d \n",header->data_blocks);
+ 	printf("bloques de bitmap %d \n",header->bitmap_blocks);
+ 	printf("tabla de asignaciones %d \n",header->allocations_table_offset);
  }
 
  int dondeEmpezarLectura(int offset) {
@@ -243,15 +247,13 @@
  }
 
  int buscarBloqueVacio() {
- 	int i = 0;
- 	int j = inicioDeBloqueDeDatos;
+ 	int j = 0;
  	while(j < cantidadDeBloques) {
  		 if(bitarray_test_bit(bitmap,j) == false) {
  				bitarray_set_bit(bitmap,j);
- 				return i;
+ 				return j;
  		 }
  		j++;
- 		i++;
  	}
  	//no hay bits vacios
  	return -1;
