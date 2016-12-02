@@ -630,6 +630,36 @@ void planificarNuevo()
 
 	while(1)
 	{
+		//ACA VOY A LOGGEAR LA COLA DE LISTOS--------------------------------------------------
+		char *str = string_new();
+		int cola = 0;
+		void contarListosEnCola(t_registroPersonaje *p)
+		{
+			if (p->estado == 'L')
+			{
+				cola++;
+				string_append(&str, p->nombre);
+				string_append(&str, "|");
+			}
+		}
+		list_iterate(entrenadores_listos, (void*) contarListosEnCola);
+		log_info(logger,"Hay %d entrenadores listos, %s", cola, str);
+		cola = 0;
+		char* str2 = string_new();
+		void contarBloqueadosEnCola(t_registroPersonaje *p)
+		{
+			if (p->estado == 'B')
+			{
+				cola++;
+				string_append(&str2, p->nombre);
+				string_append(&str2, "|");
+			}
+		}
+		list_iterate(entrenadores_listos, (void*) contarBloqueadosEnCola);
+		log_info(logger,"Hay %d entrenadores bloqueados, %s", cola, str2);
+		free(str);
+		free(str2);
+		//DEJO DE LOGEAR LAS COLAS--------------------------------------------------------------
 		sem_wait(&colaDeListos);
 		t_registroPersonaje* entrenador = malloc(sizeof(t_registroPersonaje));
 		j=0;
@@ -1009,11 +1039,11 @@ int main(int argc, char **argv)
 	{
 	case (1):
 		strcpy(infoMapa->nombre,"Azul");
-		strcpy(rutaArgv, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Pokedex");
+		strcpy(rutaArgv, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Pokedex/01-base");
 		break;
 	case (2):
 		strcpy(infoMapa->nombre,argv[1]);
-		strcpy(rutaArgv, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Pokedex");
+		strcpy(rutaArgv, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Pokedex/01-base");
 		break;
 	case (3):
 		strcpy(infoMapa->nombre,argv[1]);

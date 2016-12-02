@@ -486,7 +486,7 @@ int main(int argc, char **argv)
 	char* nombreLog = string_new();
 	string_append(&nombreLog,infoEntrenador->nombre);
 	string_append(&nombreLog,LOG_FILE);
-	logger = log_create(nombreLog, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
+	logger = log_create(nombreLog, infoEntrenador->nombre, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
 	log_info(logger, PROGRAM_DESCRIPTION);
 	log_info(logger, "ID DEL PROCESO ENTRENADOR: %d NOMBRE: %s",pid,infoEntrenador->nombre);
 	log_info(logger, "Ruta Pokedex %s",rutaArgv);
