@@ -63,7 +63,7 @@
  	pthread_mutex_init (&semaforoTablaDeArchivos,NULL);
  	pthread_mutex_init (&semaforoTablaDeAsignaciones,NULL);
 
- 	printf("%bloques totales d \n",header->fs_blocks);
+ 	printf("%bloques totales %d \n",header->fs_blocks);
  	printf("data blocks son %d \n",header->data_blocks);
  	printf("bloques de bitmap %d \n",header->bitmap_blocks);
  	printf("tabla de asignaciones %d \n",header->allocations_table_offset);
