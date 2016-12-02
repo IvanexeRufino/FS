@@ -8,7 +8,7 @@ t_mapa* mapa;
 char rutaArgv[100];
 int contadorMapa;
 int contadorObjetivo;
-float tiempoBloqueo;
+double tiempoBloqueo;
 int atrapados;
 int reinicio ;
 int completado;
@@ -352,6 +352,7 @@ int jugar(){
 	log_info(logger,"------------------------*Tu Aventura pokemon esta por comenzar*----------------------");
 	char *vector=malloc(sizeof(char)*10);
 	bool probableDeadlock=false;
+	struct timeval t_ini, t_fin;
 			for(contadorMapa = 0 ; contadorMapa< list_size(listaDeMapas) && reinicio != 1; contadorMapa++)
 			{
 				contadorObjetivo = 0;
@@ -384,6 +385,8 @@ int jugar(){
 						&& infoEntrenador->posicionEnY == mapa->pokemonActualPosicionEnY && reinicio != 1)
 					{
 						int atrapado = 0;
+
+						gettimeofday(&t_ini, NULL);
 						while(atrapado == 0 && reinicio != 1)
 						{
 							atrapado = atraparPokemon(mapa,objetivos[contadorObjetivo]);  								//Le envio en el header el ID 3
@@ -391,6 +394,9 @@ int jugar(){
 									probableDeadlock=true;
 							log_info(logger,"Del pokemon que solicite hay %d instancias",atrapado);
 						}
+						gettimeofday(&t_fin, NULL);
+						tiempoBloqueo=tiempoBloqueo + timeval_diff(&t_fin, &t_ini);
+
 						if (atrapado == 1 && reinicio != 1)
 						{
 							atrapados ++;
@@ -506,9 +512,9 @@ int main(int argc, char **argv)
 		gettimeofday(&t_fin, NULL);
 		secs = timeval_diff(&t_fin, &t_ini);
 
-
 		log_info(logger, "------TE CONVERTISTE EN MAESTRO POKEMON------ \n");
 		log_info(logger, "Tu aventura duro: %.16g segundos \n",secs);
+		log_info(logger, "Pasaste: %.16g segundos bloqueado en las PokeNests\n",tiempoBloqueo);
 		log_info(logger,"Estuviste en deadlock/inanicion %d veces, te costo %d intentos y te quedo %d vidas",infoEntrenador->cantDeadlock,infoEntrenador->reintentos,infoEntrenador->vidas);
 		list_destroy(listaDeMapas);
 		list_destroy(mapa->objetivos);
