@@ -454,7 +454,7 @@
  	archivo = truncar_archivo(archivo,maximoEntre(offset+tamanioAEscribir,archivo->file_size));
 
  	if(archivo==NULL) {
- 		return -ENOENT;
+ 		return -1;
  	}
 
  	pthread_mutex_lock(&semaforoTablaDeAsignaciones);

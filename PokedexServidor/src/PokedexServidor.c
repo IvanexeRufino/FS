@@ -167,9 +167,13 @@ void escribir (int newfd, t_paquetePro* paqueterecv){
 	char* path = recibirNormal(newfd, paqueterecv->tamanio);
 	char* buffer = recibirNormal(newfd, paqueterecv->size);
 	int tam = escribir_archivo(path,paqueterecv->offset, paqueterecv->size, buffer);
-	osada_file* archivo = obtenerArchivo(path);
-	archivo->lastmod = time(0);
-	enviarQueSos(newfd, empaquetarPro(7, tam,0,0), buffer);
+	if(tam == -1) {
+		enviarQueSos(newfd, empaquetarPro(100,6,0,0), "error");
+	} else {
+		osada_file* archivo = obtenerArchivo(path);
+		archivo->lastmod = time(0);
+		enviarQueSos(newfd, empaquetarPro(7, tam,0,0), buffer);
+	}
 }
 
 void remover (int newfd, t_paquetePro* paqueterecv){

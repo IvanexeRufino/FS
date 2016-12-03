@@ -364,6 +364,10 @@ static int ejemplo_write (char *path, char *buf, size_t size, off_t offset, stru
 	}
 	t_paquetePro* paqueterecv = desacopladorPro(bufferHead);
 
+	if(paqueterecv->codigo == 100) {
+		return ENOSPC;
+	}
+
 	char buffer[paqueterecv->tamanio];
 	if(recv(sockfd, &buffer, paqueterecv->tamanio, MSG_WAITALL) <= 0) {
 		puts("ERROR RECIBIR");
