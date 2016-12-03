@@ -248,8 +248,6 @@
  	while(j < cantidadDeBloques) {
  		 if(bitarray_test_bit(bitmap,j) == false) {
  				bitarray_set_bit(bitmap,j);
- 				printf ("el bloque devuelto es en realidad el %d \n", i);
- 				printf ("el bloque devuelto es el %d \n", j);
  				return i;
  		 }
  		j++;
@@ -426,7 +424,6 @@
  	int tamanioRestanteAEscribir = tamanioAEscribir;
  	int restanteDeMiBloque = OSADA_BLOCK_SIZE - offsetDondeEmpezar(offset);
  	while(escrito < tamanioAEscribir) {
- 		printf("el bloque es %s \n", inicioDeEscritura);
  		int tamanioAEScribirDentroDelBloque = minimoEntre(tamanioRestanteAEscribir,restanteDeMiBloque);
  		memcpy(inicioDeEscritura + offsetDondeEmpezar(offset),bufferConDatos + escrito,tamanioAEScribirDentroDelBloque);
  		restanteDeMiBloque = OSADA_BLOCK_SIZE;

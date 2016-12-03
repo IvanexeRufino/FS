@@ -9,7 +9,6 @@
 t_log* logger;
 
 void ctrl_c(int nro){
-	log_info(logger,"Cerrando conexiones y finalizando POKEDEX SERVIDOR...");
 	exit(1);
 }
 
@@ -69,12 +68,10 @@ void enviarQueSos(int newfd, t_paquetePro* paqueteSend, void* buffer){
 	void* enviar = acopladorPro(paqueteSend);
 	if(send(newfd,enviar, size_header ,0)<0) {
 				//puts("ERROR ENVIO");
-				log_error(logger,"ERROR AL ENVIAR HEADER enviarQueSos.");
 				exit(1);
 	}
 	if(send(newfd,buffer, paqueteSend->tamanio ,0)<0) {
 				//puts("ERROR ENVIO");
-				log_error(logger,"ERROR AL ENVIAR TAMANIO enviarQueSos.");
 				exit(1);
 	}
 	free(paqueteSend);
@@ -229,7 +226,6 @@ void recibirQueSos(int newfd){
 	int sizebytes;
 	if((sizebytes = recv(newfd, &bufferHead, size_header, MSG_WAITALL)) <= 0) {
 		//puts("ERROR RECIBIR");
-		log_error(logger,"ERROR AL RECIBIR HEADER recibirQueSos");
 		exit(1);
 	}
 
@@ -303,12 +299,10 @@ int main(int argc, char *argv[]) {
 	int yes=1;
 		if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
 		//perror("socket");
-		log_error(logger,"SOCKET main.");
 		exit(1);
 	    }
 	if (setsockopt(sockfd,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof(int)) == -1) {
 		//perror("setsockopt");
-		log_error(logger,"SETSOCKOPT main.");
 		exit(1);
 	}
 	my_addr.sin_family = AF_INET;         // Ordenación de bytes de la máquina
@@ -317,12 +311,10 @@ int main(int argc, char *argv[]) {
 	memset(&(my_addr.sin_zero), '\0', 8); // Poner a cero el resto de la estructura
 	if (bind(sockfd, (struct sockaddr *)&my_addr, sizeof(struct sockaddr)) == -1) {
 		//perror("bind");
-		log_error(logger,"BIND main.");
 		exit(1);
 	}
 		if (listen(sockfd, BACKLOG) == -1) {
 		//perror("listen");
-		log_error(logger,"LISTEN main.");
 		exit(1);
 	}
 	sa.sa_handler = sigchld_handler; // Eliminar procesos muertos
@@ -330,7 +322,6 @@ int main(int argc, char *argv[]) {
 	sa.sa_flags = SA_RESTART;
 	if (sigaction(SIGCHLD, &sa, NULL) == -1) {
 		//perror("sigaction");
-		log_error(logger,"SIGACTION main.");
 		exit(1);
 	}
 	signal(SIGINT,ctrl_c);
@@ -338,7 +329,6 @@ int main(int argc, char *argv[]) {
 		sin_size = sizeof(struct sockaddr_in);
 		if ((new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size)) == -1) {
 			//perror("accept");
-			log_error(logger,"ACCEPT main.");
 			continue;
 		}
 //		log_info(logger,"POKEDEX CLIENTE conectado desde la IP: %s",  inet_ntoa(their_addr.sin_addr));
