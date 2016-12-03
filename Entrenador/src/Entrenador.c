@@ -117,6 +117,7 @@ void muertePorDeadlock(){
 	}
 	else
 	{
+
 		contadorMapa = contadorMapa-1;		//Le resto uno para volver al mapa que estaba originariamente
 		atrapados = 0;						//Flag que simboliza que me sacan todos los pokemons
 		log_info(logger,"El personaje %s perdio una vida por deadlock y actualmente tiene %d vidas.\n",infoEntrenador->nombre,infoEntrenador->vidas);
@@ -422,7 +423,7 @@ int jugar(){
 						 probableDeadlock=false;
 					}
 				}
-				sleep(1); // Lo pongo a descansar al terminar un mapa!
+				sleep(3); // Lo pongo a descansar al terminar un mapa!
 			}
 			if(nivelesCompletados == list_size(listaDeMapas))
 		{
