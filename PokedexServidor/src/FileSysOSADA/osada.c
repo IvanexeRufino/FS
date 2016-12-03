@@ -271,7 +271,7 @@
  	strcpy(archivoNuevo->fname,adquirirNombre(path));
  	archivoNuevo->parent_directory = buscarArchivoDelPadre(path);
  	archivoNuevo->file_size = 0;
- 	archivoNuevo->lastmod = time(NULL);
+ 	archivoNuevo->lastmod = time(0);
 
  	if(direcOArch == 1) {
  		archivoNuevo->state = REGULAR;
