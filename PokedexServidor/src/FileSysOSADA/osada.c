@@ -1,4 +1,4 @@
-#include "osada.h"
+ #include "osada.h"
  #include "Global.h"
  #include "string.h"
  #include <stdio.h>
@@ -57,8 +57,8 @@
  	tablaDeArchivos = (osada_file*)  (disco + (header->allocations_table_offset - 1024)*OSADA_BLOCK_SIZE);
  	bitmap = bitarray_create(&disco[OSADA_BLOCK_SIZE],(header->bitmap_blocks));
  	tablaDeAsignaciones = (osada_block_pointer*) (disco + (header->allocations_table_offset) * OSADA_BLOCK_SIZE);
- 	inicioDeBloqueDeDatos = header->fs_blocks - header->data_blocks;
- 	bloquesDeDatos = (osada_block*) (disco + inicioDeBloqueDeDatos*OSADA_BLOCK_SIZE);
+ 	inicioDeBloqueDeDatos = header->fs_blocks - header->data_blocks - (8 - (header->fs_blocks - header->data_blocks) % 8);
+ 	bloquesDeDatos = (osada_block*) (disco + (header->fs_blocks - header->data_blocks)*OSADA_BLOCK_SIZE);
  	cantidadDeBloques = header->fs_blocks;
  	pthread_mutex_init (&semaforoBitmap,NULL);
  	pthread_mutex_init (&semaforoTablaDeArchivos,NULL);
@@ -248,6 +248,8 @@
  	while(j < cantidadDeBloques) {
  		 if(bitarray_test_bit(bitmap,j) == false) {
  				bitarray_set_bit(bitmap,j);
+ 				printf ("el bloque devuelto es en realidad el %d \n", i);
+ 				printf ("el bloque devuelto es el %d \n", j);
  				return i;
  		 }
  		j++;
@@ -289,8 +291,11 @@
 
  	osada_file* archivo = obtenerArchivo(path);
 
- 	truncar_archivo(archivo,0);
- 	archivo->state = 0;
+	pthread_mutex_lock(&semaforoBitmap);
+	quitarBloquesDelBitmap(divisionMaxima(archivo->file_size), archivo, 0);
+	pthread_mutex_unlock(&semaforoBitmap);
+
+	archivo->state = 0;
 
  	return 0;
  }
@@ -301,33 +306,6 @@
  	archivo->parent_directory = buscarArchivoDelPadre(pathNuevo);
  	archivo->lastmod = time(NULL);
  	return 0;
- }
-
- int ejemplo_getattr(const char *path, struct stat *st) {
- 	int res=0;
- 	memset (st,0,sizeof(st));
-
- 	    if(S_ISDIR(st->st_mode)){
- 				st->st_mode = S_IFDIR | 0755;
- 	    		st->st_uid = getuid();
- 	    		st->st_gid = getgid();
- 	    		st->st_atime = time(NULL);
- 	    		st->st_mtime = time(NULL);
- 	    		st->st_nlink = 2;
- 	        }
- 	    else if(S_ISREG(st->st_mode)){
- 	    		st->st_mode = S_IFREG | 0644;
- 	    		st->st_uid = getuid();
- 	    		st->st_gid = getgid();
- 	    		st->st_size = sizeof(st);
- 	    		st->st_atime = time(NULL);
- 	    		st->st_mtime = time(NULL);
- 	        }
- 	    else {
- 	    	res = -ENOENT;
- 	    }
-
- 	    return res;
  }
 
  /////////////////////////////////////escribir archivo /////////////////////////////////////
@@ -448,6 +426,7 @@
  	int tamanioRestanteAEscribir = tamanioAEscribir;
  	int restanteDeMiBloque = OSADA_BLOCK_SIZE - offsetDondeEmpezar(offset);
  	while(escrito < tamanioAEscribir) {
+ 		printf("el bloque es %s \n", inicioDeEscritura);
  		int tamanioAEScribirDentroDelBloque = minimoEntre(tamanioRestanteAEscribir,restanteDeMiBloque);
  		memcpy(inicioDeEscritura + offsetDondeEmpezar(offset),bufferConDatos + escrito,tamanioAEScribirDentroDelBloque);
  		restanteDeMiBloque = OSADA_BLOCK_SIZE;
