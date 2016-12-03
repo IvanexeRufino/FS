@@ -248,6 +248,7 @@
  	while(j < cantidadDeBloques) {
  		 if(bitarray_test_bit(bitmap,j) == false) {
  				bitarray_set_bit(bitmap,j);
+ 				printf("el bloque a ocupar es el %d", i);
  				return i;
  		 }
  		j++;
@@ -275,7 +276,9 @@
 
  	if(direcOArch == 1) {
  		archivoNuevo->state = REGULAR;
+ 		pthread_mutex_lock(&semaforoBitmap);
  		archivoNuevo->first_block = buscarBloqueVacio();
+ 		pthread_mutex_unlock(&semaforoBitmap);
  	}
  	else {
  		archivoNuevo->state = DIRECTORY;
@@ -384,7 +387,7 @@
  	int i;
  	for(i = ultimoBloqueADejar; i < cant_bloques; i++) {
  		int bloqueABorrar = numeroBloqueDelArchivo(i + 1, archivo);
- 		bitarray_clean_bit(bitmap,bloqueABorrar);
+ 		bitarray_clean_bit(bitmap,bloqueABorrar + inicioDeBloqueDeDatos);
  	}
  	return 0;
  }
