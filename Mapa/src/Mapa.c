@@ -1014,6 +1014,7 @@ void *detectar_interbloqueo(void *milis)
 			log_info(logger,"no hay interbloqueo!");
 
 		log_info(logger,"Desbloqueando entrenadores bloqueados");
+		sleep(1);
 		void desbloquear(t_registroPersonaje *p)
 		{
 			if(p->estado == 'B')
