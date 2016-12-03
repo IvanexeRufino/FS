@@ -17,6 +17,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <dirent.h>
 #include <commons/log.h>
 #include <commons/config.h>
 #include <commons/collections/list.h>

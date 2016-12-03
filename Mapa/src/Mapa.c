@@ -483,6 +483,8 @@ int calcularMasCercanoASuObjetivo ()
 
 void mover (t_registroPersonaje *personaje, t_registroPokenest* pokemonActual)
 {
+	if(personaje->x == personaje->pokemonActual->x) personaje->ultimoRecurso = 0;
+	if(personaje->y == personaje->pokemonActual->y) personaje->ultimoRecurso = 1;
 	if(personaje->ultimoRecurso == 1) //ultimo movimiento fue en Y => me muevo en X
 	{
 		if(personaje->x <= personaje->pokemonActual->x)
@@ -499,8 +501,7 @@ void mover (t_registroPersonaje *personaje, t_registroPokenest* pokemonActual)
 			personaje->y -=1;
 	 personaje->ultimoRecurso = 1 ;
 	}
-	if(personaje->x == personaje->pokemonActual->x) personaje->ultimoRecurso = 0;
-	if(personaje->y == personaje->pokemonActual->y) personaje->ultimoRecurso = 1;
+
 	MoverPersonaje(items, personaje->identificador, personaje->x, personaje->y );
 	nivel_gui_dibujar(items,infoMapa->nombre);
 	enviarCoordenada(personaje->x,personaje->socket);

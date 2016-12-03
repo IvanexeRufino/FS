@@ -60,7 +60,8 @@ void muerteDefinitivaPorSenial(int aSignal)
 	log_info(logger,"El personaje se desconecto");
 	informarFinalizacion();
 	EXIT_SUCCESS;
-	//exit(1);
+	sleep(1);
+	exit(1);
 }
 
 void gameOver()
