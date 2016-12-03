@@ -471,16 +471,25 @@ static struct fuse_operations ejemplo_oper = {
 		.link = ejemplo_link,
 };
 
+char * IP;
+char* PUERTO;
+
 int main(int argc, char *argv[]) {
 
 	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
 	log_info(logger, PROGRAM_DESCRIPTION);
 
+	IP= getenv("IP");
+	PUERTO= getenv("PUERTO");
+
+	log_info(logger, "La IP es: %s", IP);
+	log_info(logger,"El PUERTO es: %s", PUERTO);
+
 	struct sockaddr_in socket_info;
 	  	// Se carga informacion del socket
 	socket_info.sin_family = AF_INET;
-	socket_info.sin_addr.s_addr = inet_addr("127.0.0.1");
-	socket_info.sin_port = htons(9999);
+	socket_info.sin_addr.s_addr = inet_addr(IP);
+	socket_info.sin_port = htons(atoi(PUERTO));
 
 	  	// Crear un socket:
 	  	// AF_INET, SOCK_STREM, 0

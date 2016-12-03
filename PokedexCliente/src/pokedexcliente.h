@@ -45,8 +45,6 @@ typedef uint32_t osada_block_pointer;
 
 /* -- configuracion de sockets -- */
 
-#define IP "127.0.0.1"
-#define PUERTO "9999"
 #define PACKAGESIZE 1024
 
 /* -- configuracion de log -- */
