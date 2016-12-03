@@ -67,8 +67,9 @@ void gameOver()
 {
 	devolverMedallas();
 	char respuesta = 's';
+
 	log_info(logger,"GAME OVER!!! Parece que el personaje %s ha muerto y se ha quedado sin vidas,¿Desea continuar?(S).\n",infoEntrenador->nombre);
-	scanf("%c", &respuesta);
+	scanf(" %c", &respuesta);
 	informarFinalizacion();		//Le envia un 4 y espera que le responda que finalizo la interaccion entre ambos
 
 	switch(respuesta)

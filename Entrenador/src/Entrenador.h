@@ -55,7 +55,6 @@ typedef struct {
 	char* ipMapa;
 	char* nombreMapa;
 	t_list* objetivos;
-	pthread_t threadIdNivel;
 } t_mapa;
 
 /*----------------------- Declaraciones de Constantes ----------------------------------*/
