@@ -24,19 +24,19 @@ endif
 # Add inputs and outputs from these tool invocations to the build variables 
 
 # All Target
-all: PS
+all: PokedexServidor
 
 # Tool invocations
-PS: $(OBJS) $(USER_OBJS)
+PokedexServidor: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C Linker'
-	gcc  -o "PS" $(OBJS) $(USER_OBJS) $(LIBS)
+	gcc  -o "PokedexServidor" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) $(OBJS)$(C_DEPS)$(EXECUTABLES) PS
+	-$(RM) $(OBJS)$(C_DEPS)$(EXECUTABLES) PokedexServidor
 	-@echo ' '
 
 .PHONY: all clean dependents

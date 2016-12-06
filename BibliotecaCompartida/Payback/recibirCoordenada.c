@@ -2,9 +2,10 @@
 
 int recibirCoordenada(int socketEntrenador)
 {
-	char* mensajeRecibido = string_new();
-	recv(socketEntrenador, (void*) mensajeRecibido,4, 0);
-	int coordenada=atoi(mensajeRecibido);
-
+	int coordenada;
+	void *buffer = malloc(sizeof(int));
+	recv(socketEntrenador,buffer,sizeof(int),0);
+	memcpy(&coordenada,buffer,sizeof(int));
+	free(buffer);
 	return coordenada;
 }

@@ -405,22 +405,30 @@ char recibirBienvenidaEntrenador(int newfd,t_registroPersonaje *nuevoPersonaje)
 	nuevoPersonaje->y=y;					// Lleno con el campo de la ubicacion en Y
 
 	char nombre[40];
-	recv(newfd,nombre,sizeof(nombre),0);
+
+	void *buffer2 = malloc(40);
+	recv(newfd,buffer2,40,0);
+	memcpy(&nombre,buffer2,40);
+	free(buffer2);
 	strcpy(nuevoPersonaje->nombre,nombre);	// Lleno con el campo del nombre
 
 	log_info(logger, "La coordenada INICIAL del Entrenador %s es X: %d Y: %d",nuevoPersonaje->nombre, nuevoPersonaje->x, nuevoPersonaje->y);
 
-	char* buffer = string_new();
-	recv(newfd,buffer,4,0);
+	char* bufferConAccionString;
+	int bufferConAccionInt;
+	void *buffer = malloc(sizeof(int) + sizeof(char));
+	recv(newfd,buffer,sizeof(int) + sizeof(char),0);
+	memcpy(&(bufferConAccionInt),buffer, sizeof(int));
+	memcpy(&(nuevoPersonaje->identificador),buffer + sizeof(int),sizeof(char));
+	free(buffer);
+	bufferConAccionString=string_itoa(bufferConAccionInt);
 
-	char bufferConAccion;
-	bufferConAccion=buffer[0];
-	nuevoPersonaje->identificador=buffer[1];	// Lleno con el campo con el identificador
 	nuevoPersonaje->distanciaARecurso = -1;
-	log_info(logger,"*BIENVENIDA* Recibi de %s: %s,con ID %c y accion: %c",nuevoPersonaje->nombre,buffer,nuevoPersonaje->identificador,bufferConAccion);
+
+	log_info(logger,"*BIENVENIDA* Recibi de %s el ID %c y accion: %c",nuevoPersonaje->nombre,nuevoPersonaje->identificador,bufferConAccionString[0]);
 	CrearPersonaje(items, nuevoPersonaje->identificador , nuevoPersonaje->x, nuevoPersonaje->y);
 	nivel_gui_dibujar(items,infoMapa->nombre);
-	return (buffer[0]);
+	return (bufferConAccionString[0]);
 }
 
 void cargoDatosPokemonActual(char pokemonQueRecibo,t_registroPokenest* pokemonActual)
@@ -511,6 +519,7 @@ void mover (t_registroPersonaje *personaje, t_registroPokenest* pokemonActual)
 
 void envioQueSeAtrapoPokemon (t_registroPersonaje *personaje, t_registroPokenest* pokemonActual)
 {
+	int finalizacion;
 	log_info(logger, "El personaje %s solicitó el recurso %c", personaje->nombre, pokemonActual->identificador);
 	int _has_symbol(t_registroPokenest *r)
 	{
@@ -522,42 +531,54 @@ void envioQueSeAtrapoPokemon (t_registroPersonaje *personaje, t_registroPokenest
 	{
 		log_info(logger, "/*--------------------El Personaje: %c , atrapo al pokemon %c --------------------*/ \n",personaje->identificador, personaje->pokemonActual->identificador);
 		copiarPokemonAEntrenador(personaje,personaje->pokemonActual);
-		char* buffer = string_new();
-		string_append(&buffer,string_itoa(1));
-		send(personaje->socket,buffer,4, 0);
+
+		finalizacion=1;
+		void *buffer = malloc(sizeof(int));
+		memcpy(buffer,&finalizacion,sizeof(int));
+		send(personaje->socket,buffer,sizeof(int),0);
+		free(buffer);
+
 		personaje->distanciaARecurso = -1;
 		restarRecurso(items, pokenest->identificador);
 	}
 	else
 	{
 		personaje->estado = 'B';
-		char* buffer = string_new();
-		string_append(&buffer,string_itoa(0));
-		send(personaje->socket,buffer,4, 0);
+
+		finalizacion=0;
+		void *buffer = malloc(sizeof(int));
+		memcpy(buffer,&finalizacion,sizeof(int));
+		send(personaje->socket,buffer,sizeof(int),0);
+		free(buffer);
+
 		log_info(logger, "La Pokenest esta vacia.");
 	}
 }
 
 void recibirQueHacer(t_registroPersonaje *nuevoPersonaje)
 {
-	char* buffer = string_new();
-	recv(nuevoPersonaje->socket,buffer,4,0);
-	char bufferConAccion;        //Vendria a ser el header
-	bufferConAccion=buffer[0];
-	nuevoPersonaje->accion=bufferConAccion;
-	char* payload = string_new();
-	payload =string_duplicate(buffer);
-	str_cut(payload,0,1);
-	log_info(logger,"Recibio para hacer: %s Header: %c Payload: %s",buffer,bufferConAccion,payload);
-	char* desconectate = string_new();
+	int bufferConAccionInt;
+	char bufferConPayload;
+
+	void *buffer = malloc(sizeof(int) + sizeof(char));
+	recv(nuevoPersonaje->socket,buffer,sizeof(int) + sizeof(char),0);
+	memcpy(&(bufferConAccionInt),buffer, sizeof(int));
+	memcpy(&bufferConPayload,buffer + sizeof(int),sizeof(char));
+	free(buffer);
+
+	nuevoPersonaje->accion=bufferConAccionInt;
+
+	log_info(logger,"Recibio para hacer: Header: %d Payload: %c",bufferConAccionInt,bufferConPayload);
+
+
 	int coordenadaX,coordenadaY;
 
-	switch(bufferConAccion)
+	switch(bufferConAccionInt)
 	{
-	case ('1'):
+	case (1):
 		log_info(logger,"Buscando la informacion del pokemon ");
-		cargoDatosPokemonActual(payload[0],nuevoPersonaje->pokemonActual);
-		nuevoPersonaje->proximoObjetivo = payload[0];
+		cargoDatosPokemonActual(bufferConPayload,nuevoPersonaje->pokemonActual);
+		nuevoPersonaje->proximoObjetivo = bufferConPayload;
 		coordenadaX = enviarCoordenada((nuevoPersonaje->pokemonActual)->x,nuevoPersonaje->socket);				//Envio coordenada del pokemon en X
 		log_info(logger," Socket numero :%d -----------------------------",nuevoPersonaje->socket);
 		coordenadaY = enviarCoordenada((nuevoPersonaje->pokemonActual)->y,nuevoPersonaje->socket);				//Envio coordenada del pokemon en Y
@@ -566,12 +587,12 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje)
 		nuevoPersonaje->distanciaARecurso = 1;
 		break;
 
-	case ('2'):
+	case (2):
 		log_info(logger,"Moviendo...");
 		mover(nuevoPersonaje,nuevoPersonaje->pokemonActual);
 		break;
 
-	case ('3'):
+	case (3):
 		log_info(logger,"Intentando Atrapar...");
 		envioQueSeAtrapoPokemon(nuevoPersonaje,nuevoPersonaje->pokemonActual);
 
@@ -586,8 +607,13 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje)
 		recuperarPokemonDeEntrenador(nuevoPersonaje);
 		nuevoPersonaje->estado='T';
 		nivel_gui_dibujar(items,infoMapa->nombre);
-		string_append(&desconectate,string_itoa(999));
-		send(nuevoPersonaje->socket, desconectate,4, 0);
+
+		int finalizacion=999;
+		void *buffer = malloc(sizeof(int));
+		memcpy(buffer,&finalizacion,sizeof(int));
+		send(nuevoPersonaje->socket,buffer,sizeof(int),0);
+		free(buffer);
+
 		shutdown(nuevoPersonaje->socket,2);
 		close(nuevoPersonaje->socket);
 		break;
@@ -893,11 +919,15 @@ void batallaPokemon()
 			{
 				if(entrenador->identificador == pokEn2->entrenador->identificador)
 				{
-					char* buffer = string_new();
 					if(infoMapa->batalla == 1)
 						log_info(logger,"Informo a %s , que murio en una batalla.",entrenador->nombre);
-					string_append(&buffer,string_itoa(2)); 	//El 2 que mando es el de muerte por deadlock
-					send(entrenador->socket,buffer,4, 0);
+
+					int muerteDeadlock=2;
+					void *buffer = malloc(sizeof(int));
+					memcpy(buffer,&muerteDeadlock,sizeof(int));		//El 2 que mando es el de muerte por deadlock
+					send(entrenador->socket,buffer,sizeof(int),0);
+					free(buffer);
+
 					recibirQueHacer(entrenador);
 				}
 				i++;
@@ -1002,19 +1032,21 @@ void *detectar_interbloqueo(void *milis)
 			/********** end Critical Section *******************/
 		pthread_mutex_unlock(&mutex);
 
-		str[strlen(str)-1] = '\0';
+		//pthread_mutex_lock(&mutex_deadlock);
 
+		str[strlen(str)] = '\0';
 		if (bloqueados > 1)
 		{
 			//Batalla pokemon---------------------------------------------------------//
 			if(infoMapa->batalla == 1)log_info(logger,"--------------------Se ha detectado un interbloqueo! %s", str);
 			batallaPokemon();
 		}
+
 		else
 			log_info(logger,"no hay interbloqueo!");
 
 		log_info(logger,"Desbloqueando entrenadores bloqueados");
-		sleep(1);
+		//sleep(1);
 		void desbloquear(t_registroPersonaje *p)
 		{
 			if(p->estado == 'B')
@@ -1024,6 +1056,9 @@ void *detectar_interbloqueo(void *milis)
 			}
 		}
 		list_iterate(entrenadores_listos, (void*) desbloquear);
+
+		//pthread_mutex_unlock(&mutex_deadlock);
+
 		dictionary_destroy(copiaAvailable);
 		usleep(((int)milis*1000));
 	}
@@ -1040,7 +1075,7 @@ int main(int argc, char **argv)
 	switch(argc)
 	{
 	case (1):
-		strcpy(infoMapa->nombre,"Azul");
+		strcpy(infoMapa->nombre,"Home");
 		strcpy(rutaArgv, "/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/Pokedex/01-base");
 		break;
 	case (2):
@@ -1065,7 +1100,6 @@ int main(int argc, char **argv)
 	string_append(&nombreLog,LOG_FILE);
 	logger = log_create(nombreLog, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
 	log_info(logger, PROGRAM_DESCRIPTION);
-
 
 	log_info(logger, "Nombre Mapa: %s Ruta: %s", infoMapa->nombre, rutaArgv);
 	listapokEn = malloc(sizeof(t_pokEn));

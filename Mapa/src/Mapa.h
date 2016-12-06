@@ -57,7 +57,7 @@ typedef struct
 	int socket;
 	int x;
 	int y;
-	char accion;
+	int accion;
 	bool marcado;
 	int distanciaARecurso;
 	int threadId;
@@ -119,7 +119,7 @@ typedef struct
 
 	pthread_mutex_t mutex_EntrenadoresActivos = PTHREAD_MUTEX_INITIALIZER;
 	pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER; //PARA EL DEADLOCK
-
+	pthread_mutex_t mutex_deadlock = PTHREAD_MUTEX_INITIALIZER; //PARA EL DEADLOCK2
 /*----------------------- Declaraciones de Constantes ----------------------------------*/
 
 		/* Configuración de LOG */

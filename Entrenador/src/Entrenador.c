@@ -225,30 +225,30 @@ void enviarMensajeInicial(int serverSocket)
 	int CoordEnY = enviarCoordenada(infoEntrenador->posicionEnY,serverSocket);
 	log_info(logger, "Estoy enviando la coordenada en X del ENTRENADOR que es %d Y: %d",CoordEnX,CoordEnY);
 
-	send(serverSocket, infoEntrenador->nombre, sizeof(infoEntrenador->nombre), 0);
+	void *buffer2 = malloc(40);
+	memcpy(buffer2,&(infoEntrenador->nombre),40);
+	send(serverSocket,buffer2,40,0);
+	free(buffer2);
 	log_info(logger, "Estoy enviando mi nombre %s\n",infoEntrenador->nombre);
 
-	char* buffer = string_new();
-	string_append(&buffer,string_itoa(BIENVENIDA));
-	char* simbolo=charToString(infoEntrenador->simbolo);
-	string_append(&buffer,simbolo);
-
-	send(serverSocket,buffer,4,0);
-	free(simbolo);
-
-	log_info(logger, "Se ha enviado: %s \n",buffer);
+	int protocoloBienvenida=BIENVENIDA;
+	void *buffer = malloc(sizeof(int) + sizeof(char));
+	memcpy(buffer,&protocoloBienvenida,sizeof(int));
+	memcpy(buffer + sizeof(int),&(infoEntrenador->simbolo),sizeof(char));
+	send(serverSocket,buffer,sizeof(int) + sizeof(char),0);
+	free(buffer);
 
 }
 
 void solicitarPosicion(t_mapa *mapa,char objetivo)
 {
-	char* buffer = string_new();
-	string_append(&buffer,string_itoa(SOLICITARPOSICION));
-	char* objetivoString=charToString(objetivo);
-	string_append(&buffer,objetivoString);
 
-	send(mapa->socketMapa,buffer,4, 0);
-	free(objetivoString);
+	int protocoloPosicion=SOLICITARPOSICION;
+	void *buffer = malloc(sizeof(int) + sizeof(char));
+	memcpy(buffer,&protocoloPosicion,sizeof(int));
+	memcpy(buffer + sizeof(int),&objetivo,sizeof(char));
+	send(mapa->socketMapa,buffer,sizeof(int) + sizeof(char),0);
+	free(buffer);
 
 	int x = recibirCoordenada(mapa->socketMapa);	//Recibo en X
 	mapa->pokemonActualPosicionEnX = x;
@@ -261,25 +261,33 @@ void solicitarPosicion(t_mapa *mapa,char objetivo)
 
 void informarFinalizacion(void)
 {
-	char* buffer = string_new();
-	char* buffer2 = string_new();
-	string_append(&buffer,string_itoa(FINALIZACION));
-	send(mapa->socketMapa, buffer,4,0);
+	int protocoloFin=FINALIZACION;
+	void *buffer = malloc(sizeof(int));
+	memcpy(buffer,&protocoloFin,sizeof(int));
+	send(mapa->socketMapa,buffer,sizeof(int),0);
+	free(buffer);
+
 	log_info(logger, "Le informo al Mapa que finalice mi mision aqui");
-	recv(mapa->socketMapa,buffer2,4,0);
-	log_info(logger, "Recibo el mensaje de despedida %s",buffer2);
-	//close(mapa->socketMapa);
+
+	int despedida;
+	void *buffer2 = malloc(sizeof(int));
+	recv(mapa->socketMapa,buffer2,sizeof(int),0);
+	memcpy(&despedida,buffer2,sizeof(int));
+	free(buffer2);
+
+	log_info(logger, "Recibo el mensaje de despedida %d",despedida);
+
 }
 
 void solicitarAvanzar(t_mapa *mapa,char objetivo)
 {
-	char* buffer = string_new();
-	string_append(&buffer,string_itoa(SOLICITARAVANZAR));
-	char* objetivoString=charToString(objetivo);
-	string_append(&buffer,objetivoString);
 
-	send(mapa->socketMapa, buffer,4, 0);
-	free(objetivoString);
+	int protocoloAvanzar=SOLICITARAVANZAR;
+	void *buffer = malloc(sizeof(int) + sizeof(char));
+	memcpy(buffer,&protocoloAvanzar,sizeof(int));
+	memcpy(buffer + sizeof(int),&objetivo,sizeof(char));
+	send(mapa->socketMapa,buffer,sizeof(int) + sizeof(char),0);
+	free(buffer);
 
 	int x = recibirCoordenada(mapa->socketMapa);	//Recibo la NUEVA coordenada Entrenador en X
 	infoEntrenador->posicionEnX = x;
@@ -292,23 +300,20 @@ void solicitarAvanzar(t_mapa *mapa,char objetivo)
 
 int atraparPokemon(t_mapa *mapa,char objetivo)
 {
-	char* buffer = string_new();
-	string_append(&buffer,string_itoa(ATRAPARPOKEMON));
-	char* objetivoString=charToString(objetivo);
-	string_append(&buffer,objetivoString);
+	int protocoloAtrapar=ATRAPARPOKEMON;
+	void *buffer = malloc(sizeof(int) + sizeof(char));
+	memcpy(buffer,&protocoloAtrapar,sizeof(int));
+	memcpy(buffer + sizeof(int),&objetivo,sizeof(char));
+	send(mapa->socketMapa,buffer,sizeof(int) + sizeof(char),0);
+	free(buffer);
 
-	send(mapa->socketMapa, buffer,4, 0);
-	free(objetivoString);
+	void *buffer2 = malloc(sizeof(int));
+	int recibo;
+	recv(mapa->socketMapa,buffer2,sizeof(int),0);
+	memcpy(&recibo,buffer2,sizeof(int));
+	free(buffer2);
 
-	char* recibo = string_new();
-	recv(mapa->socketMapa, recibo,4,0);
-
-	if(!strcmp(recibo,"1"))
-		return 1;
-	else if(!strcmp(recibo,"2"))
-		return 2;
-	else
-		return 0;
+	return recibo;
 }
 
 void copiarMedalla(char entrenador[20],char* nombre)
@@ -518,7 +523,7 @@ int main(int argc, char **argv)
 		log_info(logger, "------TE CONVERTISTE EN MAESTRO POKEMON------ \n");
 		log_info(logger, "Tu aventura duro: %.16g segundos \n",secs);
 		log_info(logger, "Pasaste: %.16g segundos bloqueado en las PokeNests\n",tiempoBloqueo);
-		log_info(logger,"Estuviste en deadlock/inanicion %d veces, te costo %d intentos y te quedo %d vidas",infoEntrenador->cantDeadlock,infoEntrenador->reintentos,infoEntrenador->vidas);
+		log_info(logger,"Estuviste en deadlock o bloqueado %d veces, te costo %d intentos y te quedo %d vidas",infoEntrenador->cantDeadlock,infoEntrenador->reintentos,infoEntrenador->vidas);
 		list_destroy(listaDeMapas);
 		list_destroy(mapa->objetivos);
 		free(infoEntrenador);
