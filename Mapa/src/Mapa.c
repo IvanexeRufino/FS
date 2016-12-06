@@ -1,4 +1,5 @@
 #include "Mapa.h"
+int finalizar;
 
 void sumarRecurso(t_list* items, char id) {
     ITEM_NIVEL* item = _search_item_by_id(items, id);
@@ -79,7 +80,15 @@ int leerDatosBill(char* nombre , char* ruta)
 	else
 		return 0;
 }
+void muerteDefinitivaPorSenial(int aSignal)
+{
+	finalizar = 1;
+	if(list_size(entrenadores_listos)== 0){
+		nivel_gui_terminar();
+		exit(1);
 
+	}
+}
 
 void recuperarPokemonDeEntrenador(t_registroPersonaje *personaje)
 {
@@ -616,6 +625,15 @@ void recibirQueHacer(t_registroPersonaje *nuevoPersonaje)
 
 		shutdown(nuevoPersonaje->socket,2);
 		close(nuevoPersonaje->socket);
+		void desbloquear(t_registroPersonaje *p)
+					{
+						if(p->estado == 'B')
+						{
+							p->estado = 'L';
+							sem_post(&colaDeListos);
+						}
+					}
+			list_iterate(entrenadores_listos, (void*) desbloquear);
 		break;
 	}
 }
@@ -655,7 +673,9 @@ void planificarNuevo()
 	int i=0;
 	int j;
 
-	while(1)
+	finalizar = 0;
+	while(finalizar == 0)
+	//while(1)
 	{
 		//ACA VOY A LOGGEAR LA COLA DE LISTOS--------------------------------------------------
 		char *str = string_new();
@@ -753,6 +773,26 @@ void planificarNuevo()
 		else
 			free(entrenador);
 	}	//Aca termina y  vuelve al while(1)
+	if(finalizar == 1){
+			pthread_mutex_lock(&mutex_EntrenadoresActivos);
+			log_info(logger,"El mapa se cerrara por señal");
+			void desconexionTotal(t_registroPersonaje *nuevoPersonaje){
+				BorrarItem(items, nuevoPersonaje->identificador);
+				liberar_recursos(nuevoPersonaje->nombre);
+				recuperarPokemonDeEntrenador(nuevoPersonaje);
+				nuevoPersonaje->estado='T';
+				close(nuevoPersonaje->socket);
+				log_info(logger,"Se desconecto al entrenador: %s",nuevoPersonaje->nombre);
+			}
+			list_iterate(entrenadores_listos, (void*) desconexionTotal);
+			pthread_mutex_unlock(&mutex_EntrenadoresActivos);
+
+			log_info(logger,"*************************************TERMINO EJECUCION******************************************");
+			nivel_gui_terminar();
+			EXIT_SUCCESS;
+			sleep(1);
+			exit(1);
+		}
 }
 
 void releerconfig(int aSignal)
@@ -1110,7 +1150,7 @@ int main(int argc, char **argv)
 	pid = getpid();
 	log_info(logger, "El PID del proceso Mapa es %d\n", pid);
 	signal(SIGUSR2,releerconfig);//Por consola kill -SIGUSR2 -PID
-
+	signal(SIGINT,muerteDefinitivaPorSenial);//Por consola control c
 	entrenadores_listos = malloc(sizeof(t_list));
 	entrenadores_listos = list_create();
 	entrenadores_bloqueados = malloc (sizeof(t_list));
