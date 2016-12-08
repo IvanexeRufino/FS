@@ -933,7 +933,8 @@ void batallaPokemon()
 	t_pokemon* pokPerdedor = malloc(sizeof(t_pokemon));
 	pokEn = list_remove(listapokEn,0);
 	pthread_mutex_lock(&mutex_EntrenadoresActivos);
-	while(list_size(listapokEn)!=0)
+	//while(list_size(listapokEn)!=0)
+	if(list_size(listapokEn)!=0)
 	{
 		pokEn2 = list_remove(listapokEn,0);
 		pokPerdedor = pkmn_battle(pokEn->pok , pokEn2->pok);
