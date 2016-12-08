@@ -291,7 +291,7 @@ int main(int argc, char *argv[]) {
 //	system("truncate -s 200k disco.bin");
 //	system("./osada-format disco.bin");
 	reconocerOSADA(argv[1]);
-
+//	reconocerOSADA("/home/utnso/disco.bin");
 //	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
 //	log_info(logger, PROGRAM_DESCRIPTION);
 

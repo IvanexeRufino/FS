@@ -142,7 +142,7 @@
  }
 
  int copiarInformacion(int tamanioACopiar, int offset,char* buffer, char* inicio ,osada_file* archivo) {
- 	int numeroDeTabla = recorrerTablaDeAsignaciones(archivo, divisionMaxima(offset));
+ 	int numeroDeTabla = recorrerTablaDeAsignaciones(archivo, divisionMaxima(offset + 1));
  	int i=1;
  	int copiado = 0;
  	int restanteDeMiBloque = OSADA_BLOCK_SIZE - offsetDondeEmpezar(offset);
@@ -194,7 +194,7 @@
  	}
  	int tamanioALeerVerdadero = minimoEntre(tamanioALeer,archivo->file_size - offset);
  	pthread_mutex_lock(&semaforoTablaDeAsignaciones);
- 	int numeroDeTabla = recorrerTablaDeAsignaciones(archivo, divisionMaxima(offset));
+ 	int numeroDeTabla = recorrerTablaDeAsignaciones(archivo, divisionMaxima(offset + 1));
  	char* bloqueDeDatos = (char*) bloquesDeDatos[numeroDeTabla] + offsetDondeEmpezar(offset);;
  	int leido = 0;
  	leido = copiarInformacion(tamanioALeerVerdadero, offset,buffer,bloqueDeDatos,archivo);
@@ -248,7 +248,6 @@
  	while(j < cantidadDeBloques) {
  		 if(bitarray_test_bit(bitmap,j) == false) {
  				bitarray_set_bit(bitmap,j);
- 				printf("el bloque a ocupar es el %d", i);
  				return i;
  		 }
  		j++;
@@ -320,18 +319,17 @@
  	return 1;
  }
 
- int agregarBloquesDelBitmap(int bloquesAAgregar, osada_file* archivo, uint32_t size) {
+ int agregarBloquesDelBitmap(int bloquesAAgregar, osada_file* archivo) {
  	int i;
  	int cantidadDeRecorridos;
  	for (i = 0; i < bloquesAAgregar ; i ++) {
  		uint32_t bloqueNuevo = buscarBloqueVacio();
  		if(bloqueNuevo == -1) {
- 			//no hubo mas espacio en el bitmap se agrega tdo lo qe se puede
  			archivo->file_size += i * OSADA_BLOCK_SIZE;
  			return -1;
  		}
- 		cantidadDeRecorridos = divisionMaxima(archivo->file_size) + i;
- 		agregarTablaDeAsignaciones(bloqueNuevo, archivo, cantidadDeRecorridos);
+ 		cantidadDeRecorridos = divisionMaxima(archivo->file_size);
+ 		agregarTablaDeAsignaciones(bloqueNuevo, archivo, cantidadDeRecorridos + i);
  	}
 
  	return 0;
@@ -371,7 +369,7 @@
 
  int agregarBloques(osada_file* archivo, int diferenciaDeTamanios) {
  	pthread_mutex_lock(&semaforoTablaDeAsignaciones);
- 	char* inicioDeAgregado = bloquesDeDatos[numeroBloqueDelArchivo(dondeEmpezarLectura(archivo->file_size),archivo)] + offsetDondeEmpezar(archivo->file_size);
+ 	char* inicioDeAgregado = (char*)bloquesDeDatos[recorrerTablaDeAsignaciones(archivo, divisionMaxima(archivo->file_size + 1))] + offsetDondeEmpezar(archivo->file_size);
  	int agregado = 0;
  	agregado = agregar_informacion(diferenciaDeTamanios, archivo->file_size, inicioDeAgregado, archivo);
  	pthread_mutex_unlock(&semaforoTablaDeAsignaciones);
@@ -396,16 +394,14 @@
  	int diferenciaDeTamanios = abs(size - archivo->file_size);//Lo que tengo que agregar o quitar
 
  	if(archivo->file_size < size) {
- 		pthread_mutex_lock(&semaforoBitmap);
- 		if(size + archivo->file_size > 64) {
- 			int bloquesAAgregar = divisionMaxima(size) - divisionMaxima(archivo->file_size);
- 			if(agregarBloquesDelBitmap(bloquesAAgregar, archivo, size) != 0) {
- 				pthread_mutex_unlock(&semaforoBitmap);
- 				return NULL;
- 			}
- 			agregarBloques(archivo, diferenciaDeTamanios);
+ 		int bloquesAAgregar = divisionMaxima(size) - divisionMaxima(archivo->file_size);
+ 	 	pthread_mutex_lock(&semaforoBitmap);
+ 		if(agregarBloquesDelBitmap(bloquesAAgregar, archivo) != 0) {
+ 			pthread_mutex_unlock(&semaforoBitmap);
+ 			return NULL;
  		}
- 		pthread_mutex_unlock(&semaforoBitmap);
+ 		agregarBloques(archivo, diferenciaDeTamanios);
+ 	 	pthread_mutex_unlock(&semaforoBitmap);
  	}
  	if(archivo->file_size > size) {
  		if(archivo->file_size % OSADA_BLOCK_SIZE < abs(diferenciaDeTamanios)) {
@@ -421,18 +417,20 @@
  }
 
  int escribir_informacion(int tamanioAEscribir, int offset, char* bufferConDatos, char* inicioDeEscritura, osada_file* archivo ) {
- 	int numeroDeTabla = recorrerTablaDeAsignaciones(archivo, divisionMaxima(offset));
+	int offsetAuxiliar = offset;
+ 	int numeroDeTabla = recorrerTablaDeAsignaciones(archivo, divisionMaxima(offset + 1));
  	int escrito = 0;
  	int i=0;
  	int tamanioRestanteAEscribir = tamanioAEscribir;
  	int restanteDeMiBloque = OSADA_BLOCK_SIZE - offsetDondeEmpezar(offset);
  	while(escrito < tamanioAEscribir) {
  		int tamanioAEScribirDentroDelBloque = minimoEntre(tamanioRestanteAEscribir,restanteDeMiBloque);
- 		memcpy(inicioDeEscritura + offsetDondeEmpezar(offset),bufferConDatos + escrito,tamanioAEScribirDentroDelBloque);
+ 		memcpy(inicioDeEscritura + offsetDondeEmpezar(offsetAuxiliar),bufferConDatos + escrito,tamanioAEScribirDentroDelBloque);
  		restanteDeMiBloque = OSADA_BLOCK_SIZE;
  		escrito = escrito + tamanioAEScribirDentroDelBloque;
  		tamanioRestanteAEscribir -= tamanioAEScribirDentroDelBloque;
  		if(escrito < tamanioAEscribir) {
+ 			offsetAuxiliar = 0;
  			numeroDeTabla = tablaDeAsignaciones[numeroDeTabla];
  			inicioDeEscritura = (char*)bloquesDeDatos[numeroDeTabla];
  			i++;
@@ -455,13 +453,13 @@
  		return -ENOENT;
  		}
  	archivo = truncar_archivo(archivo,maximoEntre(offset+tamanioAEscribir,archivo->file_size));
-
  	if(archivo==NULL) {
+ 		printf("devuelvo - 1 \n");
  		return -1;
  	}
 
  	pthread_mutex_lock(&semaforoTablaDeAsignaciones);
- 	int numeroDeTabla = recorrerTablaDeAsignaciones(archivo, divisionMaxima(offset));
+ 	int numeroDeTabla = recorrerTablaDeAsignaciones(archivo, divisionMaxima(offset + 1));
  	char* inicioDeEscritura =  (char*) bloquesDeDatos[numeroDeTabla];
  	escrito = escribir_informacion(tamanioAEscribir, offset, bufferConDatos, inicioDeEscritura, archivo);
  	pthread_mutex_unlock(&semaforoTablaDeAsignaciones);
