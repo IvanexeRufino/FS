@@ -287,7 +287,7 @@ static int ejemplo_write (char *path, char *buf, size_t size, off_t offset, stru
 	t_paquetePro* paqueterecv = desacopladorPro(bufferHead);
 
 	if(paqueterecv->codigo == 100) {
-		return ENOSPC;
+		return -ENOENT;
 	}
 
 	char buffer[paqueterecv->tamanio];

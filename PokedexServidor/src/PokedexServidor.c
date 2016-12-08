@@ -167,7 +167,8 @@ void escribir (int newfd, t_paquetePro* paqueterecv){
 	char* path = recibirNormal(newfd, paqueterecv->tamanio);
 	char* buffer = recibirNormal(newfd, paqueterecv->size);
 	int tam = escribir_archivo(path,paqueterecv->offset, paqueterecv->size, buffer);
-	if(tam == -1) {
+	if(tam != paqueterecv->size) {
+		printf("voy a mandar un error");
 		enviarQueSos(newfd, empaquetarPro(100,6,0,0), "error");
 	} else {
 		osada_file* archivo = obtenerArchivo(path);

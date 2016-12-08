@@ -254,7 +254,7 @@
 		}
 		if(i == cantidadDeBloques)
 		{
-			return -ENOMEM;
+			return -1;
 		}
 		if(bitarray_test_bit(bitmap,i)==false )
 		{
@@ -263,9 +263,8 @@
 			bitarray_set_bit(bitmap,i);
 			return bloqueFisicoAgregado - inicioDeBloqueDeDatos;
 		}
-		else
-		{
-			return -ENOMEM;
+		else {
+			return -1;
 		}
  }
 
