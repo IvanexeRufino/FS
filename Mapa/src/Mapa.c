@@ -378,25 +378,7 @@ void leerConfiguracionPokenest(char mapa[20], char pokemon[256])
 			exit(1);
 		}
 
-//		bool distanciaEntreCajas (t_registroPokenest* unaNest)
-//		{
-//			return (abs(unaNest->x - pokenest->x) + abs(unaNest->y - pokenest->y) <= 4);
-//		}
 
-//		bool distanciaEntreCajas (t_registroPokenest* unaNest)
-//		{
-//			bool a = (abs(unaNest->x - pokenest->x) <= 2);
-//			bool b = (abs(unaNest->y - pokenest->y) <= 2);
-//			return (a && b);
-//
-//		}
-//
-//		if(list_any_satisfy(listaPokenest, (void*) distanciaEntreCajas))
-//		{
-//			log_error(logger, "La Pokenest %c no respeta las distancias con otra Pokenest. \n", pokenest->identificador);
-//			nivel_gui_terminar();
-//			exit(1);
-//		}
 	CrearCaja(items, config_get_string_value(configNest, "Identificador")[0] , pokenest->x , pokenest->y ,pokenest->cantidadDisp);
 	list_add(listaPokenest,pokenest);
 	}
