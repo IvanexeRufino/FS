@@ -67,10 +67,21 @@ t_paquete* empaquetar(int codigo, void* datos, int size){
 	return paquete;
 }
 
+void enviarCosa (t_paquetePro* paquete, void* path,char* error){
+	void* cosa;
+	cosa = acopladorPro(paquete);
+	if(send(sockfd,cosa, size_header ,0) < 0) {
+		puts(error);
+		exit(1);
+	}
+	if(send(sockfd, path, paquete->tamanio,0) < 0) {
+		puts(error);
+		exit(1);
+	}
+}
+
 t_paquete* enviarQueSos(t_paquetePro* paquete, void* path){
 	pthread_mutex_lock(&sendRecv);
-
-	void* cosaparaenviar;
 
 	log_info(logger, "Se envia un paquete a POKEDEX SERVIDOR.");
 	log_info(logger,"Codigo: %d",paquete->codigo);
@@ -81,125 +92,37 @@ t_paquete* enviarQueSos(t_paquetePro* paquete, void* path){
 
 	switch(paquete->codigo) {
 	case 1:
-		cosaparaenviar = acopladorPro(paquete);
-		if(send(sockfd,cosaparaenviar, size_header ,0) < 0) {
-			puts("ERROR ENVIO");
-			exit(1);
-		}
-		if(send(sockfd, path, paquete->tamanio,0) < 0) {
-			puts("ERROR ENVIO");
-			exit(1);
-		}
+		enviarCosa(paquete,path,"ERROR CASE 1");
 		break;
 	case 2:
-		cosaparaenviar = acopladorPro(paquete);
-		if(send(sockfd,cosaparaenviar, size_header ,0) < 0) {
-			puts("ERROR ENVIO");
-			exit(1);
-		}
-		if(send(sockfd, path, paquete->tamanio,0) < 0) {
-			puts("ERROR ENVIO");
-			exit(1);
-		}
+		enviarCosa(paquete,path,"ERROR CASE 2");
 		break;
 	case 3:
-		cosaparaenviar = acopladorPro(paquete);
-		if(send(sockfd,cosaparaenviar, size_header ,0) < 0) {
-			puts("ERROR ENVIO");
-			exit(1);
-		}
-		if(send(sockfd, path, paquete->tamanio,0) < 0) {
-			puts("ERROR ENVIO");
-			exit(1);
-		}
+		enviarCosa(paquete,path,"ERROR CASE 3");
 		break;
 	case 4:
-		cosaparaenviar = acopladorPro(paquete);
-		if(send(sockfd,cosaparaenviar, size_header ,0) < 0) {
-			puts("ERROR ENVIO");
-			exit(1);
-		}
-		if(send(sockfd, path, paquete->tamanio,0) < 0) {
-			puts("ERROR ENVIO");
-			exit(1);
-		}
+		enviarCosa(paquete,path,"ERROR CASE 4");
 		break;
 	case 5:
-		cosaparaenviar = acopladorPro(paquete);
-		if(send(sockfd,cosaparaenviar, size_header ,0) < 0) {
-			puts("ERROR ENVIO");
-			exit(1);
-		}
-		if(send(sockfd, path, paquete->tamanio,0) < 0) {
-			puts("ERROR ENVIO");
-			exit(1);
-		}
+		enviarCosa(paquete,path,"ERROR CASE 5");
 		break;
 	case 6:
-		cosaparaenviar = acopladorPro(paquete);
-		if(send(sockfd,cosaparaenviar, size_header ,0) < 0) {
-			puts("ERROR ENVIO");
-			exit(1);
-		}
-		if(send(sockfd, path, paquete->tamanio,0) < 0) {
-			puts("ERROR ENVIO");
-			exit(1);
-		}
+		enviarCosa(paquete,path,"ERROR CASE 6");
 		break;
 	case 8:
-		cosaparaenviar = acopladorPro(paquete);
-		if(send(sockfd,cosaparaenviar, size_header ,0) < 0) {
-			puts("ERROR ENVIO");
-			exit(1);
-		}
-		if(send(sockfd, path, paquete->tamanio,0) < 0) {
-			puts("ERROR ENVIO");
-			exit(1);
-		}
+		enviarCosa(paquete,path,"ERROR CASE 8");
 		break;
 	case 9:
-		cosaparaenviar = acopladorPro(paquete);
-		if(send(sockfd,cosaparaenviar, size_header ,0) < 0) {
-			puts("ERROR ENVIO");
-			exit(1);
-		}
-		if(send(sockfd, path, paquete->tamanio,0) < 0) {
-			puts("ERROR ENVIO");
-			exit(1);
-		}
+		enviarCosa(paquete,path,"ERROR CASE 9");
 		break;
 	case 10:
-		cosaparaenviar = acopladorPro(paquete);
-		if(send(sockfd,cosaparaenviar, size_header ,0) < 0) {
-			puts("ERROR ENVIO");
-			exit(1);
-		}
-		if(send(sockfd, path, paquete->tamanio,0) < 0) {
-			puts("ERROR ENVIO");
-			exit(1);
-		}
+		enviarCosa(paquete,path,"ERROR CASE 10");
 		break;
 	case 11:
-		cosaparaenviar = acopladorPro(paquete);
-		if(send(sockfd,cosaparaenviar, size_header ,0) < 0) {
-			puts("ERROR ENVIO");
-			exit(1);
-		}
-		if(send(sockfd, path, paquete->tamanio,0) < 0) {
-			puts("ERROR ENVIO");
-			exit(1);
-		}
+		enviarCosa(paquete,path,"ERROR CASE 111");
 		break;
 	case 12:
-		cosaparaenviar = acopladorPro(paquete);
-		if(send(sockfd,cosaparaenviar, size_header ,0) < 0) {
-			puts("ERROR ENVIO");
-			exit(1);
-		}
-		if(send(sockfd, path, paquete->tamanio,0) < 0) {
-			puts("ERROR ENVIO");
-			exit(1);
-		}
+		enviarCosa(paquete,path,"ERROR CASE 12");
 		break;
 	}
 
