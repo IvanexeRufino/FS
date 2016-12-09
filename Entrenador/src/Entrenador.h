@@ -58,6 +58,21 @@ typedef struct {
 	t_list* objetivos;
 } t_mapa;
 
+/*----------------------- Declaraciones de Variables Globales ---------------------------*/
+
+t_log* logger;
+entrenador_datos* infoEntrenador;
+pid_t pid;
+t_list* listaDeMapas;
+t_mapa* mapa;
+char rutaArgv[100];
+int contadorMapa;
+int contadorObjetivo;
+double tiempoBloqueo;
+int atrapados;
+int reinicio ;
+int completado;
+
 /*----------------------- Declaraciones de Constantes ----------------------------------*/
 
 	/* Configuración de LOG */

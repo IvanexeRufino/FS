@@ -97,6 +97,7 @@ typedef struct
 	t_log* logger;
 	int threadAEjecutar;
 	int systemInDeadlock = false;	//detección de deadlock
+	int finalizar;
 
 	t_registroPersonaje *hiloEscucha;
 	mapa_datos* infoMapa;
