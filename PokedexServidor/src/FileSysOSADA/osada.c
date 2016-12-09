@@ -61,8 +61,8 @@
  	tablaDeArchivos = (osada_file*)  (disco + (header->allocations_table_offset - 1024)*OSADA_BLOCK_SIZE);
  	bitmap = bitarray_create(&disco[OSADA_BLOCK_SIZE],(header->bitmap_blocks));
  	tablaDeAsignaciones = (osada_block_pointer*) (disco + (header->allocations_table_offset) * OSADA_BLOCK_SIZE);
- 	inicioDeBloqueDeDatos = header->fs_blocks - header->data_blocks;
- 	bloquesDeDatos = (osada_block*) (disco + (header->fs_blocks - header->data_blocks)*OSADA_BLOCK_SIZE);
+  	inicioDeBloqueDeDatos = header->fs_blocks - header->data_blocks - (8 - (header->fs_blocks - header->data_blocks) % 8);
+  	bloquesDeDatos = (osada_block*) (disco + (header->fs_blocks - header->data_blocks)*OSADA_BLOCK_SIZE);
  	cantidadDeBloques = header->fs_blocks;
  	pthread_mutex_init (&semaforoBitmap,NULL);
  	pthread_mutex_init (&semaforoTablaDeArchivos,NULL);
@@ -245,28 +245,20 @@
  	free(nombreABuscar);
  	return indice;
  }
-
  int buscarBloqueVacio() {
-		int i=0;
-		while(i < cantidadDeBloques && (bitarray_test_bit(bitmap,i) == true))
-		{
-			i++;
-		}
-		if(i == cantidadDeBloques)
-		{
-			return -1;
-		}
-		if(bitarray_test_bit(bitmap,i)==false )
-		{
-			uint32_t bloqueFisicoAgregado = i;
-			printf("El bloque fisico nuevo es el %d\n", bloqueFisicoAgregado);
-			bitarray_set_bit(bitmap,i);
-			return bloqueFisicoAgregado - inicioDeBloqueDeDatos;
-		}
-		else {
-			return -1;
-		}
- }
+  	int i = 0;
+  	int j = inicioDeBloqueDeDatos;
+   	while(j < cantidadDeBloques) {
+   		 if(bitarray_test_bit(bitmap,j) == false) {
+   				bitarray_set_bit(bitmap,j);
+   				return i;
+   		 }
+   		j++;
+  		i++;
+  	}
+  	//no hay bits vacios
+  	return -1;
+  }
 
  int crear_archivo(char* path, int direcOArch)
  {
