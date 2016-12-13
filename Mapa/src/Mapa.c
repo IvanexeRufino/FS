@@ -1,5 +1,5 @@
 #include "Mapa.h"
-int finalizar;
+
 
 void sumarRecurso(t_list* items, char id) {
     ITEM_NIVEL* item = _search_item_by_id(items, id);
@@ -913,52 +913,82 @@ void batallaPokemon()
 	t_pokEn* aux = malloc(sizeof(pokEn));
 	t_pokEn* pokEn2 = malloc(sizeof(pokEn));
 	t_pokemon* pokPerdedor = malloc(sizeof(t_pokemon));
-	pokEn = list_remove(listapokEn,0);
+	t_list* listaAux = malloc(sizeof(listaAux));
+
 	pthread_mutex_lock(&mutex_EntrenadoresActivos);
-	//while(list_size(listapokEn)!=0)
-	if(list_size(listapokEn)!=0)
+
+	while(list_size(listapokEn)!=1)
 	{
+		pokEn = list_remove(listapokEn,0);
 		pokEn2 = list_remove(listapokEn,0);
 		pokPerdedor = pkmn_battle(pokEn->pok , pokEn2->pok);
 		if(pokPerdedor == pokEn2->pok)
-		{
-			//Si gana el pokEn1
-			if(infoMapa->batalla == 1){
-				log_info(logger,"Gano el entrenador %s con su pokemon %s ", pokEn->entrenador->nombre, pokEn->pok->species);
-			}
-		}
-			else
-		{
-		//Si gana el pokEn2
-				if(infoMapa->batalla == 1)
-						log_info(logger,"Gano el entrenador %s con su pokemon %s ", pokEn2->entrenador->nombre, pokEn2->pok->species);
-
-				aux = pokEn;
-				pokEn = pokEn2;
-				pokEn2 = aux;
-		}
-			int i = 0;
-			void eliminar(t_registroPersonaje* entrenador)
-			{
-				if(entrenador->identificador == pokEn2->entrenador->identificador)
 				{
-					if(infoMapa->batalla == 1)
-						log_info(logger,"Informo a %s , que murio en una batalla.",entrenador->nombre);
+					list_add(listapokEn,pokEn2); //Si gana el pokEn1
 
-					int muerteDeadlock=2;
-					void *buffer = malloc(sizeof(int));
-					memcpy(buffer,&muerteDeadlock,sizeof(int));		//El 2 que mando es el de muerte por deadlock
-					send(entrenador->socket,buffer,sizeof(int),0);
-					free(buffer);
-
-					recibirQueHacer(entrenador);
 				}
-				i++;
-			}
-			list_iterate(entrenadores_listos, (void*) eliminar);
+		else
+		{
+			list_add(listapokEn,pokEn);
+
+		}
+
 	}
+	aux = list_remove(listapokEn,0);
+	void eliminar(t_registroPersonaje* entrenador)
+		{
+			if(entrenador->identificador == aux->entrenador->identificador)
+			{
+				if(infoMapa->batalla == 1)
+					log_info(logger,"Informo a %s , que murio en una batalla.",entrenador->nombre);
+
+
+				int muerteDeadlock=2;
+				void *buffer = malloc(sizeof(int));
+				memcpy(buffer,&muerteDeadlock,sizeof(int));		//El 2 que mando es el de muerte por deadlock
+				send(entrenador->socket,buffer,sizeof(int),0);
+				free(buffer);
+
+				recibirQueHacer(entrenador);
+			}
+			//i++;
+		}
+	list_iterate(entrenadores_listos, (void*) eliminar);
+
+//	while(list_size(listapokEn)!=1)
+//	//if(list_size(listapokEn)!=0)
+//	{
+//		while(list_size(listapokEn!=0))
+//		{
+//
+//
+//		pokEn2 = list_remove(listapokEn,0);
+//		pokPerdedor = pkmn_battle(pokEn->pok , pokEn2->pok);
+//		list_add(aux,pokPerdedor);
+//		if(pokPerdedor == pokEn2->pok)
+//		{
+//			//Si gana el pokEn1
+//			if(infoMapa->batalla == 1){
+//				log_info(logger,"Gano el entrenador %s con su pokemon %s ", pokEn->entrenador->nombre, pokEn->pok->species);
+//			}
+//		}
+//			else
+//		{
+//		//Si gana el pokEn2
+//				if(infoMapa->batalla == 1)
+//						log_info(logger,"Gano el entrenador %s con su pokemon %s ", pokEn2->entrenador->nombre, pokEn2->pok->species);
+//
+//				aux = pokEn;
+//				pokEn = pokEn2;
+//				pokEn2 = listapokEn->head->next;
+//		}
+//			int i = 0;
+
+			//list_iterate(entrenadores_listos, (void*) eliminar);
+			//limpiar listaPokEn
+
 	pthread_mutex_unlock(&mutex_EntrenadoresActivos);
-	if(infoMapa->batalla == 1)log_info(logger,"El ganador de todas las batallas es:%s", pokEn->entrenador->nombre);
+	//if(infoMapa->batalla == 1)log_info(logger,"El ganador de todas las batallas es:%s", pokEn->entrenador->nombre);
 }
 
 // Funcion que detecta si existen personajes interbloqueados
