@@ -61,9 +61,10 @@
  	tablaDeArchivos = (osada_file*)  (disco + (header->allocations_table_offset - 1024)*OSADA_BLOCK_SIZE);
  	bitmap = bitarray_create(&disco[OSADA_BLOCK_SIZE],(header->bitmap_blocks));
  	tablaDeAsignaciones = (osada_block_pointer*) (disco + (header->allocations_table_offset) * OSADA_BLOCK_SIZE);
-  	inicioDeBloqueDeDatos = header->fs_blocks - header->data_blocks - (8 - (header->fs_blocks - header->data_blocks) % 8);
+  	inicioDeBloqueDeDatos = header->fs_blocks - header->data_blocks - 8;
   	bloquesDeDatos = (osada_block*) (disco + (header->fs_blocks - header->data_blocks)*OSADA_BLOCK_SIZE);
  	cantidadDeBloques = header->fs_blocks;
+ 	sobraDeBitmap = (header->fs_blocks - header->data_blocks) % 8;
  	pthread_mutex_init (&semaforoBitmap,NULL);
  	pthread_mutex_init (&semaforoTablaDeArchivos,NULL);
  	pthread_mutex_init (&semaforoTablaDeAsignaciones,NULL);
@@ -251,7 +252,8 @@
    	while(j < cantidadDeBloques) {
    		 if(bitarray_test_bit(bitmap,j) == false) {
    				bitarray_set_bit(bitmap,j);
-   				return i;
+   				printf("el bloque a escribir es el %d \n", i - (8 - sobraDeBitmap));
+   				return i - (8 - sobraDeBitmap);
    		 }
    		j++;
   		i++;
@@ -388,7 +390,7 @@
  	int i;
  	for(i = ultimoBloqueADejar; i < cant_bloques; i++) {
  		int bloqueABorrar = numeroBloqueDelArchivo(i + 1, archivo);
- 		bitarray_clean_bit(bitmap,bloqueABorrar + inicioDeBloqueDeDatos);
+ 		bitarray_clean_bit(bitmap,bloqueABorrar + inicioDeBloqueDeDatos + (8 - sobraDeBitmap));
  	}
  	return 0;
  }
