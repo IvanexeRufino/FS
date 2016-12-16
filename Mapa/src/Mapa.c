@@ -1,5 +1,5 @@
 #include "Mapa.h"
-
+//void llenarMatrizRequest(t_registroPersonaje*);
 
 void sumarRecurso(t_list* items, char id) {
     ITEM_NIVEL* item = _search_item_by_id(items, id);
@@ -419,6 +419,8 @@ char recibirBienvenidaEntrenador(int newfd,t_registroPersonaje *nuevoPersonaje)
 	log_info(logger,"*BIENVENIDA* Recibi de %s el ID %c y accion: %c",nuevoPersonaje->nombre,nuevoPersonaje->identificador,bufferConAccionString[0]);
 	CrearPersonaje(items, nuevoPersonaje->identificador , nuevoPersonaje->x, nuevoPersonaje->y);
 	nivel_gui_dibujar(items,infoMapa->nombre);
+
+//	llenarMatrizRequest(nuevoPersonaje);
 	return (bufferConAccionString[0]);
 }
 
@@ -828,6 +830,16 @@ char *liberar_recursos(char *nombre_personaje){
 	return recursosString;
 }
 
+
+//void llenarMatrizRequest(t_registroPersonaje *p){
+//	void llenarRequest(t_registroPokenest *r)
+//		{
+//			dictionary_put(dictionary_get(request, r->nombre), p->nombre,(void*)0);
+//		}
+//		list_iterate(listaPokenest, (void*) llenarRequest);
+//}
+
+
 void liberar_recurso(char *recurso, char *personaje, int cant)
 {
 	int liberados = 0, availables = 0;
@@ -991,6 +1003,59 @@ void batallaPokemon()
 	//if(infoMapa->batalla == 1)log_info(logger,"El ganador de todas las batallas es:%s", pokEn->entrenador->nombre);
 }
 
+void imprimirTablas(){
+
+	char* pokemon = string_new();
+	char* intpokemon = string_new();
+
+	//------------------------------------------------MATRIZ DISPONIBLE
+	log_info(logger,"*---Matriz Disponible---*");
+	void contarDispPokemon(t_registroPokenest *p)
+	{
+		string_append(&pokemon, string_from_format("%c", p->identificador));
+		string_append(&pokemon, " |  ");
+		string_append(&intpokemon, string_itoa(p->cantidadDisp));
+		string_append(&intpokemon, " |  ");
+	}
+	list_iterate(listaPokenest, (void*) contarDispPokemon);
+	log_info(logger,"*  %s  *", pokemon);
+	log_info(logger,"*  %s  *", intpokemon);
+
+	free(intpokemon);
+
+//---------------------------------------------------------mATRIZ nECESIDAD
+	char* cantPedida = string_new();
+	log_info(logger,"*---Matriz Request---*");
+	log_info(logger,"*  %s  *", pokemon);
+	void requestXEntrenador(t_registroPersonaje* ent){
+			void contarRequestPokemon(t_registroPokenest *p)
+			{
+				string_append(&cantPedida, string_itoa((int)dictionary_get((dictionary_get(request, p->nombre)),ent->nombre)));
+				string_append(&cantPedida, " |  ");
+			}
+		list_iterate(listaPokenest, (void*) contarRequestPokemon);
+		log_info(logger,"*  %s  * %s" , cantPedida, ent->nombre);
+		cantPedida = string_new();
+	}
+	list_iterate(entrenadores_listos, (void*) requestXEntrenador);
+
+//-----------------------------------------------------------MATRIZ ASIGNADOS
+	char* cantAsignada = string_new();
+		log_info(logger,"*---Matriz Asignados---*");
+		log_info(logger,"*  %s  *", pokemon);
+		void asignadoXEntrenador(t_registroPersonaje* ent){
+				void contarAsignadoPokemon(t_registroPokenest *p)
+				{
+					string_append(&cantAsignada, string_itoa((int)dictionary_get((dictionary_get(alloc, p->nombre)),ent->nombre)));
+					string_append(&cantAsignada, " |  ");
+				}
+			list_iterate(listaPokenest, (void*) contarAsignadoPokemon);
+			log_info(logger,"*  %s  * %s" , cantAsignada, ent->nombre);
+			cantAsignada = string_new();
+		}
+		list_iterate(entrenadores_listos, (void*) asignadoXEntrenador);
+
+}
 // Funcion que detecta si existen personajes interbloqueados
 void *detectar_interbloqueo(void *milis)
 {
@@ -1004,7 +1069,7 @@ void *detectar_interbloqueo(void *milis)
 		log_info(logger,"Detectando interbloqueo");
 		//lockeo el mutex
 		pthread_mutex_lock(&mutex);
-
+		imprimirTablas();
 		   /********** Critical Section *******************/
 
 		// Inicializo todos los personajes como no marcados y
@@ -1066,6 +1131,43 @@ void *detectar_interbloqueo(void *milis)
 			}
 		}
 		list_iterate(entrenadores_listos, (void*) filtroPersonaje2);
+
+
+
+
+
+		 void filtroPersonaje3(t_registroPersonaje *p)
+		  {
+			 disponible = true;
+			 	 if (p->marcado == false)
+			 	 {
+			 		 int contador = 0;
+			 		 void contarNecesitadoPokemon(t_registroPersonaje *p2)
+			 		 {
+			 			if(p2->marcado == false){
+			 				log_info(logger,"PERSONAJE: %s Pokenest: %s %d %d",p2->nombre, p2->pokemonActual->nombre
+			 					,contador,	 (int)dictionary_get((dictionary_get(alloc, p2->pokemonActual->nombre)),p->nombre));
+			 				contador = contador + (int)dictionary_get((dictionary_get(request, p2->pokemonActual->nombre)),p2->nombre);
+			 				if (contador > (int)dictionary_get((dictionary_get(alloc, p2->pokemonActual->nombre)),p->nombre))
+			 					{
+			 							 disponible = false;
+			 					}
+			 			}
+			 		 }
+			 		 list_iterate(entrenadores_listos,(void*) contarNecesitadoPokemon);
+//					 log_info(logger,"PERSONAJE: %s Pokenest: %s %d %d",p->nombre, p->pokemonActual->nombre
+//							 ,contador,	 (int)dictionary_get((dictionary_get(alloc, p->pokemonActual->nombre)),p->nombre));
+//							 if (contador > (int)dictionary_get((dictionary_get(alloc, p->pokemonActual->nombre)),p->nombre))
+//							 {
+//								 disponible = false;
+//							 }
+					  }
+		      if (disponible == true)
+		          {
+		    	  	  p->marcado = true;
+		          }
+		  }
+		  list_iterate(entrenadores_listos, (void*) filtroPersonaje3);
 
 		// chequeo si existen personajes sin marcar == interbloqueo y envio señal al proceso
 		int bloqueados = 0;
