@@ -1014,7 +1014,7 @@ void imprimirTablas(){
 	{
 		string_append(&pokemon, string_from_format("%c", p->identificador));
 		string_append(&pokemon, " |  ");
-		string_append(&intpokemon, string_itoa(p->cantidadDisp));
+		string_append(&intpokemon, string_itoa((int)dictionary_get(available,p->nombre)));
 		string_append(&intpokemon, " |  ");
 	}
 	list_iterate(listaPokenest, (void*) contarDispPokemon);
@@ -1136,38 +1136,7 @@ void *detectar_interbloqueo(void *milis)
 
 
 
-		 void filtroPersonaje3(t_registroPersonaje *p)
-		  {
-			 disponible = true;
-			 	 if (p->marcado == false)
-			 	 {
-			 		 int contador = 0;
-			 		 void contarNecesitadoPokemon(t_registroPersonaje *p2)
-			 		 {
-			 			if(p2->marcado == false){
-			 				log_info(logger,"PERSONAJE: %s Pokenest: %s %d %d",p2->nombre, p2->pokemonActual->nombre
-			 					,contador,	 (int)dictionary_get((dictionary_get(alloc, p2->pokemonActual->nombre)),p->nombre));
-			 				contador = contador + (int)dictionary_get((dictionary_get(request, p2->pokemonActual->nombre)),p2->nombre);
-			 				if (contador > (int)dictionary_get((dictionary_get(alloc, p2->pokemonActual->nombre)),p->nombre))
-			 					{
-			 							 disponible = false;
-			 					}
-			 			}
-			 		 }
-			 		 list_iterate(entrenadores_listos,(void*) contarNecesitadoPokemon);
-//					 log_info(logger,"PERSONAJE: %s Pokenest: %s %d %d",p->nombre, p->pokemonActual->nombre
-//							 ,contador,	 (int)dictionary_get((dictionary_get(alloc, p->pokemonActual->nombre)),p->nombre));
-//							 if (contador > (int)dictionary_get((dictionary_get(alloc, p->pokemonActual->nombre)),p->nombre))
-//							 {
-//								 disponible = false;
-//							 }
-					  }
-		      if (disponible == true)
-		          {
-		    	  	  p->marcado = true;
-		          }
-		  }
-		  list_iterate(entrenadores_listos, (void*) filtroPersonaje3);
+
 
 		// chequeo si existen personajes sin marcar == interbloqueo y envio señal al proceso
 		int bloqueados = 0;
