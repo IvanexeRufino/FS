@@ -142,6 +142,8 @@ void crear (int newfd, t_paquetePro* paqueterecv){
 		int  error = crear_archivo(buffer,1);
 		if (error == -1) {
 			enviarQueSos(newfd, empaquetarPro(101, 18,0,0), "Tabla de Archivos");
+		} else if (error == -2){
+			enviarQueSos(newfd, empaquetarPro(105, 8,0,0), "espacio");
 		} else {
 			enviarQueSos(newfd, empaquetarPro(99, 3,0,0), "ok");
 		}

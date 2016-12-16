@@ -281,7 +281,13 @@
  	if(direcOArch == 1) {
  		archivoNuevo->state = REGULAR;
  		pthread_mutex_lock(&semaforoBitmap);
- 		archivoNuevo->first_block = buscarBloqueVacio();
+ 		int posDelBloque = buscarBloqueVacio();
+ 		if (posDelBloque != -1) {
+ 			archivoNuevo->first_block = posDelBloque;
+ 		} else {
+ 			archivoNuevo->first_block = -1;
+ 			return -2;
+ 		}
  		pthread_mutex_unlock(&semaforoBitmap);
  	}
  	else {
@@ -457,9 +463,15 @@
  	if(archivo == NULL) {
  		return -ENOENT;
  		}
+ 	if(archivo->first_block == -1) {
+ 		return -1;
+ 	}
  	archivo = truncar_archivo(archivo,maximoEntre(offset+tamanioAEscribir,archivo->file_size));
  	if(archivo==NULL) {
- 		printf("devuelvo - 1 \n");
+ 		return -1;
+ 	}
+
+ 	if(archivo->first_block == -1) {
  		return -1;
  	}
 
