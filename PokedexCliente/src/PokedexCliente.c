@@ -286,10 +286,6 @@ static int ejemplo_write (char *path, char *buf, size_t size, off_t offset, stru
 	}
 	t_paquetePro* paqueterecv = desacopladorPro(bufferHead);
 
-	if(paqueterecv->codigo == 100) {
-		return -ENOENT;
-	}
-
 	char buffer[paqueterecv->tamanio];
 	if(recv(sockfd, &buffer, paqueterecv->tamanio, MSG_WAITALL) <= 0) {
 		puts("ERROR RECIBIR");
@@ -299,7 +295,13 @@ static int ejemplo_write (char *path, char *buf, size_t size, off_t offset, stru
 	memcpy(pathBuffer,buffer,paqueterecv->tamanio);
 	pthread_mutex_unlock(&sendRecv);
 
-	return paqueterecv->tamanio;
+	if(paqueterecv->codigo == 105) {
+		return -ENOSPC;
+	} else if(paqueterecv->codigo == 100){
+		return ENOENT;
+	} else {
+		return paqueterecv->tamanio;
+	}
 }
 
 static int ejemplo_remove (char* path) {
