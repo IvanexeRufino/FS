@@ -142,6 +142,8 @@ void crear (int newfd, t_paquetePro* paqueterecv){
 		int  error = crear_archivo(buffer,1);
 		if (error == -1) {
 			enviarQueSos(newfd, empaquetarPro(101, 18,0,0), "Tabla de Archivos");
+		} else if (error == -2){
+			enviarQueSos(newfd, empaquetarPro(105, 8,0,0), "espacio");
 		} else {
 			enviarQueSos(newfd, empaquetarPro(99, 3,0,0), "ok");
 		}
@@ -167,8 +169,9 @@ void escribir (int newfd, t_paquetePro* paqueterecv){
 	char* path = recibirNormal(newfd, paqueterecv->tamanio);
 	char* buffer = recibirNormal(newfd, paqueterecv->size);
 	int tam = escribir_archivo(path,paqueterecv->offset, paqueterecv->size, buffer);
-	if(tam != paqueterecv->size) {
-		printf("voy a mandar un error");
+	if(tam == -1) {
+		enviarQueSos(newfd,empaquetarPro(105,8,0,0),"espacio");
+	} else if(tam != paqueterecv->size) {
 		enviarQueSos(newfd, empaquetarPro(100,6,0,0), "error");
 	} else {
 		osada_file* archivo = obtenerArchivo(path);
