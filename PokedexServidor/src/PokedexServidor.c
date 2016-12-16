@@ -6,7 +6,6 @@
  */
 
 #include "pokedexservidor.h"
-t_log* logger;
 
 void ctrl_c(int nro){
 	exit(1);
@@ -48,7 +47,7 @@ void* recibirNormal(int newfd, int size) {
 	char buffer[size];
 	if(recv(newfd, &buffer, size, MSG_WAITALL) <= 0) {
 		//puts("ERROR RECIBIR");
-		log_error(logger, "ERROR AL RECIBIR recibirNormal.");
+
 		exit(1);
 	}
 	void* path = malloc(size);
@@ -309,8 +308,6 @@ int main(int argc, char *argv[]) {
 //	system("./osada-format disco.bin");
 	reconocerOSADA(argv[1]);
 //	reconocerOSADA("/home/utnso/disco.bin");
-	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
-	log_info(logger, PROGRAM_DESCRIPTION);
 
 	int sockfd, new_fd;  // Escuchar sobre sock_fd, nuevas conexiones sobre new_fd
 	struct sockaddr_in my_addr;    // información sobre mi dirección
@@ -352,7 +349,7 @@ int main(int argc, char *argv[]) {
 			//perror("accept");
 			continue;
 		}
-		log_info(logger,"POKEDEX CLIENTE conectado desde la IP: %s",  inet_ntoa(their_addr.sin_addr));
+		printf("POKEDEX CLIENTE conectado desde la IP: %s",  inet_ntoa(their_addr.sin_addr));
 		if (!fork()) { // Este es el proceso hijo
 			close(sockfd); // El hijo no necesita este descriptor
 			while(1) {
