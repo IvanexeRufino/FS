@@ -19,7 +19,7 @@ osada_block_pointer* tablaDeAsignaciones;
 osada_block* bloquesDeDatos;
 int inicioDeBloqueDeDatos;
 int cantidadDeBloques;
-
+int sobraDeBitmap;
 
 
 #endif /* POKEDEXSERVIDOR_SRC_FILESYSOSADA_GLOBAL_H_ */
