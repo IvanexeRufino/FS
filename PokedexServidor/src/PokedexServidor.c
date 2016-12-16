@@ -79,6 +79,7 @@ void enviarQueSos(int newfd, t_paquetePro* paqueteSend, void* buffer){
 }
 
 void getattr(int newfd, t_paquetePro* paqueterecv) {
+	printf("Se ejecuta GETATTR. \n");
 	void* buffer = recibirNormal(newfd, paqueterecv->tamanio);
 	osada_file* archivo = obtenerArchivo(buffer);
 	if(archivo == NULL || archivo->state == 0) {
@@ -90,10 +91,11 @@ void getattr(int newfd, t_paquetePro* paqueterecv) {
 }
 
 void readdir(int newfd, t_paquetePro* paqueterecv){
+	printf("Se ejecuta READDIR. \n");
 	char* buffer = recibirNormal(newfd, paqueterecv->tamanio);
 	int indice = obtenerIndice(buffer);
 	t_list* listaDeHijos= listaDeHijosDelArchivo(indice);
-	char* bufo= memoria(17*list_size(listaDeHijos));
+	char* bufo= malloc(17*list_size(listaDeHijos));
 	unsigned char* nombre = malloc(17);
 	int i;
 	for(i=0;i<list_size(listaDeHijos);i++){
@@ -111,6 +113,7 @@ void readdir(int newfd, t_paquetePro* paqueterecv){
 }
 
 void hacerdir (int newfd, t_paquetePro* paqueterecv){
+	printf("Se ejecuta HACERDIR. \n");
 	char* buffer = recibirNormal(newfd, paqueterecv->tamanio);
 	if(strlen(adquirirNombre(buffer)) <= 17) {
 		int error = crear_archivo(buffer,2);
@@ -126,6 +129,7 @@ void hacerdir (int newfd, t_paquetePro* paqueterecv){
 }
 
 void abrir (int newfd, t_paquetePro* paqueterecv){
+	printf("Se ejecuta ABRIR. \n");
 	char* buffer = recibirNormal(newfd, paqueterecv->tamanio);
 	osada_file* archivo = obtenerArchivo(buffer);
 	if(archivo == NULL || archivo->state == 0) {
@@ -137,7 +141,9 @@ void abrir (int newfd, t_paquetePro* paqueterecv){
 }
 
 void crear (int newfd, t_paquetePro* paqueterecv){
+	printf("Se ejecuta CREAR. \n");
 	char* buffer = recibirNormal(newfd, paqueterecv->tamanio);
+	printf("%s \n", buffer);
 	if(strlen(adquirirNombre(buffer)) <= 17) {
 		int  error = crear_archivo(buffer,1);
 		if (error == -1) {
@@ -154,6 +160,7 @@ void crear (int newfd, t_paquetePro* paqueterecv){
 }
 
 void leer (int newfd, t_paquetePro* paqueterecv){
+	printf("Se ejecuta LEER. \n");
 	char* buffer = recibirNormal(newfd, paqueterecv->tamanio);
 	osada_file* archivo = obtenerArchivo(buffer);
 	char* buf = malloc(minimoEntre(archivo->file_size, paqueterecv->size));
@@ -166,6 +173,7 @@ void leer (int newfd, t_paquetePro* paqueterecv){
 }
 
 void escribir (int newfd, t_paquetePro* paqueterecv){
+	printf("Se ejecuta ESCRIBIR. \n");
 	char* path = recibirNormal(newfd, paqueterecv->tamanio);
 	char* buffer = recibirNormal(newfd, paqueterecv->size);
 	int tam = escribir_archivo(path,paqueterecv->offset, paqueterecv->size, buffer);
@@ -181,6 +189,7 @@ void escribir (int newfd, t_paquetePro* paqueterecv){
 }
 
 void remover (int newfd, t_paquetePro* paqueterecv){
+	printf("Se ejecuta REMOVER. \n");
 	char* buffer = recibirNormal(newfd, paqueterecv->tamanio);
 	osada_file* archivo = obtenerArchivo(buffer);
 	if(archivo == NULL || archivo->state == DELETED) {
@@ -197,6 +206,7 @@ void remover (int newfd, t_paquetePro* paqueterecv){
 }
 
 void truncar(int newfd, t_paquetePro* paqueterecv){
+	printf("Se ejecuta TRUNCAR. \n");
 	char* buffer = recibirNormal(newfd, paqueterecv->tamanio);
 	osada_file* archivo = obtenerArchivo(buffer);
 	if(archivo == NULL) {
@@ -208,6 +218,7 @@ void truncar(int newfd, t_paquetePro* paqueterecv){
 }
 
 void renombrar (int newfd, t_paquetePro* paqueterecv){
+	printf("Se ejecuta RENOMBRAR. \n");
 	char* buffer = recibirNormal(newfd, paqueterecv->tamanio);
 	char** bufonuevox= string_split(buffer,"%");
 	renombrar_archivo(bufonuevox[0],bufonuevox[1]);
@@ -215,6 +226,7 @@ void renombrar (int newfd, t_paquetePro* paqueterecv){
 }
 
 void linkear (int newfd, t_paquetePro* paqueterecv){
+	printf("Se ejecuta LINKEAR. \n");
 	char* buffer = recibirNormal(newfd, paqueterecv->tamanio);
 	char** bufonuevox= string_split(buffer,"%");
 	copiar_archivo(bufonuevox[0],bufonuevox[1]);
@@ -222,6 +234,7 @@ void linkear (int newfd, t_paquetePro* paqueterecv){
 }
 
 void utimens (int newfd, t_paquetePro* paqueterecv) {
+	printf("Se ejecuta UTIMENS. \n");
 	char* path = recibirNormal(newfd, paqueterecv->tamanio);
 	osada_file* archivo = obtenerArchivo(path);
 	archivo->lastmod = time(0);
@@ -239,11 +252,11 @@ void recibirQueSos(int newfd){
 
 	t_paquetePro* paqueterecv = desacopladorPro(bufferHead);
 
-	printf("El cliente me envía un paquete \n");
-	printf("el codigo es %d \n", paqueterecv->codigo);
-	printf("el tamaño es %d \n", paqueterecv->tamanio);
-	printf("el offset es %d \n", paqueterecv->offset);
-	printf("el size es %d \n", paqueterecv->size);
+	printf("Recibo un paquete de POKEDEX CLIENTE. \n");
+	printf("Codigo: %d \n", paqueterecv->codigo);
+	printf("Tamaño: %d \n", paqueterecv->tamanio);
+	printf("Offset: %d \n", paqueterecv->offset);
+	printf("Size: %d \n", paqueterecv->size);
 
 		switch(paqueterecv->codigo){
 			case 1:
@@ -296,8 +309,8 @@ int main(int argc, char *argv[]) {
 //	system("./osada-format disco.bin");
 	reconocerOSADA(argv[1]);
 //	reconocerOSADA("/home/utnso/disco.bin");
-//	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
-//	log_info(logger, PROGRAM_DESCRIPTION);
+	logger = log_create(LOG_FILE, PROGRAM_NAME, IS_ACTIVE_CONSOLE, T_LOG_LEVEL);
+	log_info(logger, PROGRAM_DESCRIPTION);
 
 	int sockfd, new_fd;  // Escuchar sobre sock_fd, nuevas conexiones sobre new_fd
 	struct sockaddr_in my_addr;    // información sobre mi dirección
@@ -339,7 +352,7 @@ int main(int argc, char *argv[]) {
 			//perror("accept");
 			continue;
 		}
-//		log_info(logger,"POKEDEX CLIENTE conectado desde la IP: %s",  inet_ntoa(their_addr.sin_addr));
+		log_info(logger,"POKEDEX CLIENTE conectado desde la IP: %s",  inet_ntoa(their_addr.sin_addr));
 		if (!fork()) { // Este es el proceso hijo
 			close(sockfd); // El hijo no necesita este descriptor
 			while(1) {

@@ -83,7 +83,7 @@ void enviarCosa (t_paquetePro* paquete, void* path,char* error){
 t_paquete* enviarQueSos(t_paquetePro* paquete, void* path){
 	pthread_mutex_lock(&sendRecv);
 
-	log_info(logger, "Se envia un paquete a POKEDEX SERVIDOR.");
+	log_info(logger,"Se envia un paquete a POKEDEX SERVIDOR.");
 	log_info(logger,"Codigo: %d",paquete->codigo);
 	log_info(logger,"Tamanio: %d",paquete->tamanio);
 	log_info(logger,"Offset: %d",paquete->offset);
@@ -234,6 +234,9 @@ static int ejemplo_create (char* path, mode_t modo, struct fuse_file_info * info
 	}
 	if(paquete->codigo == 101) {
 		return EDQUOT;
+	}
+	if(paquete->codigo == 105) {
+		return -ENOSPC;
 	}
 	return 0;
 }
