@@ -26,13 +26,13 @@ endif
 all: Mapa
 
 dependents:
-	-cd /home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Debug && $(MAKE) all
+	-cd /home/utnso/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Debug && $(MAKE) all
 
 # Tool invocations
-Mapa: $(OBJS) $(USER_OBJS) /home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Debug/libBibliotecaCompartida.so
+Mapa: $(OBJS) $(USER_OBJS) /home/utnso/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Debug/libBibliotecaCompartida.so
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C Linker'
-	gcc -L"/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Debug" -L"/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida" -o "Mapa" $(OBJS) $(USER_OBJS) $(LIBS)
+	gcc -L"/home/utnso/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Debug" -L"/home/utnso/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida" -o "Mapa" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -43,6 +43,6 @@ clean:
 
 .PHONY: all clean dependents
 .SECONDARY:
-/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Debug/libBibliotecaCompartida.so:
+/home/utnso/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida/Debug/libBibliotecaCompartida.so:
 
 -include ../makefile.targets

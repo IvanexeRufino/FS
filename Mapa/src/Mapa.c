@@ -1132,6 +1132,34 @@ void *detectar_interbloqueo(void *milis)
 		}
 		list_iterate(entrenadores_listos, (void*) filtroPersonaje2);
 
+		void filtroPersonaje3(t_registroPersonaje *p)
+			{
+			bool disponible = true;
+				if (p->marcado == false)
+					{
+						void recursosDisp(t_registroPokenest *r)
+						{
+							if ((int)dictionary_get(dictionary_get(alloc, r->nombre), p->nombre) > 0)
+							{
+								void recursosQueQuieren(t_registroPersonaje *pp)
+													{
+														if ((int)dictionary_get(dictionary_get(request, r->nombre), pp->nombre) > 0 && pp->marcado == false)
+														{
+															disponible = false;
+														}
+													}
+								list_iterate(entrenadores_listos, (void*) recursosQueQuieren);
+							}
+						}
+						list_iterate(listaPokenest, (void*) recursosDisp);
+						if (disponible == true)
+						{
+							p->marcado = true;
+						}
+					}
+				}
+		list_iterate(entrenadores_listos, (void*) filtroPersonaje3);
+
 
 
 

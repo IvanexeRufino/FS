@@ -17,7 +17,7 @@ C_DEPS += \
 src/Mapa.o: ../src/Mapa.c
 	@echo 'Building file: $<'
 	@echo 'Invoking: GCC C Compiler'
-	gcc -I"/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida" -I/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/so-pkmn-utils -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"$(@:%.o=%.d)" -MT"src/Mapa.d" -o "$@" "$<"
+	gcc -I"/home/utnso/tp-2016-2c-SO-II-The-Payback/BibliotecaCompartida" -I/home/utnso/workspace/tp-2016-2c-SO-II-The-Payback/so-pkmn-utils -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"$(@:%.o=%.d)" -MT"src/Mapa.d" -o "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 
