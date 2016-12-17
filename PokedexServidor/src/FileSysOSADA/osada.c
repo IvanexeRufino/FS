@@ -285,7 +285,7 @@
  		pthread_mutex_lock(&semaforoBitmap);
  		int posDelBloque = buscarBloqueVacio();
  		if (posDelBloque != -1) {
- 			archivoNuevo->first_block = posDelBloque
+ 			archivoNuevo->first_block = posDelBloque;
  		} else {
  			archivoNuevo->first_block = -1;
  			return -2;
