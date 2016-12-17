@@ -1187,7 +1187,6 @@ void *detectar_interbloqueo(void *milis)
 			}
 		}
 		list_iterate(entrenadores_listos, (void*) filtroPersonaje2);
-		int i=0;
 		bool auxiliar = true;
 		seguiLimpiando = false;
 		while(auxiliar) {
