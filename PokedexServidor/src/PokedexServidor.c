@@ -100,6 +100,7 @@ void readdir(int newfd, t_paquetePro* paqueterecv){
 	for(i=0;i<list_size(listaDeHijos);i++){
 		osada_file* archivoHijo= list_get(listaDeHijos,i);
 		memcpy(nombre, archivoHijo->fname,17);
+		strcat(nombre,"\0");
 		strcat(bufo,nombre);
 		strcat(bufo, "/");
 	}
