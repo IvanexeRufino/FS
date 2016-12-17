@@ -179,10 +179,13 @@ void escribir (int newfd, t_paquetePro* paqueterecv){
 	char* buffer = recibirNormal(newfd, paqueterecv->size);
 	int tam = escribir_archivo(path,paqueterecv->offset, paqueterecv->size, buffer);
 	if(tam == -1) {
+		printf("me ejecuto espacio \n");
 		enviarQueSos(newfd,empaquetarPro(105,8,0,0),"espacio");
 	} else if(tam != paqueterecv->size) {
+		printf("me ejecuto error \n");
 		enviarQueSos(newfd, empaquetarPro(100,6,0,0), "error");
 	} else {
+		printf("me ejecuto bien \n");
 		osada_file* archivo = obtenerArchivo(path);
 		archivo->lastmod = time(0);
 		enviarQueSos(newfd, empaquetarPro(7, tam,0,0), buffer);
@@ -353,15 +356,14 @@ int main(int argc, char *argv[]) {
 	pthread_t client_threadid;
 	while(1) {
 
-		sin_size = sizeof(struct sockaddr_in);
-		if ((new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size)) == -1) {
-			//perror("accept");
-			continue;
-		}
-		printf("POKEDEX CLIENTE conectado desde la IP: %s",  inet_ntoa(their_addr.sin_addr));
-		pthread_create(&client_threadid,NULL,(void*)wrapperRecibir,new_fd);
-
-	}
+		if (!fork()) { // Este es el proceso hijo
+		 			close(sockfd); // El hijo no necesita este descriptor
+		 			while(1) {
+		 				recibirQueSos(new_fd);
+		 			}
+		 		}
+		 		close(new_fd);  // El proceso padre no lo necesita
+		 		}
 
 
 	return 0;

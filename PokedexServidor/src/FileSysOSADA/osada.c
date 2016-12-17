@@ -15,8 +15,6 @@
  #include <pthread.h>
  #include <errno.h>
 
- pthread_mutex_t semaforoBitmap, semaforoTablaDeArchivos, semaforoTablaDeAsignaciones;
-
  int posicionVerdaderaDelBloque(int numeroDeBloque) {
 
  }

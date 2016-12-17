@@ -11,6 +11,8 @@
 #include "osada.h"
 #include <commons/bitarray.h>
 
+
+pthread_mutex_t semaforoBitmap, semaforoTablaDeArchivos, semaforoTablaDeAsignaciones;
 char * disco;
 osada_header* header;
 t_bitarray* bitmap;
