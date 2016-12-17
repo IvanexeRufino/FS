@@ -342,7 +342,6 @@ int main(int argc, char *argv[]) {
 		//perror("sigaction");
 		exit(1);
 	}
-	signal(SIGINT,ctrl_c);
 	while(1) {
 		sin_size = sizeof(struct sockaddr_in);
 		if ((new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size)) == -1) {
