@@ -265,6 +265,9 @@
  {
  	pthread_mutex_lock(&semaforoTablaDeArchivos);
  	int posicionEnLaTabla = buscarArchivoVacio();
+ 	if(posicionEnLaTabla == -1) {
+ 		return -1;
+ 	}
  	osada_file* archivoNuevo = &tablaDeArchivos[posicionEnLaTabla];
  	if(archivoNuevo == NULL)
  	{
