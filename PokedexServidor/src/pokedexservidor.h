@@ -27,8 +27,8 @@
 #include <errno.h>
 #include <sys/wait.h>
 #include <signal.h>
-#include <pthread.h>
 #include "FileSysOSADA/osada.h"
+#include <curses.h>
 
 
 /* -- declaraciones de constantes -- */
