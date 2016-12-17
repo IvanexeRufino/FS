@@ -5,8 +5,12 @@
  *      Author: utnso
  */
 
+
 #include "pokedexservidor.h"
 #include <pthread.h>
+
+
+pthread_mutex_t semaforoDisco;
 
 void ctrl_c(int nro){
 	exit(1);
@@ -359,11 +363,15 @@ int main(int argc, char *argv[]) {
   			//perror("accept");
   			continue;
   		}
+  	 	pthread_mutex_init (&semaforoDisco,NULL);
   		printf("POKEDEX CLIENTE conectado desde la IP: %s",  inet_ntoa(their_addr.sin_addr));
  		if (!fork()) { // Este es el proceso hijo
  			close(sockfd); // El hijo no necesita este descriptor
  			while(1) {
+ 			 	pthread_mutex_lock(&semaforoDisco);
  				recibirQueSos(new_fd);
+ 			 	pthread_mutex_unlock(&semaforoDisco);
+
  			}
  		}
  		close(new_fd);  // El proceso padre no lo necesita
