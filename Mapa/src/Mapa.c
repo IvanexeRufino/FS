@@ -1056,6 +1056,37 @@ void imprimirTablas(){
 		list_iterate(entrenadores_listos, (void*) asignadoXEntrenador);
 
 }
+
+void filtroPersonaje3(t_registroPersonaje *p)
+	{
+	bool disponible = true;
+		if (p->marcado == false)
+			{
+				void recursosDisp(t_registroPokenest *r)
+				{
+					if ((int)dictionary_get(dictionary_get(alloc, r->nombre), p->nombre) > 0)
+					{
+						void recursosQueQuieren(t_registroPersonaje *pp)
+											{
+												if ((int)dictionary_get(dictionary_get(request, r->nombre), pp->nombre) > 0)
+												{
+													log_info(logger,"aplicando recursividad");
+													if(pp->marcado == false) {
+														disponible = false;
+													}
+												}
+											}
+						list_iterate(entrenadores_listos, (void*) recursosQueQuieren);
+					}
+				}
+				list_iterate(listaPokenest, (void*) recursosDisp);
+				if (disponible == true)
+				{
+					log_info(logger,"limpio a %s en filtro3", p->nombre);
+					p->marcado = true;
+				}
+			}
+		}
 // Funcion que detecta si existen personajes interbloqueados
 void *detectar_interbloqueo(void *milis)
 {
@@ -1074,23 +1105,46 @@ void *detectar_interbloqueo(void *milis)
 
 		// Inicializo todos los personajes como no marcados y
 		// marco todos los personajes que no tengan alocado ningun recurso
-		void marcarEntrenadores(t_registroPersonaje *p)
-		{
-			p->marcado = false;
-			int cant_recursos = 0;
-			void cuentoRecursosDisp(t_registroPokenest *r)
+		bool seguirLimpiando = true;
+			void marcarEntrenadores(t_registroPersonaje *p)
 			{
-				cant_recursos += (int)dictionary_get(dictionary_get(alloc, r->nombre), p->nombre);
-			}
-			list_iterate(listaPokenest, (void*) cuentoRecursosDisp);
+				bool disponible;
+				p->marcado = false;
+				int cant_recursos = 0;
+				void cuentoRecursosDisp(t_registroPokenest *r)
+				{
+					cant_recursos += (int)dictionary_get(dictionary_get(alloc, r->nombre), p->nombre);
+				}
+				list_iterate(listaPokenest, (void*) cuentoRecursosDisp);
 
-			if (cant_recursos == 0)
-			{
-				p->marcado = true;
-			}
-		}
-		list_iterate(entrenadores_listos, (void*) marcarEntrenadores);
+				if (cant_recursos == 0)
+				{
+					p->marcado = true;
+				} else {
+					void recursosDisp(t_registroPokenest *r)
+					{
+						if ((int)dictionary_get(dictionary_get(alloc, r->nombre), p->nombre) > 0)
+						{
+							void recursosQueQuieren(t_registroPersonaje *pp)
+												{
+													if ((int)dictionary_get(dictionary_get(request, r->nombre), pp->nombre) > 0)
+													{
+															disponible = false;
+													}
+												}
+							list_iterate(entrenadores_listos, (void*) recursosQueQuieren);
+						}
+					}
+					list_iterate(listaPokenest, (void*) recursosDisp);
+				}
+				if (disponible == true)
+				{
+					log_info(logger,"limpio a %s en marcarEntrenador", p->nombre);
+					p->marcado = true;
 
+				}
+			}
+			list_iterate(entrenadores_listos, (void*) marcarEntrenadores);
 		//Inicializo el vector copiaAvailable, copia de available.
 		copiaAvailable = dictionary_create();
 		void copioDiccionario(t_registroPokenest *r)
@@ -1116,6 +1170,7 @@ void *detectar_interbloqueo(void *milis)
 
 				if (disponible == true)
 				{
+					log_info(logger,"limpio a %s en filtro2", p->nombre);
 					p->marcado = true;
 					// copiaAvailable + allocated para ese personaje
 					int nueva_cantidad = 0;
@@ -1132,38 +1187,7 @@ void *detectar_interbloqueo(void *milis)
 		}
 		list_iterate(entrenadores_listos, (void*) filtroPersonaje2);
 
-		void filtroPersonaje3(t_registroPersonaje *p)
-			{
-			bool disponible = true;
-				if (p->marcado == false)
-					{
-						void recursosDisp(t_registroPokenest *r)
-						{
-							if ((int)dictionary_get(dictionary_get(alloc, r->nombre), p->nombre) > 0)
-							{
-								void recursosQueQuieren(t_registroPersonaje *pp)
-													{
-														if ((int)dictionary_get(dictionary_get(request, r->nombre), pp->nombre) > 0 && pp->marcado == false)
-														{
-															disponible = false;
-														}
-													}
-								list_iterate(entrenadores_listos, (void*) recursosQueQuieren);
-							}
-						}
-						list_iterate(listaPokenest, (void*) recursosDisp);
-						if (disponible == true)
-						{
-							p->marcado = true;
-						}
-					}
-				}
 		list_iterate(entrenadores_listos, (void*) filtroPersonaje3);
-
-
-
-
-
 
 
 		// chequeo si existen personajes sin marcar == interbloqueo y envio señal al proceso
