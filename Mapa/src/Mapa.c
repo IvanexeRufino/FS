@@ -1084,6 +1084,8 @@ void filtroPersonaje3(t_registroPersonaje *p)
 					log_info(logger,"limpio a %s en filtro3", p->nombre);
 					p->marcado = true;
 					seguiLimpiando = true;
+				} else {
+					seguiLimpiando = false;
 				}
 			}
 		}
