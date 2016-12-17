@@ -1070,7 +1070,6 @@ void filtroPersonaje3(t_registroPersonaje *p)
 											{
 												if ((int)dictionary_get(dictionary_get(request, r->nombre), pp->nombre) > 0)
 												{
-													log_info(logger,"aplicando recursividad");
 													if(pp->marcado == false) {
 														disponible = false;
 													}
@@ -1084,6 +1083,7 @@ void filtroPersonaje3(t_registroPersonaje *p)
 				{
 					log_info(logger,"limpio a %s en filtro3", p->nombre);
 					p->marcado = true;
+					seguiLimpiando = true;
 				}
 			}
 		}
@@ -1105,7 +1105,6 @@ void *detectar_interbloqueo(void *milis)
 
 		// Inicializo todos los personajes como no marcados y
 		// marco todos los personajes que no tengan alocado ningun recurso
-		bool seguirLimpiando = true;
 			void marcarEntrenadores(t_registroPersonaje *p)
 			{
 				bool disponible;
@@ -1186,10 +1185,15 @@ void *detectar_interbloqueo(void *milis)
 			}
 		}
 		list_iterate(entrenadores_listos, (void*) filtroPersonaje2);
-
-		list_iterate(entrenadores_listos, (void*) filtroPersonaje3);
-
-
+		int i=0;
+		bool auxiliar = true;
+		seguiLimpiando = false;
+		while(auxiliar) {
+			list_iterate(entrenadores_listos, (void*) filtroPersonaje3);
+			if(!seguiLimpiando) {
+				auxiliar = false;
+			}
+		}
 		// chequeo si existen personajes sin marcar == interbloqueo y envio señal al proceso
 		int bloqueados = 0;
 		char *str = string_new();
@@ -1242,6 +1246,7 @@ void *detectar_interbloqueo(void *milis)
 
 int main(int argc, char **argv)
 {
+	seguiLimpiando = true;
 	filas = 30;
 	columnas =30;
 	items = list_create();	//Para usar despues en las cajas

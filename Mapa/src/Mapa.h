@@ -91,6 +91,7 @@ typedef struct
 
 /*----------------------- Declaraciones de Variables Globales ---------------------------*/
 
+	bool seguiLimpiando;
 	char rutaArgv[100];
 	pid_t pid;
 	int filas, columnas;
