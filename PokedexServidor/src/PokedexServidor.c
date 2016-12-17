@@ -246,9 +246,7 @@ void utimens (int newfd, t_paquetePro* paqueterecv) {
 }
 
 void wrapperRecibir(int newfd) {
-	while(1) {
 		recibirQueSos(newfd);
-	}
 }
 
 void recibirQueSos(int newfd){
@@ -356,14 +354,20 @@ int main(int argc, char *argv[]) {
 	pthread_t client_threadid;
 	while(1) {
 
-		if (!fork()) { // Este es el proceso hijo
-		 			close(sockfd); // El hijo no necesita este descriptor
-		 			while(1) {
-		 				recibirQueSos(new_fd);
-		 			}
-		 		}
-		 		close(new_fd);  // El proceso padre no lo necesita
-		 		}
+ 		sin_size = sizeof(struct sockaddr_in);
+  		if ((new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size)) == -1) {
+  			//perror("accept");
+  			continue;
+  		}
+  		printf("POKEDEX CLIENTE conectado desde la IP: %s",  inet_ntoa(their_addr.sin_addr));
+ 		if (!fork()) { // Este es el proceso hijo
+ 			close(sockfd); // El hijo no necesita este descriptor
+ 			while(1) {
+ 				recibirQueSos(new_fd);
+ 			}
+ 		}
+ 		close(new_fd);  // El proceso padre no lo necesita
+ 		}
 
 
 	return 0;
